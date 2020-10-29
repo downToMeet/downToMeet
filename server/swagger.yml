@@ -1,0 +1,40 @@
+swagger: "2.0"
+info:
+  title: Internal DownToMeet API
+  version: 1.0.0
+consumes:
+  - application/json
+produces:
+  - application/json
+schemes:
+  - http
+
+definitions:
+  error:
+    type: object
+    properties:
+      message:
+        type: string
+
+paths:
+  /hello:
+    parameters:
+      - name: id
+        in: query
+        type: string
+        description: A sample parameter.
+    get:
+      summary: Get a hello world message
+      description: If id is "error", an error response is returned.
+      responses:
+        200:
+          description: successful hello world response
+          schema:
+            type: object
+            properties:
+              hello:
+                type: string
+        default:
+          description: generic error response
+          schema:
+            $ref: "#/definitions/error"
