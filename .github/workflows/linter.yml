@@ -1,0 +1,44 @@
+---
+name: Lint Code Base
+
+#
+# Documentation:
+# https://help.github.com/en/articles/workflow-syntax-for-github-actions
+#
+
+on: push
+
+jobs:
+  build:
+    name: Lint Code Base
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: '14.x'
+
+      - name: Yarn install
+        run: |
+          cd client && yarn --frozen-lockfile
+
+      - name: Lint Code Base
+        uses: github/super-linter@v3
+        env:
+          VALIDATE_ALL_CODEBASE: false
+          VALIDATE_JAVASCRIPT_ES: true
+          VALIDATE_GO: true
+          VALIDATE_JSON: true
+          VALIDATE_OPENAPI: true
+          VALIDATE_YAML: true
+          LINTER_RULES_PATH: .
+          JAVASCRIPT_ES_CONFIG_FILE: client/.eslintrc.json
+          DEFAULT_BRANCH: main
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+...
