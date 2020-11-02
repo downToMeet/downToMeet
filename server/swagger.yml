@@ -13,6 +13,9 @@ definitions:
   error:
     type: object
     properties:
+      code:
+        type: integer
+        format: int32
       message:
         type: string
   userID:
@@ -60,6 +63,17 @@ definitions:
       contactInfo:
         type: string
 
+securityDefinitions:
+  cookieSession:
+    description: |
+      Session stored in a cookie.
+
+      (If you're reading this in the API documentation, ignore the
+      "query parameter name" below. It is ignored at runtime.)
+    name: COOKIE
+    type: apiKey
+    in: query
+
 paths:
   /hello:
     parameters:
@@ -69,7 +83,11 @@ paths:
         description: A sample parameter.
     get:
       summary: Get a hello world message
-      description: If id is "error", an error response is returned.
+      description: |
+        If id is "error", an error response is returned.
+
+        This is a dummy endpoint for testing purposes. It should be removed soon.
+      deprecated: true
       responses:
         200:
           description: successful hello world response
@@ -86,6 +104,8 @@ paths:
     get:
       summary: Get the current user's information
       description: If user is not logged in, an error response is returned.
+      security:
+        - cookieSession: []
       responses:
         200:
           description: OK
@@ -127,6 +147,8 @@ paths:
       description: |
         If specified user does not exist or current user is not the specified
         user, an error is returned.
+      security:
+        - cookieSession: []
       responses:
         200:
           description: OK
@@ -160,3 +182,51 @@ paths:
             Location:
               type: string
               description: Redirect URL
+
+  /set-cookie:
+    get:
+      summary: Set cookie session
+      description: |
+        This is a sample endpoint that simulates the action of logging in. After
+        a successful call to this endpoint, one should then be able to go to
+        /restricted and receive a message about who they are logged in as.
+
+        This is a dummy endpoint for testing purposes. It should be removed soon.
+      deprecated: true
+      parameters:
+        - name: user_id
+          in: query
+          type: string
+          description: User ID to set
+      produces:
+        - text/plain
+      responses:
+        200:
+          description: OK
+          headers:
+            Set-Cookie:
+              type: string
+          schema:
+            type: string
+  /restricted:
+    get:
+      summary: Restricted endpoint
+      description: |
+        This is a sample endpoint that is restricted only to users who are
+        "logged in".
+
+        This is a dummy endpoint for testing purposes. It should be removed soon.
+      deprecated: true
+      security:
+        - cookieSession: []
+      produces:
+        - text/plain
+      responses:
+        200:
+          description: OK
+          schema:
+            type: string
+        401:
+          description: Not authenticated
+          schema:
+            $ref: "#/definitions/error"

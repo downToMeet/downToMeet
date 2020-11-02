@@ -6,8 +6,11 @@ import (
 	"crypto/tls"
 	"net/http"
 
+	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/runtime/middleware"
+	"github.com/go-openapi/runtime/security"
 	"github.com/go-openapi/swag"
+	log "github.com/sirupsen/logrus"
 
 	"go.timothygu.me/downtomeet/server/impl"
 	"go.timothygu.me/downtomeet/server/restapi/operations"
@@ -15,21 +18,19 @@ import (
 
 //go:generate go run github.com/go-swagger/go-swagger/cmd/swagger generate server --target ../../server --name DownToMeet --spec ../swagger.yml --principal interface{}
 
-var serverOpts struct {
-	Production bool `long:"production" description:"Run in production mode"`
-}
+var Impl = impl.NewImplementation()
 
 func configureFlags(api *operations.DownToMeetAPI) {
 	api.CommandLineOptionsGroups = []swag.CommandLineOptionsGroup{
 		{
 			ShortDescription: "server options",
-			Options:          &serverOpts,
+			Options:          &Impl.Options,
 		},
 	}
 }
 
 func configureAPI(api *operations.DownToMeetAPI) http.Handler {
-	if serverOpts.Production {
+	if Impl.Options.Production {
 		api.Middleware = func(builder middleware.Builder) http.Handler {
 			return api.Context().RoutesHandler(builder)
 		}
@@ -38,8 +39,24 @@ func configureAPI(api *operations.DownToMeetAPI) http.Handler {
 		api.UseRedoc()
 	}
 
-	api.GetHelloHandler = operations.GetHelloHandlerFunc(impl.GetHello)
-	api.GetUserIDHandler = operations.GetUserIDHandlerFunc(impl.GetUserID)
+	api.GetHelloHandler = operations.GetHelloHandlerFunc(Impl.GetHello)
+	api.GetSetCookieHandler = operations.GetSetCookieHandlerFunc(Impl.GetSetCookie)
+	api.GetRestrictedHandler = operations.GetRestrictedHandlerFunc(Impl.GetRestricted)
+
+	api.GetUserIDHandler = operations.GetUserIDHandlerFunc(Impl.GetUserID)
+
+	api.Logger = log.Infof
+
+	api.APIKeyAuthenticator = func(name, in string, authentication security.TokenAuthentication) runtime.Authenticator {
+		if name == "COOKIE" {
+			return security.HttpAuthenticator(func(r *http.Request) (authenticated bool, principal interface{}, err error) {
+				session := impl.SessionFromContext(r.Context())
+				return !session.IsNew, session, err
+			})
+		}
+
+		return security.APIKeyAuth(name, in, authentication)
+	}
 
 	return setupGlobalMiddleware(api.Serve(setupMiddlewares))
 }
@@ -59,7 +76,7 @@ func configureServer(s *http.Server, scheme, addr string) {
 // The middleware configuration is for the handler executors. These do not apply to the swagger.json document.
 // The middleware executes after routing but before authentication, binding and validation
 func setupMiddlewares(handler http.Handler) http.Handler {
-	return handler
+	return Impl.SessionMiddleware(handler)
 }
 
 // The middleware configuration happens before anything, this middleware also applies to serving the swagger.json document.

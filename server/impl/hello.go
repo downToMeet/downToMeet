@@ -13,7 +13,8 @@ import (
 
 var times int32
 
-func GetHello(params operations.GetHelloParams) middleware.Responder {
+// Deprecated: This is a dummy endpoint that should be removed.
+func (i *Implementation) GetHello(params operations.GetHelloParams) middleware.Responder {
 	if swag.StringValue(params.ID) == "error" {
 		return operations.NewGetHelloDefault(400).
 			WithPayload(&models.Error{

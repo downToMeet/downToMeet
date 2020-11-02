@@ -35,8 +35,9 @@ func init() {
   "paths": {
     "/hello": {
       "get": {
-        "description": "If id is \"error\", an error response is returned.",
+        "description": "If id is \"error\", an error response is returned.\n\nThis is a dummy endpoint for testing purposes. It should be removed soon.\n",
         "summary": "Get a hello world message",
+        "deprecated": true,
         "responses": {
           "200": {
             "description": "successful hello world response",
@@ -66,6 +67,66 @@ func init() {
         }
       ]
     },
+    "/restricted": {
+      "get": {
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "description": "This is a sample endpoint that is restricted only to users who are\n\"logged in\".\n\nThis is a dummy endpoint for testing purposes. It should be removed soon.\n",
+        "produces": [
+          "text/plain"
+        ],
+        "summary": "Restricted endpoint",
+        "deprecated": true,
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "401": {
+            "description": "Not authenticated",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          }
+        }
+      }
+    },
+    "/set-cookie": {
+      "get": {
+        "description": "This is a sample endpoint that simulates the action of logging in. After\na successful call to this endpoint, one should then be able to go to\n/restricted and receive a message about who they are logged in as.\n\nThis is a dummy endpoint for testing purposes. It should be removed soon.\n",
+        "produces": [
+          "text/plain"
+        ],
+        "summary": "Set cookie session",
+        "deprecated": true,
+        "parameters": [
+          {
+            "type": "string",
+            "description": "User ID to set",
+            "name": "user_id",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "string"
+            },
+            "headers": {
+              "Set-Cookie": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
     "/user/facebook/redirect": {
       "get": {
         "description": "If authentication fails, the user is not logged in.",
@@ -93,6 +154,11 @@ func init() {
     },
     "/user/me": {
       "get": {
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
         "description": "If user is not logged in, an error response is returned.",
         "summary": "Get the current user's information",
         "responses": {
@@ -143,6 +209,11 @@ func init() {
         }
       },
       "patch": {
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
         "description": "If specified user does not exist or current user is not the specified\nuser, an error is returned.\n",
         "summary": "Patch the specified user",
         "responses": {
@@ -202,6 +273,10 @@ func init() {
     "error": {
       "type": "object",
       "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
         "message": {
           "type": "string"
         }
@@ -256,6 +331,14 @@ func init() {
     },
     "userID": {
       "type": "string"
+    }
+  },
+  "securityDefinitions": {
+    "cookieSession": {
+      "description": "Session stored in a cookie.\n\n(If you're reading this in the API documentation, ignore the\n\"query parameter name\" below. It is ignored at runtime.)\n",
+      "type": "apiKey",
+      "name": "COOKIE",
+      "in": "query"
     }
   }
 }`))
@@ -277,8 +360,9 @@ func init() {
   "paths": {
     "/hello": {
       "get": {
-        "description": "If id is \"error\", an error response is returned.",
+        "description": "If id is \"error\", an error response is returned.\n\nThis is a dummy endpoint for testing purposes. It should be removed soon.\n",
         "summary": "Get a hello world message",
+        "deprecated": true,
         "responses": {
           "200": {
             "description": "successful hello world response",
@@ -308,6 +392,66 @@ func init() {
         }
       ]
     },
+    "/restricted": {
+      "get": {
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "description": "This is a sample endpoint that is restricted only to users who are\n\"logged in\".\n\nThis is a dummy endpoint for testing purposes. It should be removed soon.\n",
+        "produces": [
+          "text/plain"
+        ],
+        "summary": "Restricted endpoint",
+        "deprecated": true,
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "401": {
+            "description": "Not authenticated",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          }
+        }
+      }
+    },
+    "/set-cookie": {
+      "get": {
+        "description": "This is a sample endpoint that simulates the action of logging in. After\na successful call to this endpoint, one should then be able to go to\n/restricted and receive a message about who they are logged in as.\n\nThis is a dummy endpoint for testing purposes. It should be removed soon.\n",
+        "produces": [
+          "text/plain"
+        ],
+        "summary": "Set cookie session",
+        "deprecated": true,
+        "parameters": [
+          {
+            "type": "string",
+            "description": "User ID to set",
+            "name": "user_id",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "string"
+            },
+            "headers": {
+              "Set-Cookie": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
     "/user/facebook/redirect": {
       "get": {
         "description": "If authentication fails, the user is not logged in.",
@@ -335,6 +479,11 @@ func init() {
     },
     "/user/me": {
       "get": {
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
         "description": "If user is not logged in, an error response is returned.",
         "summary": "Get the current user's information",
         "responses": {
@@ -385,6 +534,11 @@ func init() {
         }
       },
       "patch": {
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
         "description": "If specified user does not exist or current user is not the specified\nuser, an error is returned.\n",
         "summary": "Patch the specified user",
         "responses": {
@@ -444,6 +598,10 @@ func init() {
     "error": {
       "type": "object",
       "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
         "message": {
           "type": "string"
         }
@@ -498,6 +656,14 @@ func init() {
     },
     "userID": {
       "type": "string"
+    }
+  },
+  "securityDefinitions": {
+    "cookieSession": {
+      "description": "Session stored in a cookie.\n\n(If you're reading this in the API documentation, ignore the\n\"query parameter name\" below. It is ignored at runtime.)\n",
+      "type": "apiKey",
+      "name": "COOKIE",
+      "in": "query"
     }
   }
 }`))

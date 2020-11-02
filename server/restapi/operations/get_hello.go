@@ -37,6 +37,9 @@ Get a hello world message
 
 If id is "error", an error response is returned.
 
+This is a dummy endpoint for testing purposes. It should be removed soon.
+
+
 */
 type GetHello struct {
 	Context *middleware.Context

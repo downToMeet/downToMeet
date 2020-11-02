@@ -41,9 +41,16 @@ func NewDownToMeetAPI(spec *loads.Document) *DownToMeetAPI {
 		JSONConsumer: runtime.JSONConsumer(),
 
 		JSONProducer: runtime.JSONProducer(),
+		TxtProducer:  runtime.TextProducer(),
 
 		GetHelloHandler: GetHelloHandlerFunc(func(params GetHelloParams) middleware.Responder {
 			return middleware.NotImplemented("operation GetHello has not yet been implemented")
+		}),
+		GetRestrictedHandler: GetRestrictedHandlerFunc(func(params GetRestrictedParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation GetRestricted has not yet been implemented")
+		}),
+		GetSetCookieHandler: GetSetCookieHandlerFunc(func(params GetSetCookieParams) middleware.Responder {
+			return middleware.NotImplemented("operation GetSetCookie has not yet been implemented")
 		}),
 		GetUserFacebookRedirectHandler: GetUserFacebookRedirectHandlerFunc(func(params GetUserFacebookRedirectParams) middleware.Responder {
 			return middleware.NotImplemented("operation GetUserFacebookRedirect has not yet been implemented")
@@ -51,12 +58,19 @@ func NewDownToMeetAPI(spec *loads.Document) *DownToMeetAPI {
 		GetUserIDHandler: GetUserIDHandlerFunc(func(params GetUserIDParams) middleware.Responder {
 			return middleware.NotImplemented("operation GetUserID has not yet been implemented")
 		}),
-		GetUserMeHandler: GetUserMeHandlerFunc(func(params GetUserMeParams) middleware.Responder {
+		GetUserMeHandler: GetUserMeHandlerFunc(func(params GetUserMeParams, principal interface{}) middleware.Responder {
 			return middleware.NotImplemented("operation GetUserMe has not yet been implemented")
 		}),
-		PatchUserIDHandler: PatchUserIDHandlerFunc(func(params PatchUserIDParams) middleware.Responder {
+		PatchUserIDHandler: PatchUserIDHandlerFunc(func(params PatchUserIDParams, principal interface{}) middleware.Responder {
 			return middleware.NotImplemented("operation PatchUserID has not yet been implemented")
 		}),
+
+		// Applies when the "COOKIE" query is set
+		CookieSessionAuth: func(token string) (interface{}, error) {
+			return nil, errors.NotImplemented("api key auth (cookieSession) COOKIE from query param [COOKIE] has not yet been implemented")
+		},
+		// default authorizer is authorized meaning no requests are blocked
+		APIAuthorizer: security.Authorized(),
 	}
 }
 
@@ -90,9 +104,23 @@ type DownToMeetAPI struct {
 	// JSONProducer registers a producer for the following mime types:
 	//   - application/json
 	JSONProducer runtime.Producer
+	// TxtProducer registers a producer for the following mime types:
+	//   - text/plain
+	TxtProducer runtime.Producer
+
+	// CookieSessionAuth registers a function that takes a token and returns a principal
+	// it performs authentication based on an api key COOKIE provided in the query
+	CookieSessionAuth func(string) (interface{}, error)
+
+	// APIAuthorizer provides access control (ACL/RBAC/ABAC) by providing access to the request and authenticated principal
+	APIAuthorizer runtime.Authorizer
 
 	// GetHelloHandler sets the operation handler for the get hello operation
 	GetHelloHandler GetHelloHandler
+	// GetRestrictedHandler sets the operation handler for the get restricted operation
+	GetRestrictedHandler GetRestrictedHandler
+	// GetSetCookieHandler sets the operation handler for the get set cookie operation
+	GetSetCookieHandler GetSetCookieHandler
 	// GetUserFacebookRedirectHandler sets the operation handler for the get user facebook redirect operation
 	GetUserFacebookRedirectHandler GetUserFacebookRedirectHandler
 	// GetUserIDHandler sets the operation handler for the get user ID operation
@@ -176,9 +204,22 @@ func (o *DownToMeetAPI) Validate() error {
 	if o.JSONProducer == nil {
 		unregistered = append(unregistered, "JSONProducer")
 	}
+	if o.TxtProducer == nil {
+		unregistered = append(unregistered, "TxtProducer")
+	}
+
+	if o.CookieSessionAuth == nil {
+		unregistered = append(unregistered, "COOKIEAuth")
+	}
 
 	if o.GetHelloHandler == nil {
 		unregistered = append(unregistered, "GetHelloHandler")
+	}
+	if o.GetRestrictedHandler == nil {
+		unregistered = append(unregistered, "GetRestrictedHandler")
+	}
+	if o.GetSetCookieHandler == nil {
+		unregistered = append(unregistered, "GetSetCookieHandler")
 	}
 	if o.GetUserFacebookRedirectHandler == nil {
 		unregistered = append(unregistered, "GetUserFacebookRedirectHandler")
@@ -207,12 +248,21 @@ func (o *DownToMeetAPI) ServeErrorFor(operationID string) func(http.ResponseWrit
 
 // AuthenticatorsFor gets the authenticators for the specified security schemes
 func (o *DownToMeetAPI) AuthenticatorsFor(schemes map[string]spec.SecurityScheme) map[string]runtime.Authenticator {
-	return nil
+	result := make(map[string]runtime.Authenticator)
+	for name := range schemes {
+		switch name {
+		case "cookieSession":
+			scheme := schemes[name]
+			result[name] = o.APIKeyAuthenticator(scheme.Name, scheme.In, o.CookieSessionAuth)
+
+		}
+	}
+	return result
 }
 
 // Authorizer returns the registered authorizer
 func (o *DownToMeetAPI) Authorizer() runtime.Authorizer {
-	return nil
+	return o.APIAuthorizer
 }
 
 // ConsumersFor gets the consumers for the specified media types.
@@ -240,6 +290,8 @@ func (o *DownToMeetAPI) ProducersFor(mediaTypes []string) map[string]runtime.Pro
 		switch mt {
 		case "application/json":
 			result["application/json"] = o.JSONProducer
+		case "text/plain":
+			result["text/plain"] = o.TxtProducer
 		}
 
 		if p, ok := o.customProducers[mt]; ok {
@@ -284,6 +336,14 @@ func (o *DownToMeetAPI) initHandlerCache() {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}
 	o.handlers["GET"]["/hello"] = NewGetHello(o.context, o.GetHelloHandler)
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"]["/restricted"] = NewGetRestricted(o.context, o.GetRestrictedHandler)
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"]["/set-cookie"] = NewGetSetCookie(o.context, o.GetSetCookieHandler)
 	if o.handlers["GET"] == nil {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}
