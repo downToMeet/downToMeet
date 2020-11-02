@@ -9,8 +9,8 @@ import (
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/go-openapi/swag"
 
-	"go.timothygu.me/downtomeet/impl"
-	"go.timothygu.me/downtomeet/restapi/operations"
+	"go.timothygu.me/downtomeet/server/impl"
+	"go.timothygu.me/downtomeet/server/restapi/operations"
 )
 
 //go:generate go run github.com/go-swagger/go-swagger/cmd/swagger generate server --target ../../server --name DownToMeet --spec ../swagger.yml --principal interface{}

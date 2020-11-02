@@ -7,8 +7,8 @@ import (
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/go-openapi/swag"
 
-	"go.timothygu.me/downtomeet/models"
-	"go.timothygu.me/downtomeet/restapi/operations"
+	"go.timothygu.me/downtomeet/server/models"
+	"go.timothygu.me/downtomeet/server/restapi/operations"
 )
 
 var times int32

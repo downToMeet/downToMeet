@@ -9,36 +9,56 @@ name: Lint Code Base
 on: push
 
 jobs:
-  build:
-    name: Lint Code Base
+  eslint:
+    name: Lint JavaScript
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
 
-      - name: Use Node.js
+      - name: Install Node.js
         uses: actions/setup-node@v1
         with:
           node-version: '14.x'
 
       - name: Yarn install
-        run: |
-          cd client && yarn --frozen-lockfile
+        run: cd client && yarn --frozen-lockfile
 
-      - name: Lint Code Base
-        uses: github/super-linter@v3
-        env:
-          VALIDATE_ALL_CODEBASE: false
-          VALIDATE_JAVASCRIPT_ES: true
-          VALIDATE_GO: true
-          VALIDATE_JSON: true
-          VALIDATE_OPENAPI: true
-          VALIDATE_YAML: true
-          LINTER_RULES_PATH: .
-          JAVASCRIPT_ES_CONFIG_FILE: client/.eslintrc.json
-          DEFAULT_BRANCH: main
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-...
+      - name: Lint JavaScript
+        run: cd client && yarn lint
+  
+  testgo:
+    name: Test Go Code
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Install Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: '^1.15'
+      
+      - run: go mod download
+
+      - run: go vet ./...
+
+      - run: go test ./...
+
+      - name: Format code
+        run: |
+          make -C server format
+          if ! git diff --exit-code; then
+            echo 'Code not formatted correctly; run make -C server format'
+            exit 1
+          fi
+
+      - name: Run go mod tidy
+        run: |
+          go mod tidy
+          if ! git diff --exit-code; then
+            echo 'Dependencies not up to date; run go mod tidy'
+            exit 1
+          fi
