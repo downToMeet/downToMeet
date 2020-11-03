@@ -65,9 +65,140 @@ func init() {
           "in": "query"
         }
       ]
+    },
+    "/user/facebook/redirect": {
+      "get": {
+        "description": "If authentication fails, the user is not logged in.",
+        "summary": "Facebook OAuth redirect",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Authorization code from Facebook",
+            "name": "code",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "303": {
+            "description": "Redirect to home page.",
+            "headers": {
+              "Location": {
+                "type": "string",
+                "description": "Redirect URL"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/user/me": {
+      "get": {
+        "description": "If user is not logged in, an error response is returned.",
+        "summary": "Get the current user's information",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/user"
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          }
+        }
+      }
+    },
+    "/user/{id}": {
+      "get": {
+        "description": "If specified user does not exist, an error is returned.",
+        "summary": "Get the specified user's information",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/user"
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          }
+        }
+      },
+      "patch": {
+        "description": "If specified user does not exist or current user is not the specified\nuser, an error is returned.\n",
+        "summary": "Patch the specified user",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/user"
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          }
+        }
+      },
+      "parameters": [
+        {
+          "type": "string",
+          "description": "ID of the desired user",
+          "name": "id",
+          "in": "path",
+          "required": true
+        }
+      ]
     }
   },
   "definitions": {
+    "coordinates": {
+      "type": "object",
+      "properties": {
+        "lat": {
+          "type": "number",
+          "maximum": 90,
+          "minimum": -90
+        },
+        "lon": {
+          "type": "number",
+          "maximum": 180,
+          "minimum": -180
+        }
+      }
+    },
     "error": {
       "type": "object",
       "properties": {
@@ -75,6 +206,56 @@ func init() {
           "type": "string"
         }
       }
+    },
+    "meetupID": {
+      "type": "string"
+    },
+    "user": {
+      "type": "object",
+      "required": [
+        "id"
+      ],
+      "properties": {
+        "attending": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/meetupID"
+          }
+        },
+        "contactInfo": {
+          "type": "string"
+        },
+        "coordinates": {
+          "$ref": "#/definitions/coordinates"
+        },
+        "id": {
+          "$ref": "#/definitions/userID"
+        },
+        "interests": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "name": {
+          "type": "string"
+        },
+        "ownedMeetups": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/meetupID"
+          }
+        },
+        "pendingApproval": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/meetupID"
+          }
+        }
+      }
+    },
+    "userID": {
+      "type": "string"
     }
   }
 }`))
@@ -126,9 +307,140 @@ func init() {
           "in": "query"
         }
       ]
+    },
+    "/user/facebook/redirect": {
+      "get": {
+        "description": "If authentication fails, the user is not logged in.",
+        "summary": "Facebook OAuth redirect",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Authorization code from Facebook",
+            "name": "code",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "303": {
+            "description": "Redirect to home page.",
+            "headers": {
+              "Location": {
+                "type": "string",
+                "description": "Redirect URL"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/user/me": {
+      "get": {
+        "description": "If user is not logged in, an error response is returned.",
+        "summary": "Get the current user's information",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/user"
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          }
+        }
+      }
+    },
+    "/user/{id}": {
+      "get": {
+        "description": "If specified user does not exist, an error is returned.",
+        "summary": "Get the specified user's information",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/user"
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          }
+        }
+      },
+      "patch": {
+        "description": "If specified user does not exist or current user is not the specified\nuser, an error is returned.\n",
+        "summary": "Patch the specified user",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/user"
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          }
+        }
+      },
+      "parameters": [
+        {
+          "type": "string",
+          "description": "ID of the desired user",
+          "name": "id",
+          "in": "path",
+          "required": true
+        }
+      ]
     }
   },
   "definitions": {
+    "coordinates": {
+      "type": "object",
+      "properties": {
+        "lat": {
+          "type": "number",
+          "maximum": 90,
+          "minimum": -90
+        },
+        "lon": {
+          "type": "number",
+          "maximum": 180,
+          "minimum": -180
+        }
+      }
+    },
     "error": {
       "type": "object",
       "properties": {
@@ -136,6 +448,56 @@ func init() {
           "type": "string"
         }
       }
+    },
+    "meetupID": {
+      "type": "string"
+    },
+    "user": {
+      "type": "object",
+      "required": [
+        "id"
+      ],
+      "properties": {
+        "attending": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/meetupID"
+          }
+        },
+        "contactInfo": {
+          "type": "string"
+        },
+        "coordinates": {
+          "$ref": "#/definitions/coordinates"
+        },
+        "id": {
+          "$ref": "#/definitions/userID"
+        },
+        "interests": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "name": {
+          "type": "string"
+        },
+        "ownedMeetups": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/meetupID"
+          }
+        },
+        "pendingApproval": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/meetupID"
+          }
+        }
+      }
+    },
+    "userID": {
+      "type": "string"
     }
   }
 }`))

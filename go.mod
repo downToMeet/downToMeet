@@ -11,7 +11,7 @@ require (
 	github.com/go-openapi/spec v0.19.11
 	github.com/go-openapi/strfmt v0.19.7
 	github.com/go-openapi/swag v0.19.11
-	github.com/go-openapi/validate v0.19.12 // indirect
+	github.com/go-openapi/validate v0.19.12
 	github.com/go-swagger/go-swagger v0.25.0
 	github.com/gorilla/handlers v1.5.1 // indirect
 	github.com/jessevdk/go-flags v1.4.0

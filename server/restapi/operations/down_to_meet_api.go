@@ -45,6 +45,18 @@ func NewDownToMeetAPI(spec *loads.Document) *DownToMeetAPI {
 		GetHelloHandler: GetHelloHandlerFunc(func(params GetHelloParams) middleware.Responder {
 			return middleware.NotImplemented("operation GetHello has not yet been implemented")
 		}),
+		GetUserFacebookRedirectHandler: GetUserFacebookRedirectHandlerFunc(func(params GetUserFacebookRedirectParams) middleware.Responder {
+			return middleware.NotImplemented("operation GetUserFacebookRedirect has not yet been implemented")
+		}),
+		GetUserIDHandler: GetUserIDHandlerFunc(func(params GetUserIDParams) middleware.Responder {
+			return middleware.NotImplemented("operation GetUserID has not yet been implemented")
+		}),
+		GetUserMeHandler: GetUserMeHandlerFunc(func(params GetUserMeParams) middleware.Responder {
+			return middleware.NotImplemented("operation GetUserMe has not yet been implemented")
+		}),
+		PatchUserIDHandler: PatchUserIDHandlerFunc(func(params PatchUserIDParams) middleware.Responder {
+			return middleware.NotImplemented("operation PatchUserID has not yet been implemented")
+		}),
 	}
 }
 
@@ -81,6 +93,14 @@ type DownToMeetAPI struct {
 
 	// GetHelloHandler sets the operation handler for the get hello operation
 	GetHelloHandler GetHelloHandler
+	// GetUserFacebookRedirectHandler sets the operation handler for the get user facebook redirect operation
+	GetUserFacebookRedirectHandler GetUserFacebookRedirectHandler
+	// GetUserIDHandler sets the operation handler for the get user ID operation
+	GetUserIDHandler GetUserIDHandler
+	// GetUserMeHandler sets the operation handler for the get user me operation
+	GetUserMeHandler GetUserMeHandler
+	// PatchUserIDHandler sets the operation handler for the patch user ID operation
+	PatchUserIDHandler PatchUserIDHandler
 	// ServeError is called when an error is received, there is a default handler
 	// but you can set your own with this
 	ServeError func(http.ResponseWriter, *http.Request, error)
@@ -159,6 +179,18 @@ func (o *DownToMeetAPI) Validate() error {
 
 	if o.GetHelloHandler == nil {
 		unregistered = append(unregistered, "GetHelloHandler")
+	}
+	if o.GetUserFacebookRedirectHandler == nil {
+		unregistered = append(unregistered, "GetUserFacebookRedirectHandler")
+	}
+	if o.GetUserIDHandler == nil {
+		unregistered = append(unregistered, "GetUserIDHandler")
+	}
+	if o.GetUserMeHandler == nil {
+		unregistered = append(unregistered, "GetUserMeHandler")
+	}
+	if o.PatchUserIDHandler == nil {
+		unregistered = append(unregistered, "PatchUserIDHandler")
 	}
 
 	if len(unregistered) > 0 {
@@ -252,6 +284,22 @@ func (o *DownToMeetAPI) initHandlerCache() {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}
 	o.handlers["GET"]["/hello"] = NewGetHello(o.context, o.GetHelloHandler)
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"]["/user/facebook/redirect"] = NewGetUserFacebookRedirect(o.context, o.GetUserFacebookRedirectHandler)
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"]["/user/{id}"] = NewGetUserID(o.context, o.GetUserIDHandler)
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"]["/user/me"] = NewGetUserMe(o.context, o.GetUserMeHandler)
+	if o.handlers["PATCH"] == nil {
+		o.handlers["PATCH"] = make(map[string]http.Handler)
+	}
+	o.handlers["PATCH"]["/user/{id}"] = NewPatchUserID(o.context, o.PatchUserIDHandler)
 }
 
 // Serve creates a http handler to serve the API over HTTP

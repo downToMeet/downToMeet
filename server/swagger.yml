@@ -15,6 +15,50 @@ definitions:
     properties:
       message:
         type: string
+  userID:
+    type: string
+  meetupID:
+    type: string
+  coordinates:
+    type: object
+    properties: 
+      lat:
+        type: number
+        minimum: -90
+        maximum: 90
+      lon:
+        type: number
+        minimum: -180
+        maximum: 180
+  user:
+    type: object
+    required:
+      - id
+    properties:
+      id:
+        $ref: "#/definitions/userID"
+      name:
+        type: string
+      interests:
+        type: array
+        items: 
+          type: string
+      coordinates:
+        $ref: "#/definitions/coordinates"
+      pendingApproval:
+        type: array
+        items: 
+          $ref: "#/definitions/meetupID"
+      attending:
+        type: array
+        items: 
+          $ref: "#/definitions/meetupID"
+      ownedMeetups:
+        type: array
+        items: 
+          $ref: "#/definitions/meetupID"
+      contactInfo:
+        type: string
 
 paths:
   /hello:
@@ -38,3 +82,81 @@ paths:
           description: generic error response
           schema:
             $ref: "#/definitions/error"
+  /user/me:
+    get:
+      summary: Get the current user's information
+      description: If user is not logged in, an error response is returned.
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: "#/definitions/user"
+        403:
+          description: Forbidden
+          schema:
+            $ref: "#/definitions/error"
+        500:
+          description: Internal server error
+          schema:
+            $ref: "#/definitions/error"
+  /user/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+        description: ID of the desired user
+    get:
+      summary: Get the specified user's information
+      description: If specified user does not exist, an error is returned.
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: "#/definitions/user"
+        404:
+          description: Not found
+          schema:
+            $ref: "#/definitions/error"
+        500:
+          description: Internal server error
+          schema:
+            $ref: "#/definitions/error"
+    patch:
+      summary: Patch the specified user
+      description: |
+        If specified user does not exist or current user is not the specified
+        user, an error is returned.
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: "#/definitions/user"
+        403:
+          description: Forbidden
+          schema:
+            $ref: "#/definitions/error"
+        404:
+          description: Not found
+          schema:
+            $ref: "#/definitions/error"
+        500:
+          description: Internal server error
+          schema:
+            $ref: "#/definitions/error"
+  /user/facebook/redirect:
+    get:
+      parameters:
+        - name: code
+          in: query
+          type: string
+          description: Authorization code from Facebook
+      summary: Facebook OAuth redirect
+      description: If authentication fails, the user is not logged in.
+      responses:
+        303:
+          description: Redirect to home page.
+          headers:
+            Location:
+              type: string
+              description: Redirect URL
