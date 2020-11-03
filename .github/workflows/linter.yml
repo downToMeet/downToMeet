@@ -55,6 +55,14 @@ jobs:
             exit 1
           fi
 
+      - name: Regenerate boilerplate code
+        run: |
+          make -C server generate
+          if ! git diff --exit-code; then
+            echo 'Generated code not up to date; run make -C server generate'
+            exit 1
+          fi
+
       - name: Run go mod tidy
         run: |
           go mod tidy
