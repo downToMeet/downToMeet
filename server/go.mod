@@ -11,7 +11,7 @@ require (
 	github.com/go-openapi/spec v0.19.11
 	github.com/go-openapi/strfmt v0.19.7
 	github.com/go-openapi/swag v0.19.11
-	github.com/go-openapi/validate v0.19.12 // indirect
+	github.com/go-openapi/validate v0.19.12
 	github.com/go-swagger/go-swagger v0.25.0
 	github.com/gorilla/handlers v1.5.1 // indirect
 	github.com/jessevdk/go-flags v1.4.0
@@ -28,4 +28,8 @@ require (
 	golang.org/x/sys v0.0.0-20201022201747-fb209a7c41cd // indirect
 	golang.org/x/tools v0.0.0-20201023174141-c8cfbd0f21e6
 	gopkg.in/ini.v1 v1.62.0 // indirect
+	gorm.io/driver/mysql v1.0.3
+	gorm.io/driver/postgres v1.0.5
+	gorm.io/driver/sqlite v1.1.3
+	gorm.io/gorm v1.20.5
 )
