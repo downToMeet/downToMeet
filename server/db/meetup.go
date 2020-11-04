@@ -17,4 +17,5 @@ type Meetup struct {
 	MinCapacity int64
 	Owner       string
 	Attendees   []User `gorm:"many2many:meetup_user_attend;"`
+	Location MeetupLocation
 }

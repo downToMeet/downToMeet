@@ -17,7 +17,7 @@ func GetDB() (*gorm.DB, error) {
 		if err != nil {
 			return nil, err
 		}
-		if err := database.AutoMigrate(Meetup{}, User{}, Tag{}); err != nil {
+		if err := database.AutoMigrate(Meetup{}, User{}, Tag{}, MeetupLocation{}); err != nil {
 			log.Println(err)
 		}
 		instance = database
