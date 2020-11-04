@@ -40,6 +40,7 @@ func configureAPI(api *operations.DownToMeetAPI) http.Handler {
 
 	api.GetHelloHandler = operations.GetHelloHandlerFunc(impl.GetHello)
 	api.GetUserIDHandler = operations.GetUserIDHandlerFunc(impl.GetUserID)
+	api.GetMeetupIDHandler = operations.GetMeetupIDHandlerFunc(impl.GetMeetupID)
 
 	return setupGlobalMiddleware(api.Serve(setupMiddlewares))
 }

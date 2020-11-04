@@ -42,8 +42,17 @@ func NewDownToMeetAPI(spec *loads.Document) *DownToMeetAPI {
 
 		JSONProducer: runtime.JSONProducer(),
 
+		DeleteMeetupIDHandler: DeleteMeetupIDHandlerFunc(func(params DeleteMeetupIDParams) middleware.Responder {
+			return middleware.NotImplemented("operation DeleteMeetupID has not yet been implemented")
+		}),
 		GetHelloHandler: GetHelloHandlerFunc(func(params GetHelloParams) middleware.Responder {
 			return middleware.NotImplemented("operation GetHello has not yet been implemented")
+		}),
+		GetMeetupHandler: GetMeetupHandlerFunc(func(params GetMeetupParams) middleware.Responder {
+			return middleware.NotImplemented("operation GetMeetup has not yet been implemented")
+		}),
+		GetMeetupIDHandler: GetMeetupIDHandlerFunc(func(params GetMeetupIDParams) middleware.Responder {
+			return middleware.NotImplemented("operation GetMeetupID has not yet been implemented")
 		}),
 		GetUserFacebookRedirectHandler: GetUserFacebookRedirectHandlerFunc(func(params GetUserFacebookRedirectParams) middleware.Responder {
 			return middleware.NotImplemented("operation GetUserFacebookRedirect has not yet been implemented")
@@ -54,8 +63,14 @@ func NewDownToMeetAPI(spec *loads.Document) *DownToMeetAPI {
 		GetUserMeHandler: GetUserMeHandlerFunc(func(params GetUserMeParams) middleware.Responder {
 			return middleware.NotImplemented("operation GetUserMe has not yet been implemented")
 		}),
+		PatchMeetupIDHandler: PatchMeetupIDHandlerFunc(func(params PatchMeetupIDParams) middleware.Responder {
+			return middleware.NotImplemented("operation PatchMeetupID has not yet been implemented")
+		}),
 		PatchUserIDHandler: PatchUserIDHandlerFunc(func(params PatchUserIDParams) middleware.Responder {
 			return middleware.NotImplemented("operation PatchUserID has not yet been implemented")
+		}),
+		PostMeetupHandler: PostMeetupHandlerFunc(func(params PostMeetupParams) middleware.Responder {
+			return middleware.NotImplemented("operation PostMeetup has not yet been implemented")
 		}),
 	}
 }
@@ -91,16 +106,26 @@ type DownToMeetAPI struct {
 	//   - application/json
 	JSONProducer runtime.Producer
 
+	// DeleteMeetupIDHandler sets the operation handler for the delete meetup ID operation
+	DeleteMeetupIDHandler DeleteMeetupIDHandler
 	// GetHelloHandler sets the operation handler for the get hello operation
 	GetHelloHandler GetHelloHandler
+	// GetMeetupHandler sets the operation handler for the get meetup operation
+	GetMeetupHandler GetMeetupHandler
+	// GetMeetupIDHandler sets the operation handler for the get meetup ID operation
+	GetMeetupIDHandler GetMeetupIDHandler
 	// GetUserFacebookRedirectHandler sets the operation handler for the get user facebook redirect operation
 	GetUserFacebookRedirectHandler GetUserFacebookRedirectHandler
 	// GetUserIDHandler sets the operation handler for the get user ID operation
 	GetUserIDHandler GetUserIDHandler
 	// GetUserMeHandler sets the operation handler for the get user me operation
 	GetUserMeHandler GetUserMeHandler
+	// PatchMeetupIDHandler sets the operation handler for the patch meetup ID operation
+	PatchMeetupIDHandler PatchMeetupIDHandler
 	// PatchUserIDHandler sets the operation handler for the patch user ID operation
 	PatchUserIDHandler PatchUserIDHandler
+	// PostMeetupHandler sets the operation handler for the post meetup operation
+	PostMeetupHandler PostMeetupHandler
 	// ServeError is called when an error is received, there is a default handler
 	// but you can set your own with this
 	ServeError func(http.ResponseWriter, *http.Request, error)
@@ -177,8 +202,17 @@ func (o *DownToMeetAPI) Validate() error {
 		unregistered = append(unregistered, "JSONProducer")
 	}
 
+	if o.DeleteMeetupIDHandler == nil {
+		unregistered = append(unregistered, "DeleteMeetupIDHandler")
+	}
 	if o.GetHelloHandler == nil {
 		unregistered = append(unregistered, "GetHelloHandler")
+	}
+	if o.GetMeetupHandler == nil {
+		unregistered = append(unregistered, "GetMeetupHandler")
+	}
+	if o.GetMeetupIDHandler == nil {
+		unregistered = append(unregistered, "GetMeetupIDHandler")
 	}
 	if o.GetUserFacebookRedirectHandler == nil {
 		unregistered = append(unregistered, "GetUserFacebookRedirectHandler")
@@ -189,8 +223,14 @@ func (o *DownToMeetAPI) Validate() error {
 	if o.GetUserMeHandler == nil {
 		unregistered = append(unregistered, "GetUserMeHandler")
 	}
+	if o.PatchMeetupIDHandler == nil {
+		unregistered = append(unregistered, "PatchMeetupIDHandler")
+	}
 	if o.PatchUserIDHandler == nil {
 		unregistered = append(unregistered, "PatchUserIDHandler")
+	}
+	if o.PostMeetupHandler == nil {
+		unregistered = append(unregistered, "PostMeetupHandler")
 	}
 
 	if len(unregistered) > 0 {
@@ -280,10 +320,22 @@ func (o *DownToMeetAPI) initHandlerCache() {
 		o.handlers = make(map[string]map[string]http.Handler)
 	}
 
+	if o.handlers["DELETE"] == nil {
+		o.handlers["DELETE"] = make(map[string]http.Handler)
+	}
+	o.handlers["DELETE"]["/meetup/{id}"] = NewDeleteMeetupID(o.context, o.DeleteMeetupIDHandler)
 	if o.handlers["GET"] == nil {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}
 	o.handlers["GET"]["/hello"] = NewGetHello(o.context, o.GetHelloHandler)
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"]["/meetup"] = NewGetMeetup(o.context, o.GetMeetupHandler)
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"]["/meetup/{id}"] = NewGetMeetupID(o.context, o.GetMeetupIDHandler)
 	if o.handlers["GET"] == nil {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}
@@ -299,7 +351,15 @@ func (o *DownToMeetAPI) initHandlerCache() {
 	if o.handlers["PATCH"] == nil {
 		o.handlers["PATCH"] = make(map[string]http.Handler)
 	}
+	o.handlers["PATCH"]["/meetup/{id}"] = NewPatchMeetupID(o.context, o.PatchMeetupIDHandler)
+	if o.handlers["PATCH"] == nil {
+		o.handlers["PATCH"] = make(map[string]http.Handler)
+	}
 	o.handlers["PATCH"]["/user/{id}"] = NewPatchUserID(o.context, o.PatchUserIDHandler)
+	if o.handlers["POST"] == nil {
+		o.handlers["POST"] = make(map[string]http.Handler)
+	}
+	o.handlers["POST"]["/meetup"] = NewPostMeetup(o.context, o.PostMeetupHandler)
 }
 
 // Serve creates a http handler to serve the API over HTTP
