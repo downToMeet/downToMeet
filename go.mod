@@ -8,8 +8,8 @@ require (
 	github.com/go-openapi/errors v0.19.8
 	github.com/go-openapi/loads v0.19.5
 	github.com/go-openapi/runtime v0.19.23
-	github.com/go-openapi/spec v0.19.11
-	github.com/go-openapi/strfmt v0.19.7
+	github.com/go-openapi/spec v0.19.12
+	github.com/go-openapi/strfmt v0.19.8
 	github.com/go-openapi/swag v0.19.11
 	github.com/go-openapi/validate v0.19.12
 	github.com/go-swagger/go-swagger v0.25.0
@@ -23,9 +23,10 @@ require (
 	github.com/spf13/afero v1.4.1 // indirect
 	github.com/spf13/viper v1.7.1 // indirect
 	github.com/stretchr/testify v1.6.1
-	go.mongodb.org/mongo-driver v1.4.2 // indirect
-	golang.org/x/net v0.0.0-20201022231255-08b38378de70
-	golang.org/x/sys v0.0.0-20201022201747-fb209a7c41cd // indirect
-	golang.org/x/tools v0.0.0-20201023174141-c8cfbd0f21e6
+	go.mongodb.org/mongo-driver v1.4.3 // indirect
+	golang.org/x/net v0.0.0-20201031054903-ff519b6c9102
+	golang.org/x/sys v0.0.0-20201101102859-da207088b7d1 // indirect
+	golang.org/x/text v0.3.4 // indirect
+	golang.org/x/tools v0.0.0-20201103235415-b653051172e4
 	gopkg.in/ini.v1 v1.62.0 // indirect
 )
