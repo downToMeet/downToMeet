@@ -22,6 +22,19 @@ jobs:
         with:
           node-version: '14.x'
 
+      # https://github.com/actions/cache/blob/main/examples.md#node---yarn
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "::set-output name=dir::$(yarn cache dir)"
+
+      - uses: actions/cache@v2
+        id: yarn-cache
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
       - name: Yarn install
         run: cd client && yarn --frozen-lockfile
 
@@ -40,8 +53,18 @@ jobs:
         uses: actions/setup-go@v2
         with:
           go-version: '^1.15'
+
+      # https://github.com/actions/cache/blob/main/examples.md#go---modules
+      - uses: actions/cache@v2
+        id: go-mod-cache
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
       
       - run: go mod download
+        if: steps.go-mod-cache.outputs.cache-hit != 'true'
 
       - run: go vet ./...
 
@@ -52,6 +75,14 @@ jobs:
           make -C server format
           if ! git diff --exit-code; then
             echo 'Code not formatted correctly; run make -C server format'
+            exit 1
+          fi
+
+      - name: Regenerate boilerplate code
+        run: |
+          make -C server generate
+          if ! git diff --exit-code; then
+            echo 'Generated code not up to date; run make -C server generate'
             exit 1
           fi
 

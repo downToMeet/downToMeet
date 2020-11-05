@@ -14,12 +14,14 @@ require (
 	github.com/go-openapi/validate v0.19.12
 	github.com/go-swagger/go-swagger v0.25.0
 	github.com/gorilla/handlers v1.5.1 // indirect
+	github.com/gorilla/sessions v1.2.1
 	github.com/jessevdk/go-flags v1.4.0
 	github.com/kr/pretty v0.2.1 // indirect
 	github.com/magiconair/properties v1.8.4 // indirect
 	github.com/mailru/easyjson v0.7.6 // indirect
 	github.com/mitchellh/mapstructure v1.3.3 // indirect
 	github.com/pelletier/go-toml v1.8.1 // indirect
+	github.com/sirupsen/logrus v1.7.0
 	github.com/spf13/afero v1.4.1 // indirect
 	github.com/spf13/viper v1.7.1 // indirect
 	github.com/stretchr/testify v1.6.1

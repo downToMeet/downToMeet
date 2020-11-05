@@ -35,8 +35,9 @@ func init() {
   "paths": {
     "/hello": {
       "get": {
-        "description": "If id is \"error\", an error response is returned.",
+        "description": "If id is \"error\", an error response is returned.\n\nThis is a dummy endpoint for testing purposes. It should be removed soon.\n",
         "summary": "Get a hello world message",
+        "deprecated": true,
         "responses": {
           "200": {
             "description": "successful hello world response",
@@ -102,61 +103,83 @@ func init() {
             "in": "query",
             "required": true
           }
+		],
+		"responses": {
+			"200": {
+			  "description": "OK",
+			  "schema": {
+				"type": "array",
+				"items": {
+				  "$ref": "#/definitions/meetupID"
+				}
+			  }
+			},
+			"400": {
+			  "description": "Bad Request",
+			  "schema": {
+				"$ref": "#/definitions/error"
+			  }
+			},
+			"500": {
+			  "description": "Internal server error",
+			  "schema": {
+				"$ref": "#/definitions/error"
+			  }
+			}
+		  }
+		},
+		"post": {
+		  "consumes": [
+			"application/json"
+		  ],
+		  "summary": "Post a new meetup",
+		  "parameters": [
+			{
+			  "description": "The meetup to create",
+			  "name": "meetup",
+			  "in": "body",
+			  "schema": {
+				"$ref": "#/definitions/meetupRequestBody"
+			  }
+			}
+		  ],
+		  "responses": {
+			"201": {
+			  "description": "Created",
+			  "schema": {
+				"$ref": "#/definitions/meetup"
+			  }
+			},
+			"400": {
+			  "description": "Bad Request",
+			  "schema": {
+				"$ref": "#/definitions/error"
+			  }
+			},
+			"500": {
+			  "description": "Internal server error",
+    "/restricted": {
+      "get": {
+        "security": [
+          {
+            "cookieSession": []
+          }
         ],
+        "description": "This is a sample endpoint that is restricted only to users who are\n\"logged in\".\n\nThis is a dummy endpoint for testing purposes. It should be removed soon.\n",
+        "produces": [
+          "text/plain"
+        ],
+        "summary": "Restricted endpoint",
+        "deprecated": true,
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/meetupID"
-              }
+              "type": "string"
             }
           },
-          "400": {
-            "description": "Bad Request",
-            "schema": {
-              "$ref": "#/definitions/error"
-            }
-          },
-          "500": {
-            "description": "Internal server error",
-            "schema": {
-              "$ref": "#/definitions/error"
-            }
-          }
-        }
-      },
-      "post": {
-        "consumes": [
-          "application/json"
-        ],
-        "summary": "Post a new meetup",
-        "parameters": [
-          {
-            "description": "The meetup to create",
-            "name": "meetup",
-            "in": "body",
-            "schema": {
-              "$ref": "#/definitions/meetupRequestBody"
-            }
-          }
-        ],
-        "responses": {
-          "201": {
-            "description": "Created",
-            "schema": {
-              "$ref": "#/definitions/meetup"
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "schema": {
-              "$ref": "#/definitions/error"
-            }
-          },
-          "500": {
-            "description": "Internal server error",
+          "401": {
+            "description": "Not authenticated",
             "schema": {
               "$ref": "#/definitions/error"
             }
@@ -240,8 +263,8 @@ func init() {
             "in": "body",
             "schema": {
               "$ref": "#/definitions/meetupRequestBody"
-            }
-          }
+			}
+		}
         ],
         "responses": {
           "200": {
@@ -284,7 +307,37 @@ func init() {
           "in": "path",
           "required": true
         }
-      ]
+      ],
+    "/set-cookie": {
+      "get": {
+        "description": "This is a sample endpoint that simulates the action of logging in. After\na successful call to this endpoint, one should then be able to go to\n/restricted and receive a message about who they are logged in as.\n\nThis is a dummy endpoint for testing purposes. It should be removed soon.\n",
+        "produces": [
+          "text/plain"
+        ],
+        "summary": "Set cookie session",
+        "deprecated": true,
+        "parameters": [
+          {
+            "type": "string",
+            "description": "User ID to set",
+            "name": "user_id",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "string"
+            },
+            "headers": {
+              "Set-Cookie": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
     },
     "/user/facebook/redirect": {
       "get": {
@@ -313,6 +366,11 @@ func init() {
     },
     "/user/me": {
       "get": {
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
         "description": "If user is not logged in, an error response is returned.",
         "summary": "Get the current user's information",
         "responses": {
@@ -363,6 +421,11 @@ func init() {
         }
       },
       "patch": {
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
         "description": "If specified user does not exist or current user is not the specified\nuser, an error is returned.\n",
         "summary": "Patch the specified user",
         "responses": {
@@ -422,6 +485,10 @@ func init() {
     "error": {
       "type": "object",
       "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
         "message": {
           "type": "string"
         }
@@ -576,6 +643,14 @@ func init() {
     },
     "userID": {
       "type": "string"
+    }
+  },
+  "securityDefinitions": {
+    "cookieSession": {
+      "description": "Session stored in a cookie.\n\n(If you're reading this in the API documentation, ignore the\n\"query parameter name\" below. It is ignored at runtime.)\n",
+      "type": "apiKey",
+      "name": "COOKIE",
+      "in": "query"
     }
   }
 }`))
@@ -597,8 +672,9 @@ func init() {
   "paths": {
     "/hello": {
       "get": {
-        "description": "If id is \"error\", an error response is returned.",
+        "description": "If id is \"error\", an error response is returned.\n\nThis is a dummy endpoint for testing purposes. It should be removed soon.\n",
         "summary": "Get a hello world message",
+        "deprecated": true,
         "responses": {
           "200": {
             "description": "successful hello world response",
@@ -664,61 +740,211 @@ func init() {
             "in": "query",
             "required": true
           }
+		],
+		"responses": {
+			"200": {
+			  "description": "OK",
+			  "schema": {
+				"type": "array",
+				"items": {
+				  "$ref": "#/definitions/meetupID"
+				}
+			  }
+			},
+			"400": {
+			  "description": "Bad Request",
+			  "schema": {
+				"$ref": "#/definitions/error"
+			  }
+			},
+			"500": {
+			  "description": "Internal server error",
+			  "schema": {
+				"$ref": "#/definitions/error"
+			  }
+			}
+		  }
+		},
+		"post": {
+		  "consumes": [
+			"application/json"
+		  ],
+		  "summary": "Post a new meetup",
+		  "parameters": [
+			{
+			  "description": "The meetup to create",
+			  "name": "meetup",
+			  "in": "body",
+			  "schema": {
+				"$ref": "#/definitions/meetupRequestBody"
+			  }
+			}
+		  ],
+		  "responses": {
+			"201": {
+			  "description": "Created",
+			  "schema": {
+				"$ref": "#/definitions/meetup"
+			  }
+			},
+			"400": {
+			  "description": "Bad Request",
+			  "schema": {
+				"$ref": "#/definitions/error"
+			  }
+			},
+			"500": {
+			  "description": "Internal server error",
+			  "schema": {
+				"$ref": "#/definitions/error"
+			  }
+			}
+		  }
+		}
+	  },
+	  "/meetup/{id}": {
+		"get": {
+		  "description": "If the specified meetup does not exist, an error is returned",
+		  "summary": "Get the specified meetup's information",
+		  "responses": {
+			"200": {
+			  "description": "OK",
+			  "schema": {
+				"$ref": "#/definitions/meetup"
+			  }
+			},
+			"400": {
+			  "description": "Bad Request",
+			  "schema": {
+				"$ref": "#/definitions/error"
+			  }
+			},
+			"404": {
+			  "description": "Not found",
+			  "schema": {
+				"$ref": "#/definitions/error"
+			  }
+			},
+			"500": {
+			  "description": "Internal server error",
+			  "schema": {
+				"$ref": "#/definitions/error"
+			  }
+			}
+		  }
+		},
+		"delete": {
+		  "description": "If the specified meetup does not exist, an error is returned",
+		  "summary": "Delete the specified meetup",
+		  "responses": {
+			"204": {
+			  "description": "No Content"
+			},
+			"400": {
+			  "description": "Bad Request",
+			  "schema": {
+				"$ref": "#/definitions/error"
+			  }
+			},
+			"403": {
+			  "description": "Forbidden",
+			  "schema": {
+				"$ref": "#/definitions/error"
+			  }
+			},
+			"404": {
+			  "description": "Not found",
+			  "schema": {
+				"$ref": "#/definitions/error"
+			  }
+			},
+			"500": {
+			  "description": "Internal server error",
+			  "schema": {
+				"$ref": "#/definitions/error"
+			  }
+			}
+		  }
+		},
+		"patch": {
+		  "consumes": [
+			"application/json"
+		  ],
+		  "summary": "Patch the specified meetup",
+		  "parameters": [
+			{
+			  "description": "The meetup to update",
+			  "name": "meetup",
+			  "in": "body",
+			  "schema": {
+				"$ref": "#/definitions/meetupRequestBody"
+			  }
+			}
+			],
+			"responses": {
+			  "200": {
+				"description": "OK",
+				"schema": {
+				  "$ref": "#/definitions/meetup"
+				}
+			  },
+			  "400": {
+				"description": "Bad Request",
+				"schema": {
+				  "$ref": "#/definitions/error"
+				}
+			  },
+			  "403": {
+				"description": "Forbidden",
+				"schema": {
+				  "$ref": "#/definitions/error"
+				}
+			  },
+			  "404": {
+				"description": "Not found",
+				"schema": {
+				  "$ref": "#/definitions/error"
+				}
+			  },
+			  "500": {
+				"description": "Internal server error",
+				"schema": {
+				  "$ref": "#/definitions/error"
+				}
+			  }
+			}
+		  },
+		  "parameters": [
+			{
+			  "type": "string",
+			  "description": "ID of the desired meetup",
+			  "name": "id",
+			  "in": "path",
+			  "required": true
+			}
+		  ]
+    "/restricted": {
+      "get": {
+        "security": [
+          {
+            "cookieSession": []
+          }
         ],
+        "description": "This is a sample endpoint that is restricted only to users who are\n\"logged in\".\n\nThis is a dummy endpoint for testing purposes. It should be removed soon.\n",
+        "produces": [
+          "text/plain"
+        ],
+        "summary": "Restricted endpoint",
+        "deprecated": true,
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/meetupID"
-              }
+              "type": "string"
             }
           },
-          "400": {
-            "description": "Bad Request",
-            "schema": {
-              "$ref": "#/definitions/error"
-            }
-          },
-          "500": {
-            "description": "Internal server error",
-            "schema": {
-              "$ref": "#/definitions/error"
-            }
-          }
-        }
-      },
-      "post": {
-        "consumes": [
-          "application/json"
-        ],
-        "summary": "Post a new meetup",
-        "parameters": [
-          {
-            "description": "The meetup to create",
-            "name": "meetup",
-            "in": "body",
-            "schema": {
-              "$ref": "#/definitions/meetupRequestBody"
-            }
-          }
-        ],
-        "responses": {
-          "201": {
-            "description": "Created",
-            "schema": {
-              "$ref": "#/definitions/meetup"
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "schema": {
-              "$ref": "#/definitions/error"
-            }
-          },
-          "500": {
-            "description": "Internal server error",
+          "401": {
+            "description": "Not authenticated",
             "schema": {
               "$ref": "#/definitions/error"
             }
@@ -726,127 +952,36 @@ func init() {
         }
       }
     },
-    "/meetup/{id}": {
+    "/set-cookie": {
       "get": {
-        "description": "If the specified meetup does not exist, an error is returned",
-        "summary": "Get the specified meetup's information",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "schema": {
-              "$ref": "#/definitions/meetup"
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "schema": {
-              "$ref": "#/definitions/error"
-            }
-          },
-          "404": {
-            "description": "Not found",
-            "schema": {
-              "$ref": "#/definitions/error"
-            }
-          },
-          "500": {
-            "description": "Internal server error",
-            "schema": {
-              "$ref": "#/definitions/error"
-            }
-          }
-        }
-      },
-      "delete": {
-        "description": "If the specified meetup does not exist, an error is returned",
-        "summary": "Delete the specified meetup",
-        "responses": {
-          "204": {
-            "description": "No Content"
-          },
-          "400": {
-            "description": "Bad Request",
-            "schema": {
-              "$ref": "#/definitions/error"
-            }
-          },
-          "403": {
-            "description": "Forbidden",
-            "schema": {
-              "$ref": "#/definitions/error"
-            }
-          },
-          "404": {
-            "description": "Not found",
-            "schema": {
-              "$ref": "#/definitions/error"
-            }
-          },
-          "500": {
-            "description": "Internal server error",
-            "schema": {
-              "$ref": "#/definitions/error"
-            }
-          }
-        }
-      },
-      "patch": {
-        "consumes": [
-          "application/json"
+        "description": "This is a sample endpoint that simulates the action of logging in. After\na successful call to this endpoint, one should then be able to go to\n/restricted and receive a message about who they are logged in as.\n\nThis is a dummy endpoint for testing purposes. It should be removed soon.\n",
+        "produces": [
+          "text/plain"
         ],
-        "summary": "Patch the specified meetup",
+        "summary": "Set cookie session",
+        "deprecated": true,
         "parameters": [
           {
-            "description": "The meetup to update",
-            "name": "meetup",
-            "in": "body",
-            "schema": {
-              "$ref": "#/definitions/meetupRequestBody"
-            }
+            "type": "string",
+            "description": "User ID to set",
+            "name": "user_id",
+            "in": "query"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/meetup"
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "schema": {
-              "$ref": "#/definitions/error"
-            }
-          },
-          "403": {
-            "description": "Forbidden",
-            "schema": {
-              "$ref": "#/definitions/error"
-            }
-          },
-          "404": {
-            "description": "Not found",
-            "schema": {
-              "$ref": "#/definitions/error"
-            }
-          },
-          "500": {
-            "description": "Internal server error",
-            "schema": {
-              "$ref": "#/definitions/error"
+              "type": "string"
+            },
+            "headers": {
+              "Set-Cookie": {
+                "type": "string"
+              }
             }
           }
         }
-      },
-      "parameters": [
-        {
-          "type": "string",
-          "description": "ID of the desired meetup",
-          "name": "id",
-          "in": "path",
-          "required": true
-        }
-      ]
+      }
     },
     "/user/facebook/redirect": {
       "get": {
@@ -875,6 +1010,11 @@ func init() {
     },
     "/user/me": {
       "get": {
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
         "description": "If user is not logged in, an error response is returned.",
         "summary": "Get the current user's information",
         "responses": {
@@ -925,6 +1065,11 @@ func init() {
         }
       },
       "patch": {
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
         "description": "If specified user does not exist or current user is not the specified\nuser, an error is returned.\n",
         "summary": "Patch the specified user",
         "responses": {
@@ -984,6 +1129,10 @@ func init() {
     "error": {
       "type": "object",
       "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
         "message": {
           "type": "string"
         }
@@ -1138,6 +1287,14 @@ func init() {
     },
     "userID": {
       "type": "string"
+    }
+  },
+  "securityDefinitions": {
+    "cookieSession": {
+      "description": "Session stored in a cookie.\n\n(If you're reading this in the API documentation, ignore the\n\"query parameter name\" below. It is ignored at runtime.)\n",
+      "type": "apiKey",
+      "name": "COOKIE",
+      "in": "query"
     }
   }
 }`))

@@ -7,7 +7,7 @@ import (
 	"go.timothygu.me/downtomeet/server/restapi/operations"
 )
 
-func GetUserID(params operations.GetUserIDParams) middleware.Responder {
+func (i *Implementation) GetUserID(params operations.GetUserIDParams) middleware.Responder {
 	user := models.User{
 		ID: models.UserID(params.ID),
 	}
