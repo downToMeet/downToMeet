@@ -9,6 +9,7 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
+	"github.com/go-openapi/validate"
 )
 
 // MeetupRequestBody meetup request body
@@ -16,20 +17,24 @@ import (
 // swagger:model meetupRequestBody
 type MeetupRequestBody struct {
 
-	// capacity
-	Capacity float64 `json:"capacity,omitempty"`
-
 	// location
 	Location *Location `json:"location,omitempty"`
 
-	// name
-	Name string `json:"name,omitempty"`
+	// max capacity
+	MaxCapacity int64 `json:"maxCapacity,omitempty"`
 
-	// tagged interests
-	TaggedInterests []string `json:"taggedInterests"`
+	// min capacity
+	// Minimum: 0
+	MinCapacity *int64 `json:"minCapacity,omitempty"`
+
+	// tags
+	Tags []string `json:"tags"`
 
 	// time
 	Time string `json:"time,omitempty"`
+
+	// title
+	Title string `json:"title,omitempty"`
 }
 
 // Validate validates this meetup request body
@@ -37,6 +42,10 @@ func (m *MeetupRequestBody) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	if err := m.validateLocation(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateMinCapacity(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -59,6 +68,19 @@ func (m *MeetupRequestBody) validateLocation(formats strfmt.Registry) error {
 			}
 			return err
 		}
+	}
+
+	return nil
+}
+
+func (m *MeetupRequestBody) validateMinCapacity(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.MinCapacity) { // not required
+		return nil
+	}
+
+	if err := validate.MinimumInt("minCapacity", "body", int64(*m.MinCapacity), 0, false); err != nil {
+		return err
 	}
 
 	return nil

@@ -54,6 +54,7 @@ func NewDownToMeetAPI(spec *loads.Document) *DownToMeetAPI {
 		}),
 		GetMeetupIDHandler: GetMeetupIDHandlerFunc(func(params GetMeetupIDParams) middleware.Responder {
 			return middleware.NotImplemented("operation GetMeetupID has not yet been implemented")
+		}),
 		GetRestrictedHandler: GetRestrictedHandlerFunc(func(params GetRestrictedParams, principal interface{}) middleware.Responder {
 			return middleware.NotImplemented("operation GetRestricted has not yet been implemented")
 		}),
@@ -78,6 +79,7 @@ func NewDownToMeetAPI(spec *loads.Document) *DownToMeetAPI {
 		PostMeetupHandler: PostMeetupHandlerFunc(func(params PostMeetupParams) middleware.Responder {
 			return middleware.NotImplemented("operation PostMeetup has not yet been implemented")
 		}),
+
 		// Applies when the "COOKIE" query is set
 		CookieSessionAuth: func(token string) (interface{}, error) {
 			return nil, errors.NotImplemented("api key auth (cookieSession) COOKIE from query param [COOKIE] has not yet been implemented")
@@ -246,6 +248,7 @@ func (o *DownToMeetAPI) Validate() error {
 	}
 	if o.GetMeetupIDHandler == nil {
 		unregistered = append(unregistered, "GetMeetupIDHandler")
+	}
 	if o.GetRestrictedHandler == nil {
 		unregistered = append(unregistered, "GetRestrictedHandler")
 	}
@@ -385,6 +388,9 @@ func (o *DownToMeetAPI) initHandlerCache() {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}
 	o.handlers["GET"]["/meetup/{id}"] = NewGetMeetupID(o.context, o.GetMeetupIDHandler)
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
 	o.handlers["GET"]["/restricted"] = NewGetRestricted(o.context, o.GetRestrictedHandler)
 	if o.handlers["GET"] == nil {
 		o.handlers["GET"] = make(map[string]http.Handler)

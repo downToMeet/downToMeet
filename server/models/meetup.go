@@ -11,6 +11,7 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
+	"github.com/go-openapi/validate"
 )
 
 // Meetup meetup
@@ -35,10 +36,11 @@ type Meetup struct {
 	Location *Location `json:"location,omitempty"`
 
 	// max capacity
-	MaxCapacity float64 `json:"maxCapacity,omitempty"`
+	MaxCapacity int64 `json:"maxCapacity,omitempty"`
 
 	// min capacity
-	MinCapacity float64 `json:"minCapacity,omitempty"`
+	// Minimum: 0
+	MinCapacity *int64 `json:"minCapacity,omitempty"`
 
 	// owner
 	Owner UserID `json:"owner,omitempty"`
@@ -72,6 +74,10 @@ func (m *Meetup) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateLocation(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateMinCapacity(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -134,6 +140,19 @@ func (m *Meetup) validateLocation(formats strfmt.Registry) error {
 			}
 			return err
 		}
+	}
+
+	return nil
+}
+
+func (m *Meetup) validateMinCapacity(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.MinCapacity) { // not required
+		return nil
+	}
+
+	if err := validate.MinimumInt("minCapacity", "body", int64(*m.MinCapacity), 0, false); err != nil {
+		return err
 	}
 
 	return nil

@@ -37,7 +37,7 @@ type PatchMeetupIDParams struct {
 	  In: path
 	*/
 	ID string
-	/*The meetup to update
+	/*The updated meetup information
 	  In: body
 	*/
 	Meetup *models.MeetupRequestBody

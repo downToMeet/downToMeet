@@ -44,10 +44,11 @@ type GetMeetupParams struct {
 	Lon float64
 	/*Desired search radius (kilometers)
 	  Required: true
+	  Minimum: 0
 	  In: query
 	*/
 	Radius float64
-	/*The longitude of the center of search
+	/*Interests to search for
 	  Required: true
 	  In: query
 	*/
@@ -162,6 +163,20 @@ func (o *GetMeetupParams) bindRadius(rawData []string, hasKey bool, formats strf
 		return errors.InvalidType("radius", "query", "float64", raw)
 	}
 	o.Radius = value
+
+	if err := o.validateRadius(formats); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// validateRadius carries on validations for parameter Radius
+func (o *GetMeetupParams) validateRadius(formats strfmt.Registry) error {
+
+	if err := validate.Minimum("radius", "query", float64(o.Radius), 0, false); err != nil {
+		return err
+	}
 
 	return nil
 }

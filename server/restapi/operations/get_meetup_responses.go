@@ -25,7 +25,7 @@ type GetMeetupOK struct {
 	/*
 	  In: Body
 	*/
-	Payload []models.MeetupID `json:"body,omitempty"`
+	Payload []*models.Meetup `json:"body,omitempty"`
 }
 
 // NewGetMeetupOK creates GetMeetupOK with default headers values
@@ -35,13 +35,13 @@ func NewGetMeetupOK() *GetMeetupOK {
 }
 
 // WithPayload adds the payload to the get meetup o k response
-func (o *GetMeetupOK) WithPayload(payload []models.MeetupID) *GetMeetupOK {
+func (o *GetMeetupOK) WithPayload(payload []*models.Meetup) *GetMeetupOK {
 	o.Payload = payload
 	return o
 }
 
 // SetPayload sets the payload to the get meetup o k response
-func (o *GetMeetupOK) SetPayload(payload []models.MeetupID) {
+func (o *GetMeetupOK) SetPayload(payload []*models.Meetup) {
 	o.Payload = payload
 }
 
@@ -52,7 +52,7 @@ func (o *GetMeetupOK) WriteResponse(rw http.ResponseWriter, producer runtime.Pro
 	payload := o.Payload
 	if payload == nil {
 		// return empty array
-		payload = make([]models.MeetupID, 0, 50)
+		payload = make([]*models.Meetup, 0, 50)
 	}
 
 	if err := producer.Produce(rw, payload); err != nil {

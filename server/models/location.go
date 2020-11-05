@@ -9,7 +9,6 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
-	"github.com/go-openapi/validate"
 )
 
 // Location location
@@ -17,15 +16,8 @@ import (
 // swagger:model location
 type Location struct {
 
-	// lat
-	// Maximum: 90
-	// Minimum: -90
-	Lat *float64 `json:"lat,omitempty"`
-
-	// lon
-	// Maximum: 180
-	// Minimum: -180
-	Lon *float64 `json:"lon,omitempty"`
+	// coordinates
+	Coordinates *Coordinates `json:"coordinates,omitempty"`
 
 	// name
 	Name string `json:"name,omitempty"`
@@ -38,11 +30,7 @@ type Location struct {
 func (m *Location) Validate(formats strfmt.Registry) error {
 	var res []error
 
-	if err := m.validateLat(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := m.validateLon(formats); err != nil {
+	if err := m.validateCoordinates(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -52,35 +40,19 @@ func (m *Location) Validate(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *Location) validateLat(formats strfmt.Registry) error {
+func (m *Location) validateCoordinates(formats strfmt.Registry) error {
 
-	if swag.IsZero(m.Lat) { // not required
+	if swag.IsZero(m.Coordinates) { // not required
 		return nil
 	}
 
-	if err := validate.Minimum("lat", "body", float64(*m.Lat), -90, false); err != nil {
-		return err
-	}
-
-	if err := validate.Maximum("lat", "body", float64(*m.Lat), 90, false); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (m *Location) validateLon(formats strfmt.Registry) error {
-
-	if swag.IsZero(m.Lon) { // not required
-		return nil
-	}
-
-	if err := validate.Minimum("lon", "body", float64(*m.Lon), -180, false); err != nil {
-		return err
-	}
-
-	if err := validate.Maximum("lon", "body", float64(*m.Lon), 180, false); err != nil {
-		return err
+	if m.Coordinates != nil {
+		if err := m.Coordinates.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("coordinates")
+			}
+			return err
+		}
 	}
 
 	return nil
