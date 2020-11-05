@@ -1,21 +1,28 @@
 package db
 
 import (
-	_ "gorm.io/driver/postgres"
+	"time"
+
 	"gorm.io/gorm"
 )
 
 type Meetup struct {
 	gorm.Model
-	ID          string `gorm:"primaryKey"`
 	Title       string
 	ContactInfo string
-	Time        string
+	Time        time.Time
 	Description string
 	Tags        []Tag `gorm:"many2many:meetup_tag;"`
 	MaxCapacity int64
 	MinCapacity int64
 	Owner       string
-	Attendees   []User `gorm:"many2many:meetup_user_attend;"`
-	Location MeetupLocation
+	Attendees   []User         `gorm:"many2many:meetup_user_attend;"`
+	Location    MeetupLocation `gorm:"embedded;embeddedPrefix:location_"`
+}
+
+type MeetupLocation struct {
+	MeetupID string
+	Lat, Lon float64
+	URL      string
+	Name     string
 }

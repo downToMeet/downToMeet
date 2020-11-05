@@ -1,13 +1,11 @@
 package db
 
 import (
-	_ "gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
 type User struct {
 	gorm.Model
-	Id                string `gorm:"primaryKey"`
 	Email             string
 	Name              string
 	ContactInfo       string
