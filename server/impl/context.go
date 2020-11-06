@@ -6,6 +6,8 @@ import (
 	"github.com/gorilla/sessions"
 )
 
+//go:generate go run golang.org/x/tools/cmd/stringer -type=contextKey
+
 // contextKey is the type used to key values stored in a context.
 type contextKey int
 

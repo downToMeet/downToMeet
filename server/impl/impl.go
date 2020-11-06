@@ -38,6 +38,8 @@ func (i *Implementation) SessionStore() sessions.Store {
 	return i.sessionStore
 }
 
+//go:generate go run golang.org/x/tools/cmd/stringer -type=SessionKey
+
 // SessionKey is the type used to key session.Values.
 type SessionKey int
 
