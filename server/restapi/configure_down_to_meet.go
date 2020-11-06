@@ -44,6 +44,7 @@ func configureAPI(api *operations.DownToMeetAPI) http.Handler {
 	api.GetRestrictedHandler = operations.GetRestrictedHandlerFunc(Impl.GetRestricted)
 
 	api.GetUserIDHandler = operations.GetUserIDHandlerFunc(Impl.GetUserID)
+	api.GetMeetupIDHandler = operations.GetMeetupIDHandlerFunc(impl.GetMeetupID)
 
 	api.Logger = log.Infof
 

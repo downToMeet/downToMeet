@@ -33,6 +33,15 @@ definitions:
         type: number
         minimum: -180
         maximum: 180
+  location:
+    type: object
+    properties:
+      name:
+        type: string
+      coordinates:
+        $ref: "#/definitions/coordinates"
+      url:
+        type: string
   user:
     type: object
     required:
@@ -62,6 +71,62 @@ definitions:
           $ref: "#/definitions/meetupID"
       contactInfo:
         type: string
+  meetup:
+    type: object
+    required:
+      - id
+    properties:
+      id:
+        $ref: "#/definitions/meetupID"
+      title:
+        type: string
+      location:
+        $ref: "#/definitions/location"
+      time:
+        type: string
+      description:
+        type: string
+      tags: 
+        type: array
+        items:
+          type: string
+      minCapacity:
+        type: integer
+        minimum: 0
+      maxCapacity:
+        type: integer
+      owner: 
+        $ref: "#/definitions/userID"
+      attendees:
+        type: array
+        items: 
+          $ref: "#/definitions/userID"
+      pendingAttendees:
+        type: array
+        items:
+          $ref: "#/definitions/userID"
+      rejected:
+        type: boolean
+      canceled:
+        type: boolean
+  meetupRequestBody:
+    type: object
+    properties:
+      title:
+        type: string
+      time:
+        type: string
+      location:
+        $ref: "#/definitions/location"
+      tags:
+        type: array
+        items:
+          type: string
+      minCapacity:
+        type: integer
+        minimum: 0
+      maxCapacity:
+        type: integer
 
 securityDefinitions:
   cookieSession:
@@ -182,6 +247,152 @@ paths:
             Location:
               type: string
               description: Redirect URL
+  /meetup:
+    get:
+      parameters:
+        - name: lat
+          in: query
+          required: true
+          type: number
+          minimum: -90
+          maximum: 90
+          description: The latitude of the center of search
+        - name: lon
+          in: query
+          required: true
+          type: number 
+          minimum: -180
+          maximum: 180
+          description: The longitude of the center of search
+        - name: radius
+          in: query
+          required: true
+          type: number 
+          minimum: 0
+          description: Desired search radius (kilometers)
+        - name: tags
+          in: query
+          required: true
+          type: array
+          items: 
+            type: string
+          description: Interests to search for
+      summary: Get the list of meetups 
+      description: If the required parameters were not specified correctly, an error is returned
+      responses:
+        200:
+          description: OK
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/meetup"
+        400:
+          description: Bad Request
+          schema:
+            $ref: "#/definitions/error"
+        500:
+          description: Internal server error
+          schema:
+            $ref: "#/definitions/error"
+    post:
+      summary: Post a new meetup
+      parameters:
+        - in: body
+          name: meetup
+          description: The meetup to create
+          schema:
+            $ref: "#/definitions/meetupRequestBody"
+      responses:
+        201:
+          description: Created
+          schema:
+            $ref: "#/definitions/meetup"
+        400:
+          description: Bad Request
+          schema:
+            $ref: "#/definitions/error"
+        500:
+          description: Internal server error
+          schema:
+            $ref: "#/definitions/error"
+  /meetup/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+        description: ID of the desired meetup
+    get:
+      summary: Get the specified meetup's information
+      description: If the specified meetup does not exist, an error is returned
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: "#/definitions/meetup"
+        400:
+          description: Bad Request
+          schema:
+            $ref: "#/definitions/error"
+        404:
+          description: Not found
+          schema:
+            $ref: "#/definitions/error"
+        500:
+          description: Internal server error
+          schema:
+            $ref: "#/definitions/error"
+    patch:
+      summary: Patch the specified meetup
+      parameters:
+        - in: body
+          name: meetup
+          description: The updated meetup information
+          schema:
+            $ref: "#/definitions/meetupRequestBody"
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: "#/definitions/meetup"
+        400:
+          description: Bad Request
+          schema:
+            $ref: "#/definitions/error"
+        403: 
+          description: Forbidden
+          schema:
+            $ref: "#/definitions/error"
+        404:
+          description: Not found
+          schema:
+            $ref: "#/definitions/error"
+        500:
+          description: Internal server error
+          schema:
+            $ref: "#/definitions/error"
+    delete:
+      summary: Delete the specified meetup
+      description: If the specified meetup does not exist, an error is returned
+      responses:
+        204:
+          description: No Content
+        400:
+          description: Bad Request
+          schema:
+            $ref: "#/definitions/error"
+        403: 
+          description: Forbidden
+          schema: 
+            $ref: "#/definitions/error"
+        404:
+          description: Not found
+          schema:
+            $ref: "#/definitions/error"
+        500:
+          description: Internal server error
+          schema:
+            $ref: "#/definitions/error"
 
   /set-cookie:
     get:

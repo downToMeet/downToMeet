@@ -67,6 +67,224 @@ func init() {
         }
       ]
     },
+    "/meetup": {
+      "get": {
+        "description": "If the required parameters were not specified correctly, an error is returned",
+        "summary": "Get the list of meetups",
+        "parameters": [
+          {
+            "maximum": 90,
+            "minimum": -90,
+            "type": "number",
+            "description": "The latitude of the center of search",
+            "name": "lat",
+            "in": "query",
+            "required": true
+          },
+          {
+            "maximum": 180,
+            "minimum": -180,
+            "type": "number",
+            "description": "The longitude of the center of search",
+            "name": "lon",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "number",
+            "description": "Desired search radius (kilometers)",
+            "name": "radius",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Interests to search for",
+            "name": "tags",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/meetup"
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Post a new meetup",
+        "parameters": [
+          {
+            "description": "The meetup to create",
+            "name": "meetup",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/meetupRequestBody"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "schema": {
+              "$ref": "#/definitions/meetup"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          }
+        }
+      }
+    },
+    "/meetup/{id}": {
+      "get": {
+        "description": "If the specified meetup does not exist, an error is returned",
+        "summary": "Get the specified meetup's information",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/meetup"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          }
+        }
+      },
+      "delete": {
+        "description": "If the specified meetup does not exist, an error is returned",
+        "summary": "Delete the specified meetup",
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "Patch the specified meetup",
+        "parameters": [
+          {
+            "description": "The updated meetup information",
+            "name": "meetup",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/meetupRequestBody"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/meetup"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          }
+        }
+      },
+      "parameters": [
+        {
+          "type": "string",
+          "description": "ID of the desired meetup",
+          "name": "id",
+          "in": "path",
+          "required": true
+        }
+      ]
+    },
     "/restricted": {
       "get": {
         "security": [
@@ -282,8 +500,104 @@ func init() {
         }
       }
     },
+    "location": {
+      "type": "object",
+      "properties": {
+        "coordinates": {
+          "$ref": "#/definitions/coordinates"
+        },
+        "name": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        }
+      }
+    },
+    "meetup": {
+      "type": "object",
+      "required": [
+        "id"
+      ],
+      "properties": {
+        "attendees": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/userID"
+          }
+        },
+        "canceled": {
+          "type": "boolean"
+        },
+        "description": {
+          "type": "string"
+        },
+        "id": {
+          "$ref": "#/definitions/meetupID"
+        },
+        "location": {
+          "$ref": "#/definitions/location"
+        },
+        "maxCapacity": {
+          "type": "integer"
+        },
+        "minCapacity": {
+          "type": "integer"
+        },
+        "owner": {
+          "$ref": "#/definitions/userID"
+        },
+        "pendingAttendees": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/userID"
+          }
+        },
+        "rejected": {
+          "type": "boolean"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "time": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        }
+      }
+    },
     "meetupID": {
       "type": "string"
+    },
+    "meetupRequestBody": {
+      "type": "object",
+      "properties": {
+        "location": {
+          "$ref": "#/definitions/location"
+        },
+        "maxCapacity": {
+          "type": "integer"
+        },
+        "minCapacity": {
+          "type": "integer"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "time": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        }
+      }
     },
     "user": {
       "type": "object",
@@ -392,6 +706,225 @@ func init() {
         }
       ]
     },
+    "/meetup": {
+      "get": {
+        "description": "If the required parameters were not specified correctly, an error is returned",
+        "summary": "Get the list of meetups",
+        "parameters": [
+          {
+            "maximum": 90,
+            "minimum": -90,
+            "type": "number",
+            "description": "The latitude of the center of search",
+            "name": "lat",
+            "in": "query",
+            "required": true
+          },
+          {
+            "maximum": 180,
+            "minimum": -180,
+            "type": "number",
+            "description": "The longitude of the center of search",
+            "name": "lon",
+            "in": "query",
+            "required": true
+          },
+          {
+            "minimum": 0,
+            "type": "number",
+            "description": "Desired search radius (kilometers)",
+            "name": "radius",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Interests to search for",
+            "name": "tags",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/meetup"
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Post a new meetup",
+        "parameters": [
+          {
+            "description": "The meetup to create",
+            "name": "meetup",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/meetupRequestBody"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "schema": {
+              "$ref": "#/definitions/meetup"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          }
+        }
+      }
+    },
+    "/meetup/{id}": {
+      "get": {
+        "description": "If the specified meetup does not exist, an error is returned",
+        "summary": "Get the specified meetup's information",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/meetup"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          }
+        }
+      },
+      "delete": {
+        "description": "If the specified meetup does not exist, an error is returned",
+        "summary": "Delete the specified meetup",
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "Patch the specified meetup",
+        "parameters": [
+          {
+            "description": "The updated meetup information",
+            "name": "meetup",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/meetupRequestBody"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/meetup"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          }
+        }
+      },
+      "parameters": [
+        {
+          "type": "string",
+          "description": "ID of the desired meetup",
+          "name": "id",
+          "in": "path",
+          "required": true
+        }
+      ]
+    },
     "/restricted": {
       "get": {
         "security": [
@@ -607,8 +1140,106 @@ func init() {
         }
       }
     },
+    "location": {
+      "type": "object",
+      "properties": {
+        "coordinates": {
+          "$ref": "#/definitions/coordinates"
+        },
+        "name": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        }
+      }
+    },
+    "meetup": {
+      "type": "object",
+      "required": [
+        "id"
+      ],
+      "properties": {
+        "attendees": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/userID"
+          }
+        },
+        "canceled": {
+          "type": "boolean"
+        },
+        "description": {
+          "type": "string"
+        },
+        "id": {
+          "$ref": "#/definitions/meetupID"
+        },
+        "location": {
+          "$ref": "#/definitions/location"
+        },
+        "maxCapacity": {
+          "type": "integer"
+        },
+        "minCapacity": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "owner": {
+          "$ref": "#/definitions/userID"
+        },
+        "pendingAttendees": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/userID"
+          }
+        },
+        "rejected": {
+          "type": "boolean"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "time": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        }
+      }
+    },
     "meetupID": {
       "type": "string"
+    },
+    "meetupRequestBody": {
+      "type": "object",
+      "properties": {
+        "location": {
+          "$ref": "#/definitions/location"
+        },
+        "maxCapacity": {
+          "type": "integer"
+        },
+        "minCapacity": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "time": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        }
+      }
     },
     "user": {
       "type": "object",
