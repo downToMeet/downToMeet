@@ -31,4 +31,6 @@ require (
 	golang.org/x/text v0.3.4 // indirect
 	golang.org/x/tools v0.0.0-20201105173854-bc9fc8d8c4bc
 	gopkg.in/ini.v1 v1.62.0 // indirect
+	gorm.io/driver/postgres v1.0.5
+	gorm.io/gorm v1.20.5
 )
