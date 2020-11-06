@@ -21,7 +21,6 @@ type Meetup struct {
 }
 
 type MeetupLocation struct {
-	MeetupID string
 	Lat, Lon float64
 	URL      string
 	Name     string
