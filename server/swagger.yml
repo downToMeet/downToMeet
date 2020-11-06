@@ -254,11 +254,15 @@ paths:
           in: query
           required: true
           type: number
+          minimum: -90
+          maximum: 90
           description: The latitude of the center of search
         - name: lon
           in: query
           required: true
           type: number 
+          minimum: -180
+        maximum: 180
           description: The longitude of the center of search
         - name: radius
           in: query
