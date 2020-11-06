@@ -73,6 +73,8 @@ func init() {
         "summary": "Get the list of meetups",
         "parameters": [
           {
+            "maximum": 90,
+            "minimum": -90,
             "type": "number",
             "description": "The latitude of the center of search",
             "name": "lat",
@@ -80,6 +82,8 @@ func init() {
             "required": true
           },
           {
+            "maximum": 180,
+            "minimum": -180,
             "type": "number",
             "description": "The longitude of the center of search",
             "name": "lon",
@@ -708,6 +712,8 @@ func init() {
         "summary": "Get the list of meetups",
         "parameters": [
           {
+            "maximum": 90,
+            "minimum": -90,
             "type": "number",
             "description": "The latitude of the center of search",
             "name": "lat",
@@ -715,6 +721,8 @@ func init() {
             "required": true
           },
           {
+            "maximum": 180,
+            "minimum": -180,
             "type": "number",
             "description": "The longitude of the center of search",
             "name": "lon",

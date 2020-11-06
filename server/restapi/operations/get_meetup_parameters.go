@@ -34,11 +34,15 @@ type GetMeetupParams struct {
 
 	/*The latitude of the center of search
 	  Required: true
+	  Maximum: 90
+	  Minimum: -90
 	  In: query
 	*/
 	Lat float64
 	/*The longitude of the center of search
 	  Required: true
+	  Maximum: 180
+	  Minimum: -180
 	  In: query
 	*/
 	Lon float64
@@ -114,6 +118,24 @@ func (o *GetMeetupParams) bindLat(rawData []string, hasKey bool, formats strfmt.
 	}
 	o.Lat = value
 
+	if err := o.validateLat(formats); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// validateLat carries on validations for parameter Lat
+func (o *GetMeetupParams) validateLat(formats strfmt.Registry) error {
+
+	if err := validate.Minimum("lat", "query", float64(o.Lat), -90, false); err != nil {
+		return err
+	}
+
+	if err := validate.Maximum("lat", "query", float64(o.Lat), 90, false); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -138,6 +160,24 @@ func (o *GetMeetupParams) bindLon(rawData []string, hasKey bool, formats strfmt.
 		return errors.InvalidType("lon", "query", "float64", raw)
 	}
 	o.Lon = value
+
+	if err := o.validateLon(formats); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// validateLon carries on validations for parameter Lon
+func (o *GetMeetupParams) validateLon(formats strfmt.Registry) error {
+
+	if err := validate.Minimum("lon", "query", float64(o.Lon), -180, false); err != nil {
+		return err
+	}
+
+	if err := validate.Maximum("lon", "query", float64(o.Lon), 180, false); err != nil {
+		return err
+	}
 
 	return nil
 }
