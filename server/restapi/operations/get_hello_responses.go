@@ -10,7 +10,7 @@ import (
 
 	"github.com/go-openapi/runtime"
 
-	"go.timothygu.me/downtomeet/models"
+	"go.timothygu.me/downtomeet/server/models"
 )
 
 // GetHelloOKCode is the HTTP code returned for type GetHelloOK

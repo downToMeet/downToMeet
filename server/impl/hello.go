@@ -7,13 +7,14 @@ import (
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/go-openapi/swag"
 
-	"go.timothygu.me/downtomeet/models"
-	"go.timothygu.me/downtomeet/restapi/operations"
+	"go.timothygu.me/downtomeet/server/models"
+	"go.timothygu.me/downtomeet/server/restapi/operations"
 )
 
 var times int32
 
-func GetHello(params operations.GetHelloParams) middleware.Responder {
+// Deprecated: This is a dummy endpoint that should be removed.
+func (i *Implementation) GetHello(params operations.GetHelloParams) middleware.Responder {
 	if swag.StringValue(params.ID) == "error" {
 		return operations.NewGetHelloDefault(400).
 			WithPayload(&models.Error{
