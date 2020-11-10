@@ -3,7 +3,6 @@ package impl_test
 import (
 	"net/http"
 	"net/http/httptest"
-	"sync/atomic"
 	"testing"
 
 	"github.com/go-openapi/runtime"
@@ -32,19 +31,42 @@ func TestSaveSession(t *testing.T) {
 	assert.Equal(t, sessionName, w.Result().Cookies()[0].Name)
 }
 
-func TestImplementation_SessionMiddleware(t *testing.T) {
+func TestImplementation_SessionMiddleware_Nil(t *testing.T) {
+	// Create a new request without any cookies.
+	r := httptest.NewRequest(http.MethodGet, "/", nil)
+
+	// Assert that a new session is created.
+	called := false
+	testImpl.SessionMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		called = true
+
+		session := SessionFromContext(r.Context())
+		require.NotNil(t, session)
+		assert.True(t, session.IsNew)
+		assert.Equal(t, nil, session.Values[UserID])
+	})).ServeHTTP(httptest.NewRecorder(), r)
+
+	assert.True(t, called)
+}
+
+func TestImplementation_SessionMiddleware_Stored(t *testing.T) {
 	const (
 		sessionName = "session"
 		userID      = "user ID"
 	)
 
 	// Create a session and a corresponding origCookie.
-	origSession := sessions.NewSession(testImpl.SessionStore(), sessionName)
-	origSession.Values[UserID] = userID
-	var origCookie *http.Cookie
+	var (
+		origSession *sessions.Session
+		origCookie  *http.Cookie
+		err         error
+	)
 	{
 		r := httptest.NewRequest(http.MethodGet, "/", nil)
-		r = r.WithContext(WithSession(r.Context(), origSession))
+		origSession, err = testImpl.SessionStore().New(r, sessionName)
+		require.NoError(t, err)
+		origSession.Values[UserID] = userID
+
 		w := httptest.NewRecorder()
 		require.NoError(t, testImpl.SessionStore().Save(r, w, origSession))
 		require.NotEmpty(t, len(w.Result().Cookies()))
@@ -56,9 +78,9 @@ func TestImplementation_SessionMiddleware(t *testing.T) {
 	r.AddCookie(origCookie)
 
 	// Assert that the restored session is the same as what was saved.
-	var called int32
+	called := false
 	testImpl.SessionMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		atomic.StoreInt32(&called, 1)
+		called = true
 
 		session := SessionFromContext(r.Context())
 		require.NotNil(t, session)
@@ -67,7 +89,7 @@ func TestImplementation_SessionMiddleware(t *testing.T) {
 		assert.Equal(t, userID, session.Values[UserID])
 	})).ServeHTTP(httptest.NewRecorder(), r)
 
-	assert.Equal(t, int32(1), atomic.LoadInt32(&called))
+	assert.True(t, called)
 }
 
 // Helpers...

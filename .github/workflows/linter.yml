@@ -68,7 +68,8 @@ jobs:
 
       - run: go vet ./...
 
-      - run: go test ./...
+      - name: Run go test
+        run: go test -race ./...
 
       - name: Format code
         run: |
