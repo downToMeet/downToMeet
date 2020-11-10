@@ -8,7 +8,7 @@ import (
 	. "go.timothygu.me/downtomeet/server/impl"
 )
 
-var testImpl = NewImplementationWithSessionStore(mockCookieStore())
+var testImpl = NewMockImplementation(mockCookieStore())
 
 var (
 	mockAuthenticationKey = bytes.Repeat([]byte{'n'}, 32)

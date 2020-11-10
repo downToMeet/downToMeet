@@ -24,8 +24,8 @@ func NewImplementation() *Implementation {
 	return new(Implementation)
 }
 
-// NewImplementation returns a new Implementation with the provided session store.
-func NewImplementationWithSessionStore(store sessions.Store) *Implementation {
+// NewMockImplementation returns a new Implementation with the provided session store.
+func NewMockImplementation(store sessions.Store) *Implementation {
 	i := new(Implementation)
 	i.sessionStoreInit.Do(func() {
 		i.sessionStore = store
