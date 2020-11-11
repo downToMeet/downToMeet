@@ -1,4 +1,4 @@
-package impl
+package impl_test
 
 import (
 	"testing"
@@ -9,8 +9,6 @@ import (
 
 	"go.timothygu.me/downtomeet/server/restapi/operations"
 )
-
-var testImpl = NewImplementation()
 
 func TestGetHello(t *testing.T) {
 	params := operations.NewGetHelloParams()
