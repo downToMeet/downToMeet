@@ -19,29 +19,29 @@ import (
 type User struct {
 
 	// attending
-	Attending []MeetupID `json:"attending"`
+	Attending []MeetupID `json:"attending,omitempty"`
 
 	// contact info
 	ContactInfo string `json:"contactInfo,omitempty"`
-
-	// coordinates
-	Coordinates *Coordinates `json:"coordinates,omitempty"`
 
 	// id
 	// Required: true
 	ID UserID `json:"id"`
 
 	// interests
-	Interests []string `json:"interests"`
+	Interests []string `json:"interests,omitempty"`
+
+	// location
+	Location *Coordinates `json:"location,omitempty"`
 
 	// name
 	Name string `json:"name,omitempty"`
 
 	// owned meetups
-	OwnedMeetups []MeetupID `json:"ownedMeetups"`
+	OwnedMeetups []MeetupID `json:"ownedMeetups,omitempty"`
 
 	// pending approval
-	PendingApproval []MeetupID `json:"pendingApproval"`
+	PendingApproval []MeetupID `json:"pendingApproval,omitempty"`
 }
 
 // Validate validates this user
@@ -52,11 +52,11 @@ func (m *User) Validate(formats strfmt.Registry) error {
 		res = append(res, err)
 	}
 
-	if err := m.validateCoordinates(formats); err != nil {
+	if err := m.validateID(formats); err != nil {
 		res = append(res, err)
 	}
 
-	if err := m.validateID(formats); err != nil {
+	if err := m.validateLocation(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -94,24 +94,6 @@ func (m *User) validateAttending(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *User) validateCoordinates(formats strfmt.Registry) error {
-
-	if swag.IsZero(m.Coordinates) { // not required
-		return nil
-	}
-
-	if m.Coordinates != nil {
-		if err := m.Coordinates.Validate(formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
-				return ve.ValidateName("coordinates")
-			}
-			return err
-		}
-	}
-
-	return nil
-}
-
 func (m *User) validateID(formats strfmt.Registry) error {
 
 	if err := m.ID.Validate(formats); err != nil {
@@ -119,6 +101,24 @@ func (m *User) validateID(formats strfmt.Registry) error {
 			return ve.ValidateName("id")
 		}
 		return err
+	}
+
+	return nil
+}
+
+func (m *User) validateLocation(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.Location) { // not required
+		return nil
+	}
+
+	if m.Location != nil {
+		if err := m.Location.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("location")
+			}
+			return err
+		}
 	}
 
 	return nil

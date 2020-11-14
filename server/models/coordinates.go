@@ -18,14 +18,16 @@ import (
 type Coordinates struct {
 
 	// lat
+	// Required: true
 	// Maximum: 90
 	// Minimum: -90
-	Lat *float64 `json:"lat,omitempty"`
+	Lat *float64 `json:"lat"`
 
 	// lon
+	// Required: true
 	// Maximum: 180
 	// Minimum: -180
-	Lon *float64 `json:"lon,omitempty"`
+	Lon *float64 `json:"lon"`
 }
 
 // Validate validates this coordinates
@@ -48,8 +50,8 @@ func (m *Coordinates) Validate(formats strfmt.Registry) error {
 
 func (m *Coordinates) validateLat(formats strfmt.Registry) error {
 
-	if swag.IsZero(m.Lat) { // not required
-		return nil
+	if err := validate.Required("lat", "body", m.Lat); err != nil {
+		return err
 	}
 
 	if err := validate.Minimum("lat", "body", float64(*m.Lat), -90, false); err != nil {
@@ -65,8 +67,8 @@ func (m *Coordinates) validateLat(formats strfmt.Registry) error {
 
 func (m *Coordinates) validateLon(formats strfmt.Registry) error {
 
-	if swag.IsZero(m.Lon) { // not required
-		return nil
+	if err := validate.Required("lon", "body", m.Lon); err != nil {
+		return err
 	}
 
 	if err := validate.Minimum("lon", "body", float64(*m.Lon), -180, false); err != nil {

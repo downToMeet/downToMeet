@@ -6,16 +6,23 @@ import (
 	"sync"
 
 	"github.com/gorilla/sessions"
+	log "github.com/sirupsen/logrus"
+	"gorm.io/gorm"
+
+	"go.timothygu.me/downtomeet/server/db"
 )
 
 // An Implementation provides all server endpoints for the app.
 type Implementation struct {
 	Options struct {
-		Production bool `long:"production" description:"Run in production mode"`
+		Production bool   `long:"production" description:"Run in production mode"`
+		Database   string `long:"database" description:"URL of Postgres DB" default:"postgresql://localhost:5432/downtomeet"`
 	}
 
 	sessionStore     sessions.Store // could be lazily initialized; use SessionStore() instead!
 	sessionStoreInit sync.Once
+	db               *gorm.DB // could be lazily initialized; use DB() instead!
+	dbInit           sync.Once
 }
 
 // NewImplementation returns a new Implementation intended for production,
@@ -51,6 +58,17 @@ func (i *Implementation) SessionStore() sessions.Store {
 		i.sessionStore = store
 	})
 	return i.sessionStore
+}
+
+// DB returns the database associated with the Implementation.
+func (i *Implementation) DB() *gorm.DB {
+	i.dbInit.Do(func() {
+		var err error
+		if i.db, err = db.Get(log.StandardLogger(), i.Options.Database); err != nil {
+			log.WithError(err).Panic("Unable to initialize the database")
+		}
+	})
+	return i.db
 }
 
 //go:generate go run golang.org/x/tools/cmd/stringer -type=SessionKey

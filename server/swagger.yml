@@ -22,8 +22,13 @@ definitions:
     type: string
   meetupID:
     type: string
+  tagID:
+    type: string
   coordinates:
     type: object
+    required:
+      - lat
+      - lon
     properties: 
       lat:
         type: number
@@ -53,24 +58,30 @@ definitions:
         type: string
       interests:
         type: array
+        x-omitempty: true
         items: 
           type: string
-      coordinates:
+      location:
+        x-omitempty: true
         $ref: "#/definitions/coordinates"
       pendingApproval:
         type: array
+        x-omitempty: true
         items: 
           $ref: "#/definitions/meetupID"
       attending:
         type: array
-        items: 
+        x-omitempty: true
+        items:
           $ref: "#/definitions/meetupID"
       ownedMeetups:
         type: array
-        items: 
+        x-omitempty: true
+        items:
           $ref: "#/definitions/meetupID"
       contactInfo:
         type: string
+        x-omitempty: true
   meetup:
     type: object
     required:
@@ -165,6 +176,20 @@ paths:
           description: generic error response
           schema:
             $ref: "#/definitions/error"
+  /user:
+    post:
+      summary: Create a test user
+      deprecated: true
+      parameters:
+        - name: name
+          in: body
+          schema:
+            type: string
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: "#/definitions/user"
   /user/me:
     get:
       summary: Get the current user's information
@@ -178,10 +203,6 @@ paths:
             $ref: "#/definitions/user"
         403:
           description: Forbidden
-          schema:
-            $ref: "#/definitions/error"
-        500:
-          description: Internal server error
           schema:
             $ref: "#/definitions/error"
   /user/{id}:
@@ -203,15 +224,17 @@ paths:
           description: Not found
           schema:
             $ref: "#/definitions/error"
-        500:
-          description: Internal server error
-          schema:
-            $ref: "#/definitions/error"
     patch:
       summary: Patch the specified user
       description: |
         If specified user does not exist or current user is not the specified
         user, an error is returned.
+      parameters:
+        - in: body
+          name: updatedUser
+          description: Updated user information
+          schema:
+            $ref: "#/definitions/user"
       security:
         - cookieSession: []
       responses:
@@ -225,10 +248,6 @@ paths:
             $ref: "#/definitions/error"
         404:
           description: Not found
-          schema:
-            $ref: "#/definitions/error"
-        500:
-          description: Internal server error
           schema:
             $ref: "#/definitions/error"
   /user/facebook/redirect:
@@ -290,10 +309,6 @@ paths:
           description: Bad Request
           schema:
             $ref: "#/definitions/error"
-        500:
-          description: Internal server error
-          schema:
-            $ref: "#/definitions/error"
     post:
       summary: Post a new meetup
       parameters:
@@ -309,10 +324,6 @@ paths:
             $ref: "#/definitions/meetup"
         400:
           description: Bad Request
-          schema:
-            $ref: "#/definitions/error"
-        500:
-          description: Internal server error
           schema:
             $ref: "#/definitions/error"
   /meetup/{id}:
@@ -336,10 +347,6 @@ paths:
             $ref: "#/definitions/error"
         404:
           description: Not found
-          schema:
-            $ref: "#/definitions/error"
-        500:
-          description: Internal server error
           schema:
             $ref: "#/definitions/error"
     patch:
@@ -367,10 +374,6 @@ paths:
           description: Not found
           schema:
             $ref: "#/definitions/error"
-        500:
-          description: Internal server error
-          schema:
-            $ref: "#/definitions/error"
     delete:
       summary: Delete the specified meetup
       description: If the specified meetup does not exist, an error is returned
@@ -387,10 +390,6 @@ paths:
             $ref: "#/definitions/error"
         404:
           description: Not found
-          schema:
-            $ref: "#/definitions/error"
-        500:
-          description: Internal server error
           schema:
             $ref: "#/definitions/error"
 

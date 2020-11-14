@@ -30,6 +30,12 @@ func configureFlags(api *operations.DownToMeetAPI) {
 }
 
 func configureAPI(api *operations.DownToMeetAPI) http.Handler {
+	log.SetFormatter(impl.RequestFormatter{
+		Formatter: log.StandardLogger().Formatter,
+	})
+
+	api.Logger = log.Infof
+
 	if Impl.Options.Production {
 		api.Middleware = func(builder middleware.Builder) http.Handler {
 			return api.Context().RoutesHandler(builder)
@@ -39,14 +45,18 @@ func configureAPI(api *operations.DownToMeetAPI) http.Handler {
 		api.UseRedoc()
 	}
 
+	_ = Impl.DB()
+
 	api.GetHelloHandler = operations.GetHelloHandlerFunc(Impl.GetHello)
 	api.GetSetCookieHandler = operations.GetSetCookieHandlerFunc(Impl.GetSetCookie)
 	api.GetRestrictedHandler = operations.GetRestrictedHandlerFunc(Impl.GetRestricted)
 
 	api.GetUserIDHandler = operations.GetUserIDHandlerFunc(Impl.GetUserID)
-	api.GetMeetupIDHandler = operations.GetMeetupIDHandlerFunc(impl.GetMeetupID)
+	api.PostUserHandler = operations.PostUserHandlerFunc(Impl.PostUser)
+	api.PatchUserIDHandler = operations.PatchUserIDHandlerFunc(Impl.PatchUserID)
+	api.GetUserMeHandler = operations.GetUserMeHandlerFunc(Impl.GetUserMe)
 
-	api.Logger = log.Infof
+	api.GetMeetupIDHandler = operations.GetMeetupIDHandlerFunc(impl.GetMeetupID)
 
 	api.APIKeyAuthenticator = func(name, in string, authentication security.TokenAuthentication) runtime.Authenticator {
 		if name == "COOKIE" {
@@ -77,7 +87,7 @@ func configureServer(s *http.Server, scheme, addr string) {
 // The middleware configuration is for the handler executors. These do not apply to the swagger.json document.
 // The middleware executes after routing but before authentication, binding and validation
 func setupMiddlewares(handler http.Handler) http.Handler {
-	return Impl.SessionMiddleware(handler)
+	return impl.RequestMiddleware(Impl.SessionMiddleware(handler))
 }
 
 // The middleware configuration happens before anything, this middleware also applies to serving the swagger.json document.

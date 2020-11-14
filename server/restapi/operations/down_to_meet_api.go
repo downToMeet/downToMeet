@@ -79,6 +79,9 @@ func NewDownToMeetAPI(spec *loads.Document) *DownToMeetAPI {
 		PostMeetupHandler: PostMeetupHandlerFunc(func(params PostMeetupParams) middleware.Responder {
 			return middleware.NotImplemented("operation PostMeetup has not yet been implemented")
 		}),
+		PostUserHandler: PostUserHandlerFunc(func(params PostUserParams) middleware.Responder {
+			return middleware.NotImplemented("operation PostUser has not yet been implemented")
+		}),
 
 		// Applies when the "COOKIE" query is set
 		CookieSessionAuth: func(token string) (interface{}, error) {
@@ -154,6 +157,8 @@ type DownToMeetAPI struct {
 	PatchUserIDHandler PatchUserIDHandler
 	// PostMeetupHandler sets the operation handler for the post meetup operation
 	PostMeetupHandler PostMeetupHandler
+	// PostUserHandler sets the operation handler for the post user operation
+	PostUserHandler PostUserHandler
 	// ServeError is called when an error is received, there is a default handler
 	// but you can set your own with this
 	ServeError func(http.ResponseWriter, *http.Request, error)
@@ -272,6 +277,9 @@ func (o *DownToMeetAPI) Validate() error {
 	}
 	if o.PostMeetupHandler == nil {
 		unregistered = append(unregistered, "PostMeetupHandler")
+	}
+	if o.PostUserHandler == nil {
+		unregistered = append(unregistered, "PostUserHandler")
 	}
 
 	if len(unregistered) > 0 {
@@ -420,6 +428,10 @@ func (o *DownToMeetAPI) initHandlerCache() {
 		o.handlers["POST"] = make(map[string]http.Handler)
 	}
 	o.handlers["POST"]["/meetup"] = NewPostMeetup(o.context, o.PostMeetupHandler)
+	if o.handlers["POST"] == nil {
+		o.handlers["POST"] = make(map[string]http.Handler)
+	}
+	o.handlers["POST"]["/user"] = NewPostUser(o.context, o.PostUserHandler)
 }
 
 // Serve creates a http handler to serve the API over HTTP

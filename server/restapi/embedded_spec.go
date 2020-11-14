@@ -123,12 +123,6 @@ func init() {
             "schema": {
               "$ref": "#/definitions/error"
             }
-          },
-          "500": {
-            "description": "Internal server error",
-            "schema": {
-              "$ref": "#/definitions/error"
-            }
           }
         }
       },
@@ -153,12 +147,6 @@ func init() {
           },
           "400": {
             "description": "Bad Request",
-            "schema": {
-              "$ref": "#/definitions/error"
-            }
-          },
-          "500": {
-            "description": "Internal server error",
             "schema": {
               "$ref": "#/definitions/error"
             }
@@ -188,12 +176,6 @@ func init() {
             "schema": {
               "$ref": "#/definitions/error"
             }
-          },
-          "500": {
-            "description": "Internal server error",
-            "schema": {
-              "$ref": "#/definitions/error"
-            }
           }
         }
       },
@@ -218,12 +200,6 @@ func init() {
           },
           "404": {
             "description": "Not found",
-            "schema": {
-              "$ref": "#/definitions/error"
-            }
-          },
-          "500": {
-            "description": "Internal server error",
             "schema": {
               "$ref": "#/definitions/error"
             }
@@ -263,12 +239,6 @@ func init() {
           },
           "404": {
             "description": "Not found",
-            "schema": {
-              "$ref": "#/definitions/error"
-            }
-          },
-          "500": {
-            "description": "Internal server error",
             "schema": {
               "$ref": "#/definitions/error"
             }
@@ -345,6 +315,29 @@ func init() {
         }
       }
     },
+    "/user": {
+      "post": {
+        "summary": "Create a test user",
+        "deprecated": true,
+        "parameters": [
+          {
+            "name": "name",
+            "in": "body",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/user"
+            }
+          }
+        }
+      }
+    },
     "/user/facebook/redirect": {
       "get": {
         "description": "If authentication fails, the user is not logged in.",
@@ -391,12 +384,6 @@ func init() {
             "schema": {
               "$ref": "#/definitions/error"
             }
-          },
-          "500": {
-            "description": "Internal server error",
-            "schema": {
-              "$ref": "#/definitions/error"
-            }
           }
         }
       }
@@ -417,12 +404,6 @@ func init() {
             "schema": {
               "$ref": "#/definitions/error"
             }
-          },
-          "500": {
-            "description": "Internal server error",
-            "schema": {
-              "$ref": "#/definitions/error"
-            }
           }
         }
       },
@@ -434,6 +415,16 @@ func init() {
         ],
         "description": "If specified user does not exist or current user is not the specified\nuser, an error is returned.\n",
         "summary": "Patch the specified user",
+        "parameters": [
+          {
+            "description": "Updated user information",
+            "name": "updatedUser",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/user"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -449,12 +440,6 @@ func init() {
           },
           "404": {
             "description": "Not found",
-            "schema": {
-              "$ref": "#/definitions/error"
-            }
-          },
-          "500": {
-            "description": "Internal server error",
             "schema": {
               "$ref": "#/definitions/error"
             }
@@ -475,6 +460,10 @@ func init() {
   "definitions": {
     "coordinates": {
       "type": "object",
+      "required": [
+        "lat",
+        "lon"
+      ],
       "properties": {
         "lat": {
           "type": "number",
@@ -599,6 +588,9 @@ func init() {
         }
       }
     },
+    "tagID": {
+      "type": "string"
+    },
     "user": {
       "type": "object",
       "required": [
@@ -609,13 +601,12 @@ func init() {
           "type": "array",
           "items": {
             "$ref": "#/definitions/meetupID"
-          }
+          },
+          "x-omitempty": true
         },
         "contactInfo": {
-          "type": "string"
-        },
-        "coordinates": {
-          "$ref": "#/definitions/coordinates"
+          "type": "string",
+          "x-omitempty": true
         },
         "id": {
           "$ref": "#/definitions/userID"
@@ -624,7 +615,12 @@ func init() {
           "type": "array",
           "items": {
             "type": "string"
-          }
+          },
+          "x-omitempty": true
+        },
+        "location": {
+          "x-omitempty": true,
+          "$ref": "#/definitions/coordinates"
         },
         "name": {
           "type": "string"
@@ -633,13 +629,15 @@ func init() {
           "type": "array",
           "items": {
             "$ref": "#/definitions/meetupID"
-          }
+          },
+          "x-omitempty": true
         },
         "pendingApproval": {
           "type": "array",
           "items": {
             "$ref": "#/definitions/meetupID"
-          }
+          },
+          "x-omitempty": true
         }
       }
     },
@@ -763,12 +761,6 @@ func init() {
             "schema": {
               "$ref": "#/definitions/error"
             }
-          },
-          "500": {
-            "description": "Internal server error",
-            "schema": {
-              "$ref": "#/definitions/error"
-            }
           }
         }
       },
@@ -793,12 +785,6 @@ func init() {
           },
           "400": {
             "description": "Bad Request",
-            "schema": {
-              "$ref": "#/definitions/error"
-            }
-          },
-          "500": {
-            "description": "Internal server error",
             "schema": {
               "$ref": "#/definitions/error"
             }
@@ -828,12 +814,6 @@ func init() {
             "schema": {
               "$ref": "#/definitions/error"
             }
-          },
-          "500": {
-            "description": "Internal server error",
-            "schema": {
-              "$ref": "#/definitions/error"
-            }
           }
         }
       },
@@ -858,12 +838,6 @@ func init() {
           },
           "404": {
             "description": "Not found",
-            "schema": {
-              "$ref": "#/definitions/error"
-            }
-          },
-          "500": {
-            "description": "Internal server error",
             "schema": {
               "$ref": "#/definitions/error"
             }
@@ -903,12 +877,6 @@ func init() {
           },
           "404": {
             "description": "Not found",
-            "schema": {
-              "$ref": "#/definitions/error"
-            }
-          },
-          "500": {
-            "description": "Internal server error",
             "schema": {
               "$ref": "#/definitions/error"
             }
@@ -985,6 +953,29 @@ func init() {
         }
       }
     },
+    "/user": {
+      "post": {
+        "summary": "Create a test user",
+        "deprecated": true,
+        "parameters": [
+          {
+            "name": "name",
+            "in": "body",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/user"
+            }
+          }
+        }
+      }
+    },
     "/user/facebook/redirect": {
       "get": {
         "description": "If authentication fails, the user is not logged in.",
@@ -1031,12 +1022,6 @@ func init() {
             "schema": {
               "$ref": "#/definitions/error"
             }
-          },
-          "500": {
-            "description": "Internal server error",
-            "schema": {
-              "$ref": "#/definitions/error"
-            }
           }
         }
       }
@@ -1057,12 +1042,6 @@ func init() {
             "schema": {
               "$ref": "#/definitions/error"
             }
-          },
-          "500": {
-            "description": "Internal server error",
-            "schema": {
-              "$ref": "#/definitions/error"
-            }
           }
         }
       },
@@ -1074,6 +1053,16 @@ func init() {
         ],
         "description": "If specified user does not exist or current user is not the specified\nuser, an error is returned.\n",
         "summary": "Patch the specified user",
+        "parameters": [
+          {
+            "description": "Updated user information",
+            "name": "updatedUser",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/user"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -1089,12 +1078,6 @@ func init() {
           },
           "404": {
             "description": "Not found",
-            "schema": {
-              "$ref": "#/definitions/error"
-            }
-          },
-          "500": {
-            "description": "Internal server error",
             "schema": {
               "$ref": "#/definitions/error"
             }
@@ -1115,6 +1098,10 @@ func init() {
   "definitions": {
     "coordinates": {
       "type": "object",
+      "required": [
+        "lat",
+        "lon"
+      ],
       "properties": {
         "lat": {
           "type": "number",
@@ -1241,6 +1228,9 @@ func init() {
         }
       }
     },
+    "tagID": {
+      "type": "string"
+    },
     "user": {
       "type": "object",
       "required": [
@@ -1251,13 +1241,12 @@ func init() {
           "type": "array",
           "items": {
             "$ref": "#/definitions/meetupID"
-          }
+          },
+          "x-omitempty": true
         },
         "contactInfo": {
-          "type": "string"
-        },
-        "coordinates": {
-          "$ref": "#/definitions/coordinates"
+          "type": "string",
+          "x-omitempty": true
         },
         "id": {
           "$ref": "#/definitions/userID"
@@ -1266,7 +1255,12 @@ func init() {
           "type": "array",
           "items": {
             "type": "string"
-          }
+          },
+          "x-omitempty": true
+        },
+        "location": {
+          "x-omitempty": true,
+          "$ref": "#/definitions/coordinates"
         },
         "name": {
           "type": "string"
@@ -1275,13 +1269,15 @@ func init() {
           "type": "array",
           "items": {
             "$ref": "#/definitions/meetupID"
-          }
+          },
+          "x-omitempty": true
         },
         "pendingApproval": {
           "type": "array",
           "items": {
             "$ref": "#/definitions/meetupID"
-          }
+          },
+          "x-omitempty": true
         }
       }
     },
