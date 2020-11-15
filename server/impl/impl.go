@@ -5,7 +5,6 @@ import (
 	"math/rand"
 	"net/http"
 	"sync"
-	"time"
 
 	"github.com/gorilla/sessions"
 	log "github.com/sirupsen/logrus"
@@ -34,7 +33,7 @@ type Implementation struct {
 // with a sessions.CookieStore as the internal session store.
 func NewImplementation() *Implementation {
 	i := new(Implementation)
-	randSrc := rand.NewSource(time.Now().UnixNano())
+	randSrc := nonce.NewCryptoRandSource()
 	i.nonceGen = nonce.NewGenerator(randSrc)
 	return i
 }
