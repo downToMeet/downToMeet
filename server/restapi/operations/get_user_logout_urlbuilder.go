@@ -11,20 +11,15 @@ import (
 	golangswaggerpaths "path"
 )
 
-// GetUserFacebookRedirectURL generates an URL for the get user facebook redirect operation
-type GetUserFacebookRedirectURL struct {
-	Code  string
-	State string
-
+// GetUserLogoutURL generates an URL for the get user logout operation
+type GetUserLogoutURL struct {
 	_basePath string
-	// avoid unkeyed usage
-	_ struct{}
 }
 
 // WithBasePath sets the base path for this url builder, only required when it's different from the
 // base path specified in the swagger spec.
 // When the value of the base path is an empty string
-func (o *GetUserFacebookRedirectURL) WithBasePath(bp string) *GetUserFacebookRedirectURL {
+func (o *GetUserLogoutURL) WithBasePath(bp string) *GetUserLogoutURL {
 	o.SetBasePath(bp)
 	return o
 }
@@ -32,38 +27,24 @@ func (o *GetUserFacebookRedirectURL) WithBasePath(bp string) *GetUserFacebookRed
 // SetBasePath sets the base path for this url builder, only required when it's different from the
 // base path specified in the swagger spec.
 // When the value of the base path is an empty string
-func (o *GetUserFacebookRedirectURL) SetBasePath(bp string) {
+func (o *GetUserLogoutURL) SetBasePath(bp string) {
 	o._basePath = bp
 }
 
 // Build a url path and query string
-func (o *GetUserFacebookRedirectURL) Build() (*url.URL, error) {
+func (o *GetUserLogoutURL) Build() (*url.URL, error) {
 	var _result url.URL
 
-	var _path = "/user/facebook/redirect"
+	var _path = "/user/logout"
 
 	_basePath := o._basePath
 	_result.Path = golangswaggerpaths.Join(_basePath, _path)
-
-	qs := make(url.Values)
-
-	codeQ := o.Code
-	if codeQ != "" {
-		qs.Set("code", codeQ)
-	}
-
-	stateQ := o.State
-	if stateQ != "" {
-		qs.Set("state", stateQ)
-	}
-
-	_result.RawQuery = qs.Encode()
 
 	return &_result, nil
 }
 
 // Must is a helper function to panic when the url builder returns an error
-func (o *GetUserFacebookRedirectURL) Must(u *url.URL, err error) *url.URL {
+func (o *GetUserLogoutURL) Must(u *url.URL, err error) *url.URL {
 	if err != nil {
 		panic(err)
 	}
@@ -74,17 +55,17 @@ func (o *GetUserFacebookRedirectURL) Must(u *url.URL, err error) *url.URL {
 }
 
 // String returns the string representation of the path with query string
-func (o *GetUserFacebookRedirectURL) String() string {
+func (o *GetUserLogoutURL) String() string {
 	return o.Must(o.Build()).String()
 }
 
 // BuildFull builds a full url with scheme, host, path and query string
-func (o *GetUserFacebookRedirectURL) BuildFull(scheme, host string) (*url.URL, error) {
+func (o *GetUserLogoutURL) BuildFull(scheme, host string) (*url.URL, error) {
 	if scheme == "" {
-		return nil, errors.New("scheme is required for a full url on GetUserFacebookRedirectURL")
+		return nil, errors.New("scheme is required for a full url on GetUserLogoutURL")
 	}
 	if host == "" {
-		return nil, errors.New("host is required for a full url on GetUserFacebookRedirectURL")
+		return nil, errors.New("host is required for a full url on GetUserLogoutURL")
 	}
 
 	base, err := o.Build()
@@ -98,6 +79,6 @@ func (o *GetUserFacebookRedirectURL) BuildFull(scheme, host string) (*url.URL, e
 }
 
 // StringFull returns the string representation of a complete url
-func (o *GetUserFacebookRedirectURL) StringFull(scheme, host string) string {
+func (o *GetUserLogoutURL) StringFull(scheme, host string) string {
 	return o.Must(o.BuildFull(scheme, host)).String()
 }

@@ -30,11 +30,8 @@ func configureFlags(api *operations.DownToMeetAPI) {
 }
 
 func configureAPI(api *operations.DownToMeetAPI) http.Handler {
-	log.SetFormatter(impl.RequestFormatter{
-		Formatter: log.StandardLogger().Formatter,
-	})
-
-	api.Logger = log.Infof
+	log.AddHook(impl.RequestLogHook{})
+	api.Logger = log.Printf
 
 	if Impl.Options.Production {
 		api.Middleware = func(builder middleware.Builder) http.Handler {
@@ -55,6 +52,9 @@ func configureAPI(api *operations.DownToMeetAPI) http.Handler {
 	api.PostUserHandler = operations.PostUserHandlerFunc(Impl.PostUser)
 	api.PatchUserIDHandler = operations.PatchUserIDHandlerFunc(Impl.PatchUserID)
 	api.GetUserMeHandler = operations.GetUserMeHandlerFunc(Impl.GetUserMe)
+	api.GetUserLogoutHandler = operations.GetUserLogoutHandlerFunc(Impl.GetUserLogout)
+	api.GetUserFacebookAuthHandler = operations.GetUserFacebookAuthHandlerFunc(Impl.GetUserFacebookAuth)
+	api.GetUserFacebookRedirectHandler = operations.GetUserFacebookRedirectHandlerFunc(Impl.GetUserFacebookRedirect)
 
 	api.GetMeetupIDHandler = operations.GetMeetupIDHandlerFunc(impl.GetMeetupID)
 
@@ -62,7 +62,8 @@ func configureAPI(api *operations.DownToMeetAPI) http.Handler {
 		if name == "COOKIE" {
 			return security.HttpAuthenticator(func(r *http.Request) (authenticated bool, principal interface{}, err error) {
 				session := impl.SessionFromContext(r.Context())
-				return !session.IsNew, session, err
+				authenticated = session.Values[impl.UserID] != nil
+				return authenticated, session, err
 			})
 		}
 

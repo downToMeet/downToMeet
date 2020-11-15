@@ -2,14 +2,17 @@ package impl
 
 import (
 	"encoding/gob"
+	"math/rand"
 	"net/http"
 	"sync"
+	"time"
 
 	"github.com/gorilla/sessions"
 	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 
 	"go.timothygu.me/downtomeet/server/db"
+	"go.timothygu.me/downtomeet/server/impl/nonce"
 )
 
 // An Implementation provides all server endpoints for the app.
@@ -23,17 +26,24 @@ type Implementation struct {
 	sessionStoreInit sync.Once
 	db               *gorm.DB // could be lazily initialized; use DB() instead!
 	dbInit           sync.Once
+
+	facebookState *nonce.Generator
 }
 
 // NewImplementation returns a new Implementation intended for production,
 // with a sessions.CookieStore as the internal session store.
 func NewImplementation() *Implementation {
-	return new(Implementation)
+	i := new(Implementation)
+	randSrc := rand.NewSource(time.Now().UnixNano())
+	i.facebookState = nonce.NewGenerator(randSrc)
+	return i
 }
 
-// NewMockImplementation returns a new Implementation with the provided session store.
-func NewMockImplementation(store sessions.Store) *Implementation {
+// NewMockImplementation returns a new Implementation with the provided
+// parameters.
+func NewMockImplementation(store sessions.Store, randSrc rand.Source) *Implementation {
 	i := new(Implementation)
+	i.facebookState = nonce.NewGenerator(randSrc)
 	i.sessionStoreInit.Do(func() {
 		i.sessionStore = store
 	})

@@ -21,8 +21,14 @@ type User struct {
 	// attending
 	Attending []MeetupID `json:"attending,omitempty"`
 
+	// connections
+	Connections []string `json:"connections,omitempty"`
+
 	// contact info
 	ContactInfo string `json:"contactInfo,omitempty"`
+
+	// email
+	Email string `json:"email,omitempty"`
 
 	// id
 	// Required: true

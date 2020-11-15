@@ -2,9 +2,11 @@ package impl
 
 import log "github.com/sirupsen/logrus"
 
-type RequestFormatter struct{ log.Formatter }
+type RequestLogHook struct{}
 
-func (f RequestFormatter) Format(entry *log.Entry) ([]byte, error) {
+func (r RequestLogHook) Levels() []log.Level { return log.AllLevels }
+
+func (r RequestLogHook) Fire(entry *log.Entry) error {
 	if ctx := entry.Context; ctx != nil {
 		if r := RequestFromSession(ctx); r != nil {
 			tentativeAddField(entry.Data, "method", r.Method)
@@ -15,8 +17,7 @@ func (f RequestFormatter) Format(entry *log.Entry) ([]byte, error) {
 			tentativeAddField(entry.Data, "session", s.Values)
 		}
 	}
-
-	return f.Formatter.Format(entry)
+	return nil
 }
 
 func tentativeAddField(existing log.Fields, k string, v interface{}) {

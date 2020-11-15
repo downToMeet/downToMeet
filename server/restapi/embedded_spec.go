@@ -338,6 +338,23 @@ func init() {
         }
       }
     },
+    "/user/facebook/auth": {
+      "get": {
+        "description": "Start a Facebook OAuth login flow here.",
+        "summary": "Facebook OAuth login",
+        "responses": {
+          "303": {
+            "description": "Redirect to Facebook login prompt.",
+            "headers": {
+              "Location": {
+                "type": "string",
+                "description": "Redirect URL"
+              }
+            }
+          }
+        }
+      }
+    },
     "/user/facebook/redirect": {
       "get": {
         "description": "If authentication fails, the user is not logged in.",
@@ -347,7 +364,15 @@ func init() {
             "type": "string",
             "description": "Authorization code from Facebook",
             "name": "code",
-            "in": "query"
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Nonce state from Facebook",
+            "name": "state",
+            "in": "query",
+            "required": true
           }
         ],
         "responses": {
@@ -359,6 +384,16 @@ func init() {
                 "description": "Redirect URL"
               }
             }
+          }
+        }
+      }
+    },
+    "/user/logout": {
+      "get": {
+        "summary": "Log out the user",
+        "responses": {
+          "204": {
+            "description": "Remove session cookie and redirect to home page."
           }
         }
       }
@@ -604,9 +639,19 @@ func init() {
           },
           "x-omitempty": true
         },
+        "connections": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "x-omitempty": true
+        },
         "contactInfo": {
           "type": "string",
           "x-omitempty": true
+        },
+        "email": {
+          "type": "string"
         },
         "id": {
           "$ref": "#/definitions/userID"
@@ -976,6 +1021,23 @@ func init() {
         }
       }
     },
+    "/user/facebook/auth": {
+      "get": {
+        "description": "Start a Facebook OAuth login flow here.",
+        "summary": "Facebook OAuth login",
+        "responses": {
+          "303": {
+            "description": "Redirect to Facebook login prompt.",
+            "headers": {
+              "Location": {
+                "type": "string",
+                "description": "Redirect URL"
+              }
+            }
+          }
+        }
+      }
+    },
     "/user/facebook/redirect": {
       "get": {
         "description": "If authentication fails, the user is not logged in.",
@@ -985,7 +1047,15 @@ func init() {
             "type": "string",
             "description": "Authorization code from Facebook",
             "name": "code",
-            "in": "query"
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Nonce state from Facebook",
+            "name": "state",
+            "in": "query",
+            "required": true
           }
         ],
         "responses": {
@@ -997,6 +1067,16 @@ func init() {
                 "description": "Redirect URL"
               }
             }
+          }
+        }
+      }
+    },
+    "/user/logout": {
+      "get": {
+        "summary": "Log out the user",
+        "responses": {
+          "204": {
+            "description": "Remove session cookie and redirect to home page."
           }
         }
       }
@@ -1244,9 +1324,19 @@ func init() {
           },
           "x-omitempty": true
         },
+        "connections": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "x-omitempty": true
+        },
         "contactInfo": {
           "type": "string",
           "x-omitempty": true
+        },
+        "email": {
+          "type": "string"
         },
         "id": {
           "$ref": "#/definitions/userID"

@@ -61,11 +61,17 @@ func NewDownToMeetAPI(spec *loads.Document) *DownToMeetAPI {
 		GetSetCookieHandler: GetSetCookieHandlerFunc(func(params GetSetCookieParams) middleware.Responder {
 			return middleware.NotImplemented("operation GetSetCookie has not yet been implemented")
 		}),
+		GetUserFacebookAuthHandler: GetUserFacebookAuthHandlerFunc(func(params GetUserFacebookAuthParams) middleware.Responder {
+			return middleware.NotImplemented("operation GetUserFacebookAuth has not yet been implemented")
+		}),
 		GetUserFacebookRedirectHandler: GetUserFacebookRedirectHandlerFunc(func(params GetUserFacebookRedirectParams) middleware.Responder {
 			return middleware.NotImplemented("operation GetUserFacebookRedirect has not yet been implemented")
 		}),
 		GetUserIDHandler: GetUserIDHandlerFunc(func(params GetUserIDParams) middleware.Responder {
 			return middleware.NotImplemented("operation GetUserID has not yet been implemented")
+		}),
+		GetUserLogoutHandler: GetUserLogoutHandlerFunc(func(params GetUserLogoutParams) middleware.Responder {
+			return middleware.NotImplemented("operation GetUserLogout has not yet been implemented")
 		}),
 		GetUserMeHandler: GetUserMeHandlerFunc(func(params GetUserMeParams, principal interface{}) middleware.Responder {
 			return middleware.NotImplemented("operation GetUserMe has not yet been implemented")
@@ -145,10 +151,14 @@ type DownToMeetAPI struct {
 	GetRestrictedHandler GetRestrictedHandler
 	// GetSetCookieHandler sets the operation handler for the get set cookie operation
 	GetSetCookieHandler GetSetCookieHandler
+	// GetUserFacebookAuthHandler sets the operation handler for the get user facebook auth operation
+	GetUserFacebookAuthHandler GetUserFacebookAuthHandler
 	// GetUserFacebookRedirectHandler sets the operation handler for the get user facebook redirect operation
 	GetUserFacebookRedirectHandler GetUserFacebookRedirectHandler
 	// GetUserIDHandler sets the operation handler for the get user ID operation
 	GetUserIDHandler GetUserIDHandler
+	// GetUserLogoutHandler sets the operation handler for the get user logout operation
+	GetUserLogoutHandler GetUserLogoutHandler
 	// GetUserMeHandler sets the operation handler for the get user me operation
 	GetUserMeHandler GetUserMeHandler
 	// PatchMeetupIDHandler sets the operation handler for the patch meetup ID operation
@@ -260,11 +270,17 @@ func (o *DownToMeetAPI) Validate() error {
 	if o.GetSetCookieHandler == nil {
 		unregistered = append(unregistered, "GetSetCookieHandler")
 	}
+	if o.GetUserFacebookAuthHandler == nil {
+		unregistered = append(unregistered, "GetUserFacebookAuthHandler")
+	}
 	if o.GetUserFacebookRedirectHandler == nil {
 		unregistered = append(unregistered, "GetUserFacebookRedirectHandler")
 	}
 	if o.GetUserIDHandler == nil {
 		unregistered = append(unregistered, "GetUserIDHandler")
+	}
+	if o.GetUserLogoutHandler == nil {
+		unregistered = append(unregistered, "GetUserLogoutHandler")
 	}
 	if o.GetUserMeHandler == nil {
 		unregistered = append(unregistered, "GetUserMeHandler")
@@ -407,11 +423,19 @@ func (o *DownToMeetAPI) initHandlerCache() {
 	if o.handlers["GET"] == nil {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}
+	o.handlers["GET"]["/user/facebook/auth"] = NewGetUserFacebookAuth(o.context, o.GetUserFacebookAuthHandler)
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
 	o.handlers["GET"]["/user/facebook/redirect"] = NewGetUserFacebookRedirect(o.context, o.GetUserFacebookRedirectHandler)
 	if o.handlers["GET"] == nil {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}
 	o.handlers["GET"]["/user/{id}"] = NewGetUserID(o.context, o.GetUserIDHandler)
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"]["/user/logout"] = NewGetUserLogout(o.context, o.GetUserLogoutHandler)
 	if o.handlers["GET"] == nil {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}

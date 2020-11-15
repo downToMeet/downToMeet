@@ -12,6 +12,7 @@ import (
 	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/go-openapi/strfmt"
+	"github.com/go-openapi/validate"
 )
 
 // NewGetUserFacebookRedirectParams creates a new GetUserFacebookRedirectParams object
@@ -31,9 +32,15 @@ type GetUserFacebookRedirectParams struct {
 	HTTPRequest *http.Request `json:"-"`
 
 	/*Authorization code from Facebook
+	  Required: true
 	  In: query
 	*/
-	Code *string
+	Code string
+	/*Nonce state from Facebook
+	  Required: true
+	  In: query
+	*/
+	State string
 }
 
 // BindRequest both binds and validates a request, it assumes that complex things implement a Validatable(strfmt.Registry) error interface
@@ -52,6 +59,11 @@ func (o *GetUserFacebookRedirectParams) BindRequest(r *http.Request, route *midd
 		res = append(res, err)
 	}
 
+	qState, qhkState, _ := qs.GetOK("state")
+	if err := o.bindState(qState, qhkState, route.Formats); err != nil {
+		res = append(res, err)
+	}
+
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
@@ -60,18 +72,42 @@ func (o *GetUserFacebookRedirectParams) BindRequest(r *http.Request, route *midd
 
 // bindCode binds and validates parameter Code from query.
 func (o *GetUserFacebookRedirectParams) bindCode(rawData []string, hasKey bool, formats strfmt.Registry) error {
+	if !hasKey {
+		return errors.Required("code", "query", rawData)
+	}
 	var raw string
 	if len(rawData) > 0 {
 		raw = rawData[len(rawData)-1]
 	}
 
-	// Required: false
+	// Required: true
 	// AllowEmptyValue: false
-	if raw == "" { // empty values pass all other validations
-		return nil
+	if err := validate.RequiredString("code", "query", raw); err != nil {
+		return err
 	}
 
-	o.Code = &raw
+	o.Code = raw
+
+	return nil
+}
+
+// bindState binds and validates parameter State from query.
+func (o *GetUserFacebookRedirectParams) bindState(rawData []string, hasKey bool, formats strfmt.Registry) error {
+	if !hasKey {
+		return errors.Required("state", "query", rawData)
+	}
+	var raw string
+	if len(rawData) > 0 {
+		raw = rawData[len(rawData)-1]
+	}
+
+	// Required: true
+	// AllowEmptyValue: false
+	if err := validate.RequiredString("state", "query", raw); err != nil {
+		return err
+	}
+
+	o.State = raw
 
 	return nil
 }

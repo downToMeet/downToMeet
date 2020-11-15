@@ -8,9 +8,10 @@ import (
 
 type User struct {
 	gorm.Model
-	Email           string
+	Email           string `gorm:"uniqueIndex"`
 	Name            string
 	ContactInfo     string
+	FacebookID      *string     `gorm:"uniqueIndex"`
 	Location        Coordinates `gorm:"embedded;embeddedPrefix:location_"`
 	OwnedMeetups    []*Meetup   `gorm:"foreignKey:Owner"`
 	Attending       []*Meetup   `gorm:"many2many:meetup_user_attend;"`

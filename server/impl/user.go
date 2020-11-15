@@ -143,6 +143,12 @@ func (i *Implementation) PostUser(params operations.PostUserParams) middleware.R
 	return operations.NewPostUserOK().WithPayload(dbUserToModelUser(dbUser))
 }
 
+func (i *Implementation) GetUserLogout(params operations.GetUserLogoutParams) middleware.Responder {
+	session := SessionFromContext(params.HTTPRequest.Context())
+	session.Options.MaxAge = -1
+	return operations.NewGetUserLogoutNoContent()
+}
+
 func (i *Implementation) updateDBUser(ctx context.Context, dbUser *db.User, modelUser *models.User) error {
 	// Update tags first. Do it through SQL since GORM Association mode Replace
 	// doesn't work reliably when the "tags" table has a unique name constraint.
@@ -174,7 +180,7 @@ WITH
 		SELECT * FROM ins
 		UNION ALL
 		SELECT t.created_at, t.updated_at, t.deleted_at, t.id, t.name FROM input_rows
-		JOIN tags t using (name)
+		JOIN tags t USING (name)
 	),
 	ignored1 AS (  -- delete stale tag-user associations
 		DELETE FROM tag_user tu
@@ -224,9 +230,17 @@ func dbUserToModelUser(dbUser *db.User) *models.User {
 			Lon: dbUser.Location.Lon,
 		}
 	}
+
+	var connections []string
+	if dbUser.FacebookID != nil {
+		connections = append(connections, "Facebook")
+	}
+
 	return &models.User{
 		ID:              models.UserID(fmt.Sprint(dbUser.ID)),
 		Name:            dbUser.Name,
+		Email:           dbUser.Email,
+		Connections:     connections,
 		ContactInfo:     dbUser.ContactInfo,
 		Location:        location,
 		Interests:       interests,
