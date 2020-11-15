@@ -3,6 +3,7 @@ package impl
 import (
 	"encoding/json"
 	"os"
+	"time"
 
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/go-openapi/swag"
@@ -25,26 +26,55 @@ var (
 		RedirectURL: "http://localhost:9000/user/facebook/redirect", // TODO: make this generic
 		Scopes:      []string{"email"},
 	}
-
-	stateNonceLen = 16
 )
 
+const (
+	stateNonceLen = 30
+	stateExpiry   = 30 * time.Minute // login must be complete within 30 min
+)
+
+type OAuthState struct {
+	State     string
+	ExpiresAt time.Time
+}
+
+func (s OAuthState) Validate(state string) bool {
+	return s.State == state && s.ExpiresAt.After(time.Now())
+}
+
+func (i *Implementation) NewOAuthState() OAuthState {
+	return OAuthState{
+		State:     i.nonceGen.NewState(stateNonceLen),
+		ExpiresAt: time.Now().UTC().Add(stateExpiry),
+	}
+}
+
 func (i *Implementation) GetUserFacebookAuth(param operations.GetUserFacebookAuthParams) middleware.Responder {
+	ctx := param.HTTPRequest.Context()
+	session := SessionFromContext(ctx)
+
+	oauthState := i.NewOAuthState()
+	session.Values[FacebookState] = oauthState
+
 	return operations.NewGetUserFacebookAuthSeeOther().
-		WithLocation(facebookConfig.AuthCodeURL(i.facebookState.NewState(stateNonceLen)))
+		WithLocation(facebookConfig.AuthCodeURL(oauthState.State))
 }
 
 func (i *Implementation) GetUserFacebookRedirect(param operations.GetUserFacebookRedirectParams) middleware.Responder {
 	ctx := param.HTTPRequest.Context()
 	logger := log.WithContext(ctx)
+	session := SessionFromContext(ctx)
 	redirectToHome := operations.NewGetUserFacebookRedirectSeeOther().
 		WithLocation(new(operations.GetUserMeURL).String()) // TODO: redirect to actual homepage
 
 	// Step 1: Check request state validity to protect against CSRF attacks.
 	// See https://auth0.com/docs/protocols/state-parameters.
 
-	if !i.facebookState.VerifyState(param.State) {
-		logger.WithField("state", param.State).Error("Invalid state when logging into Facebook")
+	storedState := session.Values[FacebookState]
+	delete(session.Values, FacebookState)
+	if storedState == nil || !storedState.(OAuthState).Validate(param.State) {
+		logger.WithFields(log.Fields{"expected_state": storedState, "got_state": param.State}).
+			Error("Invalid state when logging into Facebook")
 		return redirectToHome
 	}
 
@@ -96,10 +126,7 @@ func (i *Implementation) GetUserFacebookRedirect(param operations.GetUserFaceboo
 		logger.WithError(err).Error("Unable to lookup user by Facebook ID")
 		return redirectToHome
 	} else if err == nil {
-		session := SessionFromContext(ctx)
-		session.Values = map[interface{}]interface{}{
-			UserID: dbUser.IDString(),
-		}
+		session.Values[UserID] = dbUser.IDString()
 		logger.Info("logged in through facebook ID")
 		return redirectToHome
 	}
@@ -110,10 +137,7 @@ func (i *Implementation) GetUserFacebookRedirect(param operations.GetUserFaceboo
 		logger.WithError(err).Error("Unable to lookup user by email")
 		return redirectToHome
 	} else if err == nil {
-		session := SessionFromContext(ctx)
-		session.Values = map[interface{}]interface{}{
-			UserID: dbUser.IDString(),
-		}
+		session.Values[UserID] = dbUser.IDString()
 
 		if dbUser.FacebookID == nil {
 			dbUser.FacebookID = swag.String(info.ID)
@@ -141,10 +165,8 @@ func (i *Implementation) GetUserFacebookRedirect(param operations.GetUserFaceboo
 		return redirectToHome
 	}
 
-	session := SessionFromContext(ctx)
-	session.Values = map[interface{}]interface{}{
-		UserID: dbUser.IDString(),
-	}
+	session.Values[UserID] = dbUser.IDString()
+
 	logger.Info("created new user")
 	return redirectToHome
 }
