@@ -39,7 +39,7 @@ func (i *Implementation) SessionMiddleware(handler http.Handler) http.Handler {
 				}
 			}
 		}
-		handler.ServeHTTP(&functorResponseWriter{w: w, fn: fn}, r)
+		functorMiddleware{h: handler, fn: fn}.ServeHTTP(w, r)
 	})
 }
 
@@ -60,6 +60,17 @@ func (i *Implementation) GetRestricted(params operations.GetRestrictedParams, _ 
 }
 
 // https://kevin.burke.dev/kevin/how-to-write-go-middleware/
+
+type functorMiddleware struct {
+	h  http.Handler
+	fn func(w http.ResponseWriter)
+}
+
+func (m functorMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	wrapped := &functorResponseWriter{w: w, fn: m.fn}
+	m.h.ServeHTTP(wrapped, r)
+	wrapped.tryCallFunctor()
+}
 
 // functorResponseWriter is a http.ResponseWriter that calls fn before writing
 // headers. The returned writer is a http.Flusher as well, but not an

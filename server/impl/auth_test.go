@@ -27,8 +27,6 @@ func TestImplementation_SessionMiddleware_NoCookies(t *testing.T) {
 		require.NotNil(t, session)
 		assert.True(t, session.IsNew)
 		assert.Equal(t, nil, session.Values[UserID])
-
-		w.WriteHeader(http.StatusOK)
 	})).ServeHTTP(w, r)
 
 	// Assert that no cookies were created.
@@ -56,8 +54,6 @@ func TestImplementation_SessionMiddleware_NewCookie(t *testing.T) {
 		assert.True(t, origSession.IsNew)
 
 		origSession.Values[UserID] = userID
-
-		w.WriteHeader(http.StatusOK)
 	})).ServeHTTP(w, r)
 
 	// Check for the resulting cookie.
@@ -94,8 +90,6 @@ func TestImplementation_SessionMiddleware_DeleteCookie(t *testing.T) {
 		require.NotNil(t, origSession)
 		assert.False(t, origSession.IsNew)
 		origSession.Options.MaxAge = -1
-
-		w.WriteHeader(http.StatusOK)
 	})).ServeHTTP(w, r)
 
 	// Check that the resulting cookie is already expired.
@@ -130,8 +124,6 @@ func TestImplementation_SessionMiddleware_InvalidCookie(t *testing.T) {
 		require.NotNil(t, session)
 		assert.True(t, session.IsNew)
 		assert.Equal(t, nil, session.Values[UserID])
-
-		w.WriteHeader(http.StatusOK)
 	})).ServeHTTP(w, r)
 
 	// Assert that an expired cookie is sent.
@@ -171,7 +163,6 @@ func TestImplementation_SessionMiddleware_InvalidCookieUpdate(t *testing.T) {
 		assert.Equal(t, nil, session.Values[UserID])
 
 		session.Values[UserID] = userID
-		w.WriteHeader(http.StatusOK)
 	})).ServeHTTP(w, r)
 
 	// Assert that a valid cookie is sent.
@@ -214,8 +205,6 @@ func TestImplementation_SessionMiddleware_UpdateExisting(t *testing.T) {
 		assert.Equal(t, userID, session.Values[UserID])
 
 		session.Values[UserID] = userID2
-
-		w.WriteHeader(http.StatusOK)
 	})).ServeHTTP(w, r)
 
 	// Check for the resulting cookie.
