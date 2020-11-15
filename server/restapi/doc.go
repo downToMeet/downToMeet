@@ -12,6 +12,7 @@
 //    - application/json
 //
 //  Produces:
+//    - text/html
 //    - application/json
 //    - text/plain
 //

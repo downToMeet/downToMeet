@@ -321,9 +321,62 @@ paths:
           type: string
           required: true
           description: Nonce state from Facebook
+        - name: __trampoline
+          in: query
+          type: string
+          description: Work around for same-site cookie. Do not set
       summary: Facebook OAuth redirect
       description: If authentication fails, the user is not logged in.
+      produces:
+        - text/html
       responses:
+        200:
+          description: Simple HTML file that will redirect user to the home page.
+          schema:
+            type: string
+        303:
+          description: Redirect to home page.
+          headers:
+            Location:
+              type: string
+              description: Redirect URL
+  /user/google/auth:
+    get:
+      summary: Google OAuth login
+      description: Start a Google OAuth login flow here.
+      responses:
+        303:
+          description: Redirect to Google login prompt.
+          headers:
+            Location:
+              type: string
+              description: Redirect URL
+  /user/google/redirect:
+    get:
+      parameters:
+        - name: code
+          in: query
+          type: string
+          required: true
+          description: Authorization code from Google
+        - name: state
+          in: query
+          type: string
+          required: true
+          description: Nonce state from Google
+        - name: __trampoline
+          in: query
+          type: string
+          description: Work around for same-site cookie. Do not set
+      summary: Google OAuth redirect
+      description: If authentication fails, the user is not logged in.
+      produces:
+        - text/html
+      responses:
+        200:
+          description: Simple HTML file that will redirect user to the home page.
+          schema:
+            type: string
         303:
           description: Redirect to home page.
           headers:

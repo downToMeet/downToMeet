@@ -43,19 +43,25 @@ func configureAPI(api *operations.DownToMeetAPI) http.Handler {
 		api.UseSwaggerUI()
 	}
 
-	_ = Impl.DB()
+	api.HTMLProducer = runtime.TextProducer()
 
-	api.GetHelloHandler = operations.GetHelloHandlerFunc(Impl.GetHello)
-	api.GetSetCookieHandler = operations.GetSetCookieHandlerFunc(Impl.GetSetCookie)
-	api.GetRestrictedHandler = operations.GetRestrictedHandlerFunc(Impl.GetRestricted)
+	_ = Impl.DB() // ensure we are connected to the database
+
+	if !Impl.Options.Production {
+		api.GetHelloHandler = operations.GetHelloHandlerFunc(Impl.GetHello)
+		api.GetSetCookieHandler = operations.GetSetCookieHandlerFunc(Impl.GetSetCookie)
+		api.GetRestrictedHandler = operations.GetRestrictedHandlerFunc(Impl.GetRestricted)
+		api.PostUserHandler = operations.PostUserHandlerFunc(Impl.PostUser)
+	}
 
 	api.GetUserIDHandler = operations.GetUserIDHandlerFunc(Impl.GetUserID)
-	api.PostUserHandler = operations.PostUserHandlerFunc(Impl.PostUser)
 	api.PatchUserIDHandler = operations.PatchUserIDHandlerFunc(Impl.PatchUserID)
 	api.GetUserMeHandler = operations.GetUserMeHandlerFunc(Impl.GetUserMe)
 	api.GetUserLogoutHandler = operations.GetUserLogoutHandlerFunc(Impl.GetUserLogout)
 	api.GetUserFacebookAuthHandler = operations.GetUserFacebookAuthHandlerFunc(Impl.GetUserFacebookAuth)
 	api.GetUserFacebookRedirectHandler = operations.GetUserFacebookRedirectHandlerFunc(Impl.GetUserFacebookRedirect)
+	api.GetUserGoogleAuthHandler = operations.GetUserGoogleAuthHandlerFunc(Impl.GetUserGoogleAuth)
+	api.GetUserGoogleRedirectHandler = operations.GetUserGoogleRedirectHandlerFunc(Impl.GetUserGoogleRedirect)
 
 	api.GetMeetupIDHandler = operations.GetMeetupIDHandlerFunc(Impl.GetMeetupID)
 	api.PostMeetupHandler = operations.PostMeetupHandlerFunc(Impl.PostMeetup)

@@ -2,6 +2,7 @@ package impl
 
 import (
 	"encoding/json"
+	"net/http"
 	"os"
 	"time"
 
@@ -23,14 +24,15 @@ var (
 			AuthURL:  "https://www.facebook.com/v9.0/dialog/oauth",
 			TokenURL: "https://graph.facebook.com/v9.0/oauth/access_token",
 		},
-		RedirectURL: "http://localhost:9000/user/facebook/redirect", // TODO: make this generic
-		Scopes:      []string{"email"},
+		Scopes: []string{"email"},
 	}
 )
 
 const (
 	stateNonceLen = 30
 	stateExpiry   = 30 * time.Minute // login must be complete within 30 min
+
+	facebookInfoURL = "https://graph.facebook.com/v9.0/me?fields=id%2Cname%2Cemail&format=json"
 )
 
 type OAuthState struct {
@@ -56,16 +58,35 @@ func (i *Implementation) GetUserFacebookAuth(param operations.GetUserFacebookAut
 	oauthState := i.NewOAuthState()
 	session.Values[FacebookState] = oauthState
 
+	config := i.buildOAuthConfig(param.HTTPRequest, facebookConfig, new(operations.GetUserFacebookRedirectURL))
 	return operations.NewGetUserFacebookAuthSeeOther().
-		WithLocation(facebookConfig.AuthCodeURL(oauthState.State))
+		WithLocation(config.AuthCodeURL(oauthState.State))
 }
 
 func (i *Implementation) GetUserFacebookRedirect(param operations.GetUserFacebookRedirectParams) middleware.Responder {
 	ctx := param.HTTPRequest.Context()
 	logger := log.WithContext(ctx)
 	session := SessionFromContext(ctx)
+
+	// If we don't find a cookie, and we haven't had tried the trampoline trick
+	// yet, try to do a soft redirect to ourselves. Hopefully, this will make
+	// browsers think we are in a same-site context.
+	if session.IsNew {
+		if swag.StringValue(param.Trampoline) == "" {
+			logger.Info("no cookie found; try trampoline")
+			u := operations.GetUserFacebookRedirectURL{
+				Code:       param.Code,
+				State:      param.State,
+				Trampoline: swag.String("1"),
+			}
+			return SoftRedirect{i.buildURL(param.HTTPRequest, &u)}
+		}
+		logger.Warn("no cookie found, but already tried trampoline")
+	}
+
+	// See comment at top of the file.
 	redirectToHome := operations.NewGetUserFacebookRedirectSeeOther().
-		WithLocation(new(operations.GetUserMeURL).String()) // TODO: redirect to actual homepage
+		WithLocation(i.buildURL(param.HTTPRequest, &operations.GetUserMeURL{})) // TODO: redirect to actual homepage
 
 	// Step 1: Check request state validity to protect against CSRF attacks.
 	// See https://auth0.com/docs/protocols/state-parameters.
@@ -81,12 +102,19 @@ func (i *Implementation) GetUserFacebookRedirect(param operations.GetUserFaceboo
 	// Step 2: Exchange the received authorization code with Facebook for an
 	// access token.
 
-	token, err := facebookConfig.Exchange(ctx, param.Code)
+	config := i.buildOAuthConfig(param.HTTPRequest, facebookConfig, new(operations.GetUserFacebookRedirectURL))
+	token, err := config.Exchange(ctx, param.Code)
 	if err != nil {
 		logger.WithError(err).Error("Failed to exchange for access token from Facebook")
 		return redirectToHome
 	} else if !token.Valid() {
-		logger.WithField("token", token).Error("Facebook provided invalid access token")
+		logger.WithFields(log.Fields{
+			"token":      token,
+			"token_type": token.TokenType,
+			"access":     token.AccessToken,
+			"refresh":    token.RefreshToken,
+			"expiry":     token.Expiry,
+		}).Error("Facebook provided invalid access token")
 		return redirectToHome
 	}
 
@@ -100,7 +128,7 @@ func (i *Implementation) GetUserFacebookRedirect(param operations.GetUserFaceboo
 	// Step 3: Fetch user information using the access token.
 
 	c := oauth2.NewClient(ctx, oauth2.StaticTokenSource(token))
-	resp, err := c.Get("https://graph.facebook.com/v9.0/me?fields=id%2Cname%2Cemail&format=json")
+	resp, err := c.Get(facebookInfoURL)
 	if err != nil {
 		logger.WithField("token", token).WithError(err).Error("Unable to get user information from Facebook")
 		return redirectToHome
@@ -153,8 +181,8 @@ func (i *Implementation) GetUserFacebookRedirect(param operations.GetUserFaceboo
 	// Step 4.2: Create a new user for this Facebook user.
 
 	dbUser.Name = info.Name
-	dbUser.FacebookID = swag.String(info.ID)
 	dbUser.Email = info.Email
+	dbUser.FacebookID = swag.String(info.ID)
 	if err := tx.Create(&dbUser).Error; err != nil {
 		logger.WithError(err).Error("Unable to create new user")
 		return redirectToHome
@@ -166,7 +194,28 @@ func (i *Implementation) GetUserFacebookRedirect(param operations.GetUserFaceboo
 	}
 
 	session.Values[UserID] = dbUser.IDString()
-
 	logger.Info("created new user")
 	return redirectToHome
+}
+
+type urlBuilder interface {
+	StringFull(scheme, host string) string
+}
+
+func (i *Implementation) buildOAuthConfig(r *http.Request, config oauth2.Config, redirectURL urlBuilder) oauth2.Config {
+	config.RedirectURL = i.buildURL(r, redirectURL)
+	return config
+}
+
+func (i *Implementation) buildURL(r *http.Request, b urlBuilder) string {
+	scheme, host := "http", r.Host
+	if r.TLS != nil {
+		scheme = "https"
+	}
+	if r.Host == "" && !i.Options.Production {
+		host = "localhost:9000"
+	} else {
+		panic("cannot find the host name")
+	}
+	return b.StringFull(scheme, host)
 }

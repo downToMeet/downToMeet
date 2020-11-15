@@ -11,6 +11,48 @@ import (
 	"github.com/go-openapi/runtime"
 )
 
+// GetUserFacebookRedirectOKCode is the HTTP code returned for type GetUserFacebookRedirectOK
+const GetUserFacebookRedirectOKCode int = 200
+
+/*GetUserFacebookRedirectOK Simple HTML file that will redirect user to the home page.
+
+swagger:response getUserFacebookRedirectOK
+*/
+type GetUserFacebookRedirectOK struct {
+
+	/*
+	  In: Body
+	*/
+	Payload string `json:"body,omitempty"`
+}
+
+// NewGetUserFacebookRedirectOK creates GetUserFacebookRedirectOK with default headers values
+func NewGetUserFacebookRedirectOK() *GetUserFacebookRedirectOK {
+
+	return &GetUserFacebookRedirectOK{}
+}
+
+// WithPayload adds the payload to the get user facebook redirect o k response
+func (o *GetUserFacebookRedirectOK) WithPayload(payload string) *GetUserFacebookRedirectOK {
+	o.Payload = payload
+	return o
+}
+
+// SetPayload sets the payload to the get user facebook redirect o k response
+func (o *GetUserFacebookRedirectOK) SetPayload(payload string) {
+	o.Payload = payload
+}
+
+// WriteResponse to the client
+func (o *GetUserFacebookRedirectOK) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
+
+	rw.WriteHeader(200)
+	payload := o.Payload
+	if err := producer.Produce(rw, payload); err != nil {
+		panic(err) // let the recovery middleware deal with this
+	}
+}
+
 // GetUserFacebookRedirectSeeOtherCode is the HTTP code returned for type GetUserFacebookRedirectSeeOther
 const GetUserFacebookRedirectSeeOtherCode int = 303
 

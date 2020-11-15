@@ -12,6 +12,7 @@ type User struct {
 	Name            string
 	ContactInfo     string
 	FacebookID      *string     `gorm:"uniqueIndex"`
+	GoogleID        *string     `gorm:"uniqueIndex"`
 	Location        Coordinates `gorm:"embedded;embeddedPrefix:location_"`
 	OwnedMeetups    []*Meetup   `gorm:"foreignKey:Owner"`
 	Attending       []*Meetup   `gorm:"many2many:meetup_user_attend;"`

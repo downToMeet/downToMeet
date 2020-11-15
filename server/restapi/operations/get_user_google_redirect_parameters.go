@@ -15,18 +15,18 @@ import (
 	"github.com/go-openapi/validate"
 )
 
-// NewGetUserFacebookRedirectParams creates a new GetUserFacebookRedirectParams object
+// NewGetUserGoogleRedirectParams creates a new GetUserGoogleRedirectParams object
 // no default values defined in spec.
-func NewGetUserFacebookRedirectParams() GetUserFacebookRedirectParams {
+func NewGetUserGoogleRedirectParams() GetUserGoogleRedirectParams {
 
-	return GetUserFacebookRedirectParams{}
+	return GetUserGoogleRedirectParams{}
 }
 
-// GetUserFacebookRedirectParams contains all the bound params for the get user facebook redirect operation
+// GetUserGoogleRedirectParams contains all the bound params for the get user google redirect operation
 // typically these are obtained from a http.Request
 //
-// swagger:parameters GetUserFacebookRedirect
-type GetUserFacebookRedirectParams struct {
+// swagger:parameters GetUserGoogleRedirect
+type GetUserGoogleRedirectParams struct {
 
 	// HTTP Request Object
 	HTTPRequest *http.Request `json:"-"`
@@ -35,12 +35,12 @@ type GetUserFacebookRedirectParams struct {
 	  In: query
 	*/
 	Trampoline *string
-	/*Authorization code from Facebook
+	/*Authorization code from Google
 	  Required: true
 	  In: query
 	*/
 	Code string
-	/*Nonce state from Facebook
+	/*Nonce state from Google
 	  Required: true
 	  In: query
 	*/
@@ -50,8 +50,8 @@ type GetUserFacebookRedirectParams struct {
 // BindRequest both binds and validates a request, it assumes that complex things implement a Validatable(strfmt.Registry) error interface
 // for simple values it will use straight method calls.
 //
-// To ensure default values, the struct must have been initialized with NewGetUserFacebookRedirectParams() beforehand.
-func (o *GetUserFacebookRedirectParams) BindRequest(r *http.Request, route *middleware.MatchedRoute) error {
+// To ensure default values, the struct must have been initialized with NewGetUserGoogleRedirectParams() beforehand.
+func (o *GetUserGoogleRedirectParams) BindRequest(r *http.Request, route *middleware.MatchedRoute) error {
 	var res []error
 
 	o.HTTPRequest = r
@@ -80,7 +80,7 @@ func (o *GetUserFacebookRedirectParams) BindRequest(r *http.Request, route *midd
 }
 
 // bindTrampoline binds and validates parameter Trampoline from query.
-func (o *GetUserFacebookRedirectParams) bindTrampoline(rawData []string, hasKey bool, formats strfmt.Registry) error {
+func (o *GetUserGoogleRedirectParams) bindTrampoline(rawData []string, hasKey bool, formats strfmt.Registry) error {
 	var raw string
 	if len(rawData) > 0 {
 		raw = rawData[len(rawData)-1]
@@ -98,7 +98,7 @@ func (o *GetUserFacebookRedirectParams) bindTrampoline(rawData []string, hasKey 
 }
 
 // bindCode binds and validates parameter Code from query.
-func (o *GetUserFacebookRedirectParams) bindCode(rawData []string, hasKey bool, formats strfmt.Registry) error {
+func (o *GetUserGoogleRedirectParams) bindCode(rawData []string, hasKey bool, formats strfmt.Registry) error {
 	if !hasKey {
 		return errors.Required("code", "query", rawData)
 	}
@@ -119,7 +119,7 @@ func (o *GetUserFacebookRedirectParams) bindCode(rawData []string, hasKey bool, 
 }
 
 // bindState binds and validates parameter State from query.
-func (o *GetUserFacebookRedirectParams) bindState(rawData []string, hasKey bool, formats strfmt.Registry) error {
+func (o *GetUserGoogleRedirectParams) bindState(rawData []string, hasKey bool, formats strfmt.Registry) error {
 	if !hasKey {
 		return errors.Required("state", "query", rawData)
 	}

@@ -499,6 +499,9 @@ func init() {
     "/user/facebook/redirect": {
       "get": {
         "description": "If authentication fails, the user is not logged in.",
+        "produces": [
+          "text/html"
+        ],
         "summary": "Facebook OAuth redirect",
         "parameters": [
           {
@@ -514,9 +517,86 @@ func init() {
             "name": "state",
             "in": "query",
             "required": true
+          },
+          {
+            "type": "string",
+            "description": "Work around for same-site cookie. Do not set",
+            "name": "__trampoline",
+            "in": "query"
           }
         ],
         "responses": {
+          "200": {
+            "description": "Simple HTML file that will redirect user to the home page.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "303": {
+            "description": "Redirect to home page.",
+            "headers": {
+              "Location": {
+                "type": "string",
+                "description": "Redirect URL"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/user/google/auth": {
+      "get": {
+        "description": "Start a Google OAuth login flow here.",
+        "summary": "Google OAuth login",
+        "responses": {
+          "303": {
+            "description": "Redirect to Google login prompt.",
+            "headers": {
+              "Location": {
+                "type": "string",
+                "description": "Redirect URL"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/user/google/redirect": {
+      "get": {
+        "description": "If authentication fails, the user is not logged in.",
+        "produces": [
+          "text/html"
+        ],
+        "summary": "Google OAuth redirect",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Authorization code from Google",
+            "name": "code",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Nonce state from Google",
+            "name": "state",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Work around for same-site cookie. Do not set",
+            "name": "__trampoline",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Simple HTML file that will redirect user to the home page.",
+            "schema": {
+              "type": "string"
+            }
+          },
           "303": {
             "description": "Redirect to home page.",
             "headers": {
@@ -1368,6 +1448,9 @@ func init() {
     "/user/facebook/redirect": {
       "get": {
         "description": "If authentication fails, the user is not logged in.",
+        "produces": [
+          "text/html"
+        ],
         "summary": "Facebook OAuth redirect",
         "parameters": [
           {
@@ -1383,9 +1466,86 @@ func init() {
             "name": "state",
             "in": "query",
             "required": true
+          },
+          {
+            "type": "string",
+            "description": "Work around for same-site cookie. Do not set",
+            "name": "__trampoline",
+            "in": "query"
           }
         ],
         "responses": {
+          "200": {
+            "description": "Simple HTML file that will redirect user to the home page.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "303": {
+            "description": "Redirect to home page.",
+            "headers": {
+              "Location": {
+                "type": "string",
+                "description": "Redirect URL"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/user/google/auth": {
+      "get": {
+        "description": "Start a Google OAuth login flow here.",
+        "summary": "Google OAuth login",
+        "responses": {
+          "303": {
+            "description": "Redirect to Google login prompt.",
+            "headers": {
+              "Location": {
+                "type": "string",
+                "description": "Redirect URL"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/user/google/redirect": {
+      "get": {
+        "description": "If authentication fails, the user is not logged in.",
+        "produces": [
+          "text/html"
+        ],
+        "summary": "Google OAuth redirect",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Authorization code from Google",
+            "name": "code",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Nonce state from Google",
+            "name": "state",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Work around for same-site cookie. Do not set",
+            "name": "__trampoline",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Simple HTML file that will redirect user to the home page.",
+            "schema": {
+              "type": "string"
+            }
+          },
           "303": {
             "description": "Redirect to home page.",
             "headers": {

@@ -88,6 +88,7 @@ type SessionKey int
 const (
 	UserID        SessionKey = 0 // session.Values[UserID] is a string
 	FacebookState SessionKey = 1 // session.Values[FacebookState] is an OAuthState
+	GoogleState   SessionKey = 2 // session.Values[GoogleState] is an OAuthState
 )
 
 func init() {

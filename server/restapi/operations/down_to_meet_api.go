@@ -7,6 +7,7 @@ package operations
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 	"strings"
 
@@ -40,6 +41,9 @@ func NewDownToMeetAPI(spec *loads.Document) *DownToMeetAPI {
 
 		JSONConsumer: runtime.JSONConsumer(),
 
+		HTMLProducer: runtime.ProducerFunc(func(w io.Writer, data interface{}) error {
+			return errors.NotImplemented("html producer has not yet been implemented")
+		}),
 		JSONProducer: runtime.JSONProducer(),
 		TxtProducer:  runtime.TextProducer(),
 
@@ -69,6 +73,12 @@ func NewDownToMeetAPI(spec *loads.Document) *DownToMeetAPI {
 		}),
 		GetUserFacebookRedirectHandler: GetUserFacebookRedirectHandlerFunc(func(params GetUserFacebookRedirectParams) middleware.Responder {
 			return middleware.NotImplemented("operation GetUserFacebookRedirect has not yet been implemented")
+		}),
+		GetUserGoogleAuthHandler: GetUserGoogleAuthHandlerFunc(func(params GetUserGoogleAuthParams) middleware.Responder {
+			return middleware.NotImplemented("operation GetUserGoogleAuth has not yet been implemented")
+		}),
+		GetUserGoogleRedirectHandler: GetUserGoogleRedirectHandlerFunc(func(params GetUserGoogleRedirectParams) middleware.Responder {
+			return middleware.NotImplemented("operation GetUserGoogleRedirect has not yet been implemented")
 		}),
 		GetUserIDHandler: GetUserIDHandlerFunc(func(params GetUserIDParams) middleware.Responder {
 			return middleware.NotImplemented("operation GetUserID has not yet been implemented")
@@ -134,6 +144,9 @@ type DownToMeetAPI struct {
 	//   - application/json
 	JSONConsumer runtime.Consumer
 
+	// HTMLProducer registers a producer for the following mime types:
+	//   - text/html
+	HTMLProducer runtime.Producer
 	// JSONProducer registers a producer for the following mime types:
 	//   - application/json
 	JSONProducer runtime.Producer
@@ -166,6 +179,10 @@ type DownToMeetAPI struct {
 	GetUserFacebookAuthHandler GetUserFacebookAuthHandler
 	// GetUserFacebookRedirectHandler sets the operation handler for the get user facebook redirect operation
 	GetUserFacebookRedirectHandler GetUserFacebookRedirectHandler
+	// GetUserGoogleAuthHandler sets the operation handler for the get user google auth operation
+	GetUserGoogleAuthHandler GetUserGoogleAuthHandler
+	// GetUserGoogleRedirectHandler sets the operation handler for the get user google redirect operation
+	GetUserGoogleRedirectHandler GetUserGoogleRedirectHandler
 	// GetUserIDHandler sets the operation handler for the get user ID operation
 	GetUserIDHandler GetUserIDHandler
 	// GetUserLogoutHandler sets the operation handler for the get user logout operation
@@ -256,6 +273,9 @@ func (o *DownToMeetAPI) Validate() error {
 		unregistered = append(unregistered, "JSONConsumer")
 	}
 
+	if o.HTMLProducer == nil {
+		unregistered = append(unregistered, "HTMLProducer")
+	}
 	if o.JSONProducer == nil {
 		unregistered = append(unregistered, "JSONProducer")
 	}
@@ -293,6 +313,12 @@ func (o *DownToMeetAPI) Validate() error {
 	}
 	if o.GetUserFacebookRedirectHandler == nil {
 		unregistered = append(unregistered, "GetUserFacebookRedirectHandler")
+	}
+	if o.GetUserGoogleAuthHandler == nil {
+		unregistered = append(unregistered, "GetUserGoogleAuthHandler")
+	}
+	if o.GetUserGoogleRedirectHandler == nil {
+		unregistered = append(unregistered, "GetUserGoogleRedirectHandler")
 	}
 	if o.GetUserIDHandler == nil {
 		unregistered = append(unregistered, "GetUserIDHandler")
@@ -376,6 +402,8 @@ func (o *DownToMeetAPI) ProducersFor(mediaTypes []string) map[string]runtime.Pro
 	result := make(map[string]runtime.Producer, len(mediaTypes))
 	for _, mt := range mediaTypes {
 		switch mt {
+		case "text/html":
+			result["text/html"] = o.HTMLProducer
 		case "application/json":
 			result["application/json"] = o.JSONProducer
 		case "text/plain":
@@ -456,6 +484,14 @@ func (o *DownToMeetAPI) initHandlerCache() {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}
 	o.handlers["GET"]["/user/facebook/redirect"] = NewGetUserFacebookRedirect(o.context, o.GetUserFacebookRedirectHandler)
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"]["/user/google/auth"] = NewGetUserGoogleAuth(o.context, o.GetUserGoogleAuthHandler)
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"]["/user/google/redirect"] = NewGetUserGoogleRedirect(o.context, o.GetUserGoogleRedirectHandler)
 	if o.handlers["GET"] == nil {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}

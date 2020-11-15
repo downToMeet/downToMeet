@@ -235,6 +235,9 @@ func dbUserToModelUser(dbUser *db.User) *models.User {
 	if dbUser.FacebookID != nil {
 		connections = append(connections, "Facebook")
 	}
+	if dbUser.GoogleID != nil {
+		connections = append(connections, "Google")
+	}
 
 	return &models.User{
 		ID:              models.UserID(fmt.Sprint(dbUser.ID)),

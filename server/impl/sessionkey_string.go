@@ -10,11 +10,12 @@ func _() {
 	var x [1]struct{}
 	_ = x[UserID-0]
 	_ = x[FacebookState-1]
+	_ = x[GoogleState-2]
 }
 
-const _SessionKey_name = "UserIDFacebookState"
+const _SessionKey_name = "UserIDFacebookStateGoogleState"
 
-var _SessionKey_index = [...]uint8{0, 6, 19}
+var _SessionKey_index = [...]uint8{0, 6, 19, 30}
 
 func (i SessionKey) String() string {
 	if i < 0 || i >= SessionKey(len(_SessionKey_index)-1) {
