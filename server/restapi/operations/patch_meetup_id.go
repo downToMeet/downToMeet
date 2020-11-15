@@ -12,16 +12,16 @@ import (
 )
 
 // PatchMeetupIDHandlerFunc turns a function with the right signature into a patch meetup ID handler
-type PatchMeetupIDHandlerFunc func(PatchMeetupIDParams) middleware.Responder
+type PatchMeetupIDHandlerFunc func(PatchMeetupIDParams, interface{}) middleware.Responder
 
 // Handle executing the request and returning a response
-func (fn PatchMeetupIDHandlerFunc) Handle(params PatchMeetupIDParams) middleware.Responder {
-	return fn(params)
+func (fn PatchMeetupIDHandlerFunc) Handle(params PatchMeetupIDParams, principal interface{}) middleware.Responder {
+	return fn(params, principal)
 }
 
 // PatchMeetupIDHandler interface for that can handle valid patch meetup ID params
 type PatchMeetupIDHandler interface {
-	Handle(PatchMeetupIDParams) middleware.Responder
+	Handle(PatchMeetupIDParams, interface{}) middleware.Responder
 }
 
 // NewPatchMeetupID creates a new http.Handler for the patch meetup ID operation
@@ -46,12 +46,25 @@ func (o *PatchMeetupID) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	}
 	var Params = NewPatchMeetupIDParams()
 
+	uprinc, aCtx, err := o.Context.Authorize(r, route)
+	if err != nil {
+		o.Context.Respond(rw, r, route.Produces, route, err)
+		return
+	}
+	if aCtx != nil {
+		r = aCtx
+	}
+	var principal interface{}
+	if uprinc != nil {
+		principal = uprinc
+	}
+
 	if err := o.Context.BindValidRequest(r, route, &Params); err != nil { // bind params
 		o.Context.Respond(rw, r, route.Produces, route, err)
 		return
 	}
 
-	res := o.Handler.Handle(Params) // actually handle the request
+	res := o.Handler.Handle(Params, principal) // actually handle the request
 
 	o.Context.Respond(rw, r, route.Produces, route, res)
 

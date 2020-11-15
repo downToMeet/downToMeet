@@ -127,6 +127,11 @@ func init() {
         }
       },
       "post": {
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
         "summary": "Post a new meetup",
         "parameters": [
           {
@@ -180,6 +185,11 @@ func init() {
         }
       },
       "delete": {
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
         "description": "If the specified meetup does not exist, an error is returned",
         "summary": "Delete the specified meetup",
         "responses": {
@@ -207,6 +217,11 @@ func init() {
         }
       },
       "patch": {
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
         "summary": "Patch the specified meetup",
         "parameters": [
           {
@@ -810,6 +825,11 @@ func init() {
         }
       },
       "post": {
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
         "summary": "Post a new meetup",
         "parameters": [
           {
@@ -863,6 +883,11 @@ func init() {
         }
       },
       "delete": {
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
         "description": "If the specified meetup does not exist, an error is returned",
         "summary": "Delete the specified meetup",
         "responses": {
@@ -890,6 +915,11 @@ func init() {
         }
       },
       "patch": {
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
         "summary": "Patch the specified meetup",
         "parameters": [
           {
@@ -1246,7 +1276,8 @@ func init() {
           "$ref": "#/definitions/location"
         },
         "maxCapacity": {
-          "type": "integer"
+          "type": "integer",
+          "minimum": 0
         },
         "minCapacity": {
           "type": "integer",
@@ -1288,7 +1319,8 @@ func init() {
           "$ref": "#/definitions/location"
         },
         "maxCapacity": {
-          "type": "integer"
+          "type": "integer",
+          "minimum": 0
         },
         "minCapacity": {
           "type": "integer",

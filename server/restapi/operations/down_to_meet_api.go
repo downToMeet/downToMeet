@@ -43,7 +43,7 @@ func NewDownToMeetAPI(spec *loads.Document) *DownToMeetAPI {
 		JSONProducer: runtime.JSONProducer(),
 		TxtProducer:  runtime.TextProducer(),
 
-		DeleteMeetupIDHandler: DeleteMeetupIDHandlerFunc(func(params DeleteMeetupIDParams) middleware.Responder {
+		DeleteMeetupIDHandler: DeleteMeetupIDHandlerFunc(func(params DeleteMeetupIDParams, principal interface{}) middleware.Responder {
 			return middleware.NotImplemented("operation DeleteMeetupID has not yet been implemented")
 		}),
 		GetHelloHandler: GetHelloHandlerFunc(func(params GetHelloParams) middleware.Responder {
@@ -76,13 +76,13 @@ func NewDownToMeetAPI(spec *loads.Document) *DownToMeetAPI {
 		GetUserMeHandler: GetUserMeHandlerFunc(func(params GetUserMeParams, principal interface{}) middleware.Responder {
 			return middleware.NotImplemented("operation GetUserMe has not yet been implemented")
 		}),
-		PatchMeetupIDHandler: PatchMeetupIDHandlerFunc(func(params PatchMeetupIDParams) middleware.Responder {
+		PatchMeetupIDHandler: PatchMeetupIDHandlerFunc(func(params PatchMeetupIDParams, principal interface{}) middleware.Responder {
 			return middleware.NotImplemented("operation PatchMeetupID has not yet been implemented")
 		}),
 		PatchUserIDHandler: PatchUserIDHandlerFunc(func(params PatchUserIDParams, principal interface{}) middleware.Responder {
 			return middleware.NotImplemented("operation PatchUserID has not yet been implemented")
 		}),
-		PostMeetupHandler: PostMeetupHandlerFunc(func(params PostMeetupParams) middleware.Responder {
+		PostMeetupHandler: PostMeetupHandlerFunc(func(params PostMeetupParams, principal interface{}) middleware.Responder {
 			return middleware.NotImplemented("operation PostMeetup has not yet been implemented")
 		}),
 		PostUserHandler: PostUserHandlerFunc(func(params PostUserParams) middleware.Responder {

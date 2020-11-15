@@ -113,6 +113,7 @@ definitions:
         minimum: 0
       maxCapacity:
         type: integer
+        minimum: 0
       owner: 
         $ref: "#/definitions/userID"
       attendees:
@@ -145,6 +146,7 @@ definitions:
         minimum: 0
       maxCapacity:
         type: integer
+        minimum: 0
 
 securityDefinitions:
   cookieSession:
@@ -347,6 +349,8 @@ paths:
           description: The meetup to create
           schema:
             $ref: "#/definitions/meetupRequestBody"
+      security:
+        - cookieSession: [ ]
       responses:
         201:
           description: Created
@@ -387,6 +391,8 @@ paths:
           description: The updated meetup information
           schema:
             $ref: "#/definitions/meetupRequestBody"
+      security:
+        - cookieSession: [ ]
       responses:
         200:
           description: OK
@@ -407,6 +413,8 @@ paths:
     delete:
       summary: Delete the specified meetup
       description: If the specified meetup does not exist, an error is returned
+      security:
+        - cookieSession: [ ]
       responses:
         204:
           description: No Content

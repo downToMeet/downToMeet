@@ -21,7 +21,8 @@ type MeetupRequestBody struct {
 	Location *Location `json:"location,omitempty"`
 
 	// max capacity
-	MaxCapacity int64 `json:"maxCapacity,omitempty"`
+	// Minimum: 0
+	MaxCapacity *int64 `json:"maxCapacity,omitempty"`
 
 	// min capacity
 	// Minimum: 0
@@ -42,6 +43,10 @@ func (m *MeetupRequestBody) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	if err := m.validateLocation(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateMaxCapacity(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -68,6 +73,19 @@ func (m *MeetupRequestBody) validateLocation(formats strfmt.Registry) error {
 			}
 			return err
 		}
+	}
+
+	return nil
+}
+
+func (m *MeetupRequestBody) validateMaxCapacity(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.MaxCapacity) { // not required
+		return nil
+	}
+
+	if err := validate.MinimumInt("maxCapacity", "body", int64(*m.MaxCapacity), 0, false); err != nil {
+		return err
 	}
 
 	return nil
