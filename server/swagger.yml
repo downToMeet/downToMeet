@@ -350,7 +350,7 @@ paths:
           schema:
             $ref: "#/definitions/meetupRequestBody"
       security:
-        - cookieSession[]
+        - cookieSession: []
       responses:
         201:
           description: Created
@@ -392,7 +392,7 @@ paths:
           schema:
             $ref: "#/definitions/meetupRequestBody"
       security:
-        - cookieSession[]
+        - cookieSession: []
       responses:
         200:
           description: OK
@@ -414,7 +414,7 @@ paths:
       summary: Delete the specified meetup
       description: If the specified meetup does not exist, an error is returned
       security:
-        - cookieSession[]
+        - cookieSession: []
       responses:
         204:
           description: No Content
