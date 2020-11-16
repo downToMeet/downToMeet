@@ -29,7 +29,7 @@ definitions:
     required:
       - lat
       - lon
-    properties: 
+    properties:
       lat:
         type: number
         minimum: -90
@@ -66,7 +66,7 @@ definitions:
       interests:
         type: array
         x-omitempty: true
-        items: 
+        items:
           type: string
       location:
         x-omitempty: true
@@ -74,7 +74,7 @@ definitions:
       pendingApproval:
         type: array
         x-omitempty: true
-        items: 
+        items:
           $ref: "#/definitions/meetupID"
       attending:
         type: array
@@ -104,7 +104,7 @@ definitions:
         type: string
       description:
         type: string
-      tags: 
+      tags:
         type: array
         items:
           type: string
@@ -114,11 +114,11 @@ definitions:
       maxCapacity:
         type: integer
         minimum: 0
-      owner: 
+      owner:
         $ref: "#/definitions/userID"
       attendees:
         type: array
-        items: 
+        items:
           $ref: "#/definitions/userID"
       pendingAttendees:
         type: array
@@ -311,24 +311,24 @@ paths:
         - name: lon
           in: query
           required: true
-          type: number 
+          type: number
           minimum: -180
           maximum: 180
           description: The longitude of the center of search
         - name: radius
           in: query
           required: true
-          type: number 
+          type: number
           minimum: 0
           description: Desired search radius (kilometers)
         - name: tags
           in: query
           required: true
           type: array
-          items: 
+          items:
             type: string
           description: Interests to search for
-      summary: Get the list of meetups 
+      summary: Get the list of meetups
       description: If the required parameters were not specified correctly, an error is returned
       responses:
         200:
@@ -350,7 +350,7 @@ paths:
           schema:
             $ref: "#/definitions/meetupRequestBody"
       security:
-        - cookieSession: [ ]
+        - cookieSession[]
       responses:
         201:
           description: Created
@@ -392,7 +392,7 @@ paths:
           schema:
             $ref: "#/definitions/meetupRequestBody"
       security:
-        - cookieSession: [ ]
+        - cookieSession[]
       responses:
         200:
           description: OK
@@ -402,7 +402,7 @@ paths:
           description: Bad Request
           schema:
             $ref: "#/definitions/error"
-        403: 
+        403:
           description: Forbidden
           schema:
             $ref: "#/definitions/error"
@@ -414,7 +414,7 @@ paths:
       summary: Delete the specified meetup
       description: If the specified meetup does not exist, an error is returned
       security:
-        - cookieSession: [ ]
+        - cookieSession[]
       responses:
         204:
           description: No Content
@@ -422,9 +422,9 @@ paths:
           description: Bad Request
           schema:
             $ref: "#/definitions/error"
-        403: 
+        403:
           description: Forbidden
-          schema: 
+          schema:
             $ref: "#/definitions/error"
         404:
           description: Not found
