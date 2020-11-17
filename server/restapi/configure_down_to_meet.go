@@ -39,7 +39,7 @@ func configureAPI(api *operations.DownToMeetAPI) http.Handler {
 		}
 	} else {
 		// Display documentation at /docs
-		api.UseRedoc()
+		api.UseSwaggerUI()
 	}
 
 	_ = Impl.DB()
@@ -56,7 +56,8 @@ func configureAPI(api *operations.DownToMeetAPI) http.Handler {
 	api.GetUserFacebookAuthHandler = operations.GetUserFacebookAuthHandlerFunc(Impl.GetUserFacebookAuth)
 	api.GetUserFacebookRedirectHandler = operations.GetUserFacebookRedirectHandlerFunc(Impl.GetUserFacebookRedirect)
 
-	api.GetMeetupIDHandler = operations.GetMeetupIDHandlerFunc(impl.GetMeetupID)
+	api.GetMeetupIDHandler = operations.GetMeetupIDHandlerFunc(Impl.GetMeetupID)
+	api.PostMeetupHandler = operations.PostMeetupHandlerFunc(Impl.PostMeetup)
 
 	api.APIKeyAuthenticator = func(name, in string, authentication security.TokenAuthentication) runtime.Authenticator {
 		if name == "COOKIE" {
