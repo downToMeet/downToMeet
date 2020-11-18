@@ -9,11 +9,12 @@ func _() {
 	// Re-run the stringer command to generate them again.
 	var x [1]struct{}
 	_ = x[UserID-0]
+	_ = x[FacebookState-1]
 }
 
-const _SessionKey_name = "UserID"
+const _SessionKey_name = "UserIDFacebookState"
 
-var _SessionKey_index = [...]uint8{0, 6}
+var _SessionKey_index = [...]uint8{0, 6, 19}
 
 func (i SessionKey) String() string {
 	if i < 0 || i >= SessionKey(len(_SessionKey_index)-1) {

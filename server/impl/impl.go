@@ -5,7 +5,6 @@ import (
 	"math/rand"
 	"net/http"
 	"sync"
-	"time"
 
 	"github.com/gorilla/sessions"
 	log "github.com/sirupsen/logrus"
@@ -27,15 +26,15 @@ type Implementation struct {
 	db               *gorm.DB // could be lazily initialized; use DB() instead!
 	dbInit           sync.Once
 
-	facebookState *nonce.Generator
+	nonceGen *nonce.Generator
 }
 
 // NewImplementation returns a new Implementation intended for production,
 // with a sessions.CookieStore as the internal session store.
 func NewImplementation() *Implementation {
 	i := new(Implementation)
-	randSrc := rand.NewSource(time.Now().UnixNano())
-	i.facebookState = nonce.NewGenerator(randSrc)
+	randSrc := nonce.NewCryptoRandSource()
+	i.nonceGen = nonce.NewGenerator(randSrc)
 	return i
 }
 
@@ -43,7 +42,7 @@ func NewImplementation() *Implementation {
 // parameters.
 func NewMockImplementation(store sessions.Store, randSrc rand.Source) *Implementation {
 	i := new(Implementation)
-	i.facebookState = nonce.NewGenerator(randSrc)
+	i.nonceGen = nonce.NewGenerator(randSrc)
 	i.sessionStoreInit.Do(func() {
 		i.sessionStore = store
 	})
@@ -87,9 +86,11 @@ func (i *Implementation) DB() *gorm.DB {
 type SessionKey int
 
 const (
-	UserID SessionKey = iota // session.Values[UserID] is a string
+	UserID        SessionKey = 0 // session.Values[UserID] is a string
+	FacebookState SessionKey = 1 // session.Values[FacebookState] is an OAuthState
 )
 
 func init() {
 	gob.Register(SessionKey(0))
+	gob.Register(OAuthState{})
 }

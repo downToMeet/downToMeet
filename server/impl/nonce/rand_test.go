@@ -10,15 +10,15 @@ import (
 	. "go.timothygu.me/downtomeet/server/impl/nonce"
 )
 
-var alphanumerics = regexp.MustCompile(`^[0-9a-zA-Z]*$`)
+var validNonce = regexp.MustCompile(`^[0-9a-zA-Z_-]*$`)
 
 func TestRandomAlphanumerics(t *testing.T) {
 	const seed = 1
 	r := rand.New(rand.NewSource(seed))
 
 	for i := 0; i < 20; i++ {
-		str := RandomAlphanumerics(r, i)
+		str := RandomBase64(r, i)
 		assert.Len(t, str, i, i)
-		assert.Regexp(t, alphanumerics, str, i)
+		assert.Regexp(t, validNonce, str, i)
 	}
 }
