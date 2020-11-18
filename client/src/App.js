@@ -26,7 +26,7 @@ function App() {
           render={(input) => <Meetup id={input.match.params.id} />}
         />
         <Route
-          path="/profile/:id"
+          path="/user/:id"
           render={(input) => <Profile id={input.match.params.id} />}
         />
         <Route path="/search">
