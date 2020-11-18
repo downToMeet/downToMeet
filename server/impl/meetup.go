@@ -23,18 +23,10 @@ func (i *Implementation) GetMeetupID(params operations.GetMeetupIDParams) middle
 	ctx := params.HTTPRequest.Context()
 	logger := log.WithContext(ctx)
 
-	id, err := db.MeetupIDFromString(params.ID)
-	if err != nil {
-		return operations.NewGetMeetupIDNotFound().WithPayload(&models.Error{
-			Code:    http.StatusNotFound,
-			Message: "Specified meetup not found.",
-		})
-	}
-
 	tx := i.DB().WithContext(ctx)
 
 	var dbMeetup db.Meetup
-	err = tx.First(&dbMeetup, id).Error
+	err := tx.First(&dbMeetup, params.ID).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return operations.NewGetMeetupIDNotFound().WithPayload(&models.Error{
 			Code:    http.StatusNotFound,
@@ -45,7 +37,21 @@ func (i *Implementation) GetMeetupID(params operations.GetMeetupIDParams) middle
 		return InternalServerError{}
 	}
 
-	return operations.NewGetMeetupIDOK().WithPayload(dbMeetupToModelMeetup(&dbMeetup))
+	id := SessionFromContext(ctx).Values[UserID]
+	if id != nil {
+		// If logged in, include info about whether or not the user was rejected
+		if err = tx.Model(&dbMeetup).Association("Attendees").Find(&dbMeetup.Attendees); err != nil {
+			logger.WithError(err).Error("Unable to determine whether user was rejected from event")
+			return InternalServerError{}
+		}
+	}
+
+	if err = tx.Model(&dbMeetup).Association("Tags").Find(&dbMeetup.Tags); err != nil {
+		logger.WithError(err).Error("Unable to find user tags")
+		return InternalServerError{}
+	}
+
+	return operations.NewGetMeetupIDOK().WithPayload(dbMeetupToModelMeetup(&dbMeetup, id.(string)))
 }
 
 func (i *Implementation) PostMeetup(params operations.PostMeetupParams, _ interface{}) middleware.Responder {
@@ -53,8 +59,8 @@ func (i *Implementation) PostMeetup(params operations.PostMeetupParams, _ interf
 	logger := log.WithContext(ctx)
 
 	var dbMeetup db.Meetup
-	id := SessionFromContext(ctx).Values[UserID].(string)
-	modelMeetup := modelMeetupRequestBodyToModelMeetup(params.Meetup, id)
+	id := SessionFromContext(ctx).Values[UserID]
+	modelMeetup := modelMeetupRequestBodyToModelMeetup(params.Meetup, id.(string))
 	if err := i.modelMeetupToDBMeetup(ctx, &dbMeetup, &modelMeetup); err != nil {
 		logger.WithError(err).Error("Failed to create db meetup object")
 		return InternalServerError{}
@@ -70,7 +76,66 @@ func (i *Implementation) PostMeetup(params operations.PostMeetupParams, _ interf
 		return InternalServerError{}
 	}
 
-	return operations.NewPostMeetupCreated().WithPayload(dbMeetupToModelMeetup(&dbMeetup))
+	return operations.NewPostMeetupCreated().WithPayload(dbMeetupToModelMeetup(&dbMeetup, id.(string)))
+}
+
+func (i *Implementation) PatchMeetupID(params operations.PatchMeetupIDParams, _ interface{}) middleware.Responder {
+	ctx := params.HTTPRequest.Context()
+	logger := log.WithContext(ctx)
+
+	tx := i.DB().WithContext(ctx)
+	var dbMeetup db.Meetup
+	err := tx.First(&dbMeetup, params.ID).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return operations.NewPatchMeetupIDNotFound().WithPayload(&models.Error{
+			Code:    http.StatusNotFound,
+			Message: "Specified meetup not found.",
+		})
+	} else if err != nil {
+		logger.WithError(err).Error("Failed to find meetup in DB")
+		return InternalServerError{}
+	}
+
+	session := SessionFromContext(ctx)
+	id := session.Values[UserID]
+	if id.(string) != fmt.Sprint(dbMeetup.Owner) {
+		logger.Warn("User tried to PATCH an event they do not own")
+		return operations.NewPatchMeetupIDForbidden().WithPayload(&models.Error{
+			Code:    http.StatusForbidden,
+			Message: "Forbidden",
+		})
+	}
+
+	modelMeetup := modelMeetupRequestBodyToModelMeetup(params.Meetup, id.(string))
+	if err := i.modelMeetupToDBMeetup(ctx, &dbMeetup, &modelMeetup); err != nil {
+		logger.WithError(err).Error("Failed to create db meetup object")
+		return InternalServerError{}
+	}
+
+	if err := i.insertTagsIntoDB(ctx, &dbMeetup, &modelMeetup); err != nil {
+		logger.WithError(err).Error("Failed to insert meetup tags")
+		return InternalServerError{}
+	}
+
+	if err := i.updateDBMeetup(ctx, &dbMeetup); err != nil {
+		logger.WithError(err).Error("Failed to update meetup")
+		return InternalServerError{}
+	}
+
+	return operations.NewPatchMeetupIDOK().WithPayload(dbMeetupToModelMeetup(&dbMeetup, id.(string)))
+
+}
+
+func (i *Implementation) updateDBMeetup(ctx context.Context, dbMeetup *db.Meetup) error {
+	tx := i.DB().WithContext(ctx)
+	return tx.Model(dbMeetup).
+		Select("title, time, description, max_capacity, min_capacity, location_lat, location_lon, location_url, location_name").
+		Updates(dbMeetup).Error
+}
+
+func (i *Implementation) createDBMeetup(ctx context.Context, dbMeetup *db.Meetup) error {
+	tx := i.DB().WithContext(ctx)
+	return tx.Create(dbMeetup).Error
 }
 
 func (i *Implementation) insertTagsIntoDB(ctx context.Context, dbMeetup *db.Meetup, modelMeetup *models.Meetup) error {
@@ -121,20 +186,15 @@ func (i *Implementation) insertTagsIntoDB(ctx context.Context, dbMeetup *db.Meet
 	return err
 }
 
-func (i *Implementation) createDBMeetup(ctx context.Context, dbMeetup *db.Meetup) error {
-	tx := i.DB().WithContext(ctx)
-	return tx.Create(dbMeetup).Error
-}
-
 func (i *Implementation) modelMeetupToDBMeetup(ctx context.Context, dbMeetup *db.Meetup, modelMeetup *models.Meetup) error {
 	// Update tags first. Do it through SQL since GORM Association mode Replace
 	// doesn't work reliably when the "tags" table has a unique name constraint.
 	// https://gorm.io/docs/associations.html#Replace-Associations
-
 	dbMeetup.Title = modelMeetup.Title
 	dbMeetup.Description = modelMeetup.Description
 	dbMeetup.MaxCapacity = *modelMeetup.MaxCapacity
 	dbMeetup.MinCapacity = *modelMeetup.MinCapacity
+	dbMeetup.Description = modelMeetup.Description
 
 	id, _ := strconv.ParseUint(string(modelMeetup.Owner), 10, 64)
 	dbMeetup.Owner = uint(id)
@@ -168,6 +228,7 @@ func modelMeetupRequestBodyToModelMeetup(modelMeetupRequestBody *models.MeetupRe
 	modelMeetup.MaxCapacity = modelMeetupRequestBody.MaxCapacity
 	modelMeetup.Time = modelMeetupRequestBody.Time
 	modelMeetup.Title = modelMeetupRequestBody.Title
+	modelMeetup.Description = modelMeetupRequestBody.Description
 	if modelMeetupRequestBody.Location != nil && modelMeetupRequestBody.Location.Coordinates != nil {
 		coordinates := &models.Coordinates{
 			Lat: modelMeetupRequestBody.Location.Coordinates.Lat,
@@ -182,7 +243,7 @@ func modelMeetupRequestBodyToModelMeetup(modelMeetupRequestBody *models.MeetupRe
 	return modelMeetup
 }
 
-func dbMeetupToModelMeetup(dbMeetup *db.Meetup) *models.Meetup {
+func dbMeetupToModelMeetup(dbMeetup *db.Meetup, id string) *models.Meetup {
 	var location *models.Location
 	if dbMeetup.Location.Coordinates.Lat != nil && dbMeetup.Location.Coordinates.Lon != nil {
 		coordinates := &models.Coordinates{
@@ -200,6 +261,18 @@ func dbMeetupToModelMeetup(dbMeetup *db.Meetup) *models.Meetup {
 		location.Name = dbMeetup.Location.Name
 	}
 
+	// Determine if user was rejected or not
+	var rejected bool
+	if dbMeetup.Attendees != nil && id != "" {
+		for _, i := range UsersToIDs(dbMeetup.Attendees) {
+			if string(i) == id {
+				rejected = true
+				break
+			}
+		}
+		rejected = false
+	}
+
 	return &models.Meetup{
 		ID:               models.MeetupID(fmt.Sprint(dbMeetup.ID)),
 		Title:            dbMeetup.Title,
@@ -210,7 +283,9 @@ func dbMeetupToModelMeetup(dbMeetup *db.Meetup) *models.Meetup {
 		MinCapacity:      &dbMeetup.MinCapacity,
 		MaxCapacity:      &dbMeetup.MaxCapacity,
 		Owner:            models.UserID(fmt.Sprint(dbMeetup.Owner)),
-		PendingAttendees: UsersToIDs(dbMeetup.Attendees),
+		Attendees: UsersToIDs(dbMeetup.Attendees),
+		PendingAttendees: UsersToIDs(dbMeetup.PendingAttendees),
+		Rejected: rejected,
 	}
 }
 

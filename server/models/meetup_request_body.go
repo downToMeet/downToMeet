@@ -17,6 +17,9 @@ import (
 // swagger:model meetupRequestBody
 type MeetupRequestBody struct {
 
+	// description
+	Description string `json:"description,omitempty"`
+
 	// location
 	Location *Location `json:"location,omitempty"`
 

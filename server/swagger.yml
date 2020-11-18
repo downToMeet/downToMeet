@@ -135,6 +135,8 @@ definitions:
         type: string
       time:
         type: string
+      description:
+        type: string
       location:
         $ref: "#/definitions/location"
       tags:

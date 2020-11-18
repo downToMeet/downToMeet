@@ -615,6 +615,9 @@ func init() {
     "meetupRequestBody": {
       "type": "object",
       "properties": {
+        "description": {
+          "type": "string"
+        },
         "location": {
           "$ref": "#/definitions/location"
         },
@@ -1315,6 +1318,9 @@ func init() {
     "meetupRequestBody": {
       "type": "object",
       "properties": {
+        "description": {
+          "type": "string"
+        },
         "location": {
           "$ref": "#/definitions/location"
         },
