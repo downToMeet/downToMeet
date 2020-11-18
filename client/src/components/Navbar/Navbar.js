@@ -90,7 +90,7 @@ function Navbar() {
             startIcon={<AddCircleIcon />}
             className={`${classes.button} ${classes.createButton}`}
             component={Link}
-            to={CREATE_PATH}
+            to={authenticated ? CREATE_PATH : LOGIN_PATH}
           >
             New Meetup
           </Button>
