@@ -102,6 +102,7 @@ definitions:
         $ref: "#/definitions/location"
       time:
         type: string
+        format: date-time
       description:
         type: string
       tags:
