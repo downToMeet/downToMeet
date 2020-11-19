@@ -12,8 +12,6 @@ function App() {
     <Router>
       <Navbar />
       <div>
-        <Link to="/create">Create Meetup</Link>
-        <Link to="/login">Login</Link>
         <Link to="/search">Search</Link>
       </div>
       <Switch>

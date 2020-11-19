@@ -4,11 +4,11 @@ import Box from "@material-ui/core/Box";
 import AppBar from "@material-ui/core/AppBar";
 import Toolbar from "@material-ui/core/Toolbar";
 import Typography from "@material-ui/core/Typography";
-// import Grid from '@material-ui/core/Grid';
 import Button from "@material-ui/core/Button";
-// import IconButton from '@material-ui/core/IconButton';
 import AddCircleIcon from "@material-ui/icons/AddCircle";
 import Avatar from "@material-ui/core/Avatar";
+import Menu from "@material-ui/core/Menu";
+import MenuItem from "@material-ui/core/MenuItem";
 import { makeStyles } from "@material-ui/core/styles";
 import { Link } from "react-router-dom";
 
@@ -56,10 +56,91 @@ function Navbar() {
   const classes = useStyles();
   // TODO: connect authentication
   const [authenticated, setAuthenticated] = useState(true);
+  const [profileMenuAnchor, setProfileMenuAnchor] = useState(null);
   // TODO: get profileID and avatar from user
   const profileID = 1234;
+  const profileName = "Test User";
   const profilePic =
     "http://web.cs.ucla.edu/~miryung/MiryungKimPhotoAugust2018.jpg";
+  const handleProfileMenuClick = (event) => {
+    setProfileMenuAnchor(event.currentTarget);
+  };
+
+  const handleProfileMenuClose = () => {
+    setProfileMenuAnchor(null);
+  };
+
+  const ProfileMenu = (
+    <>
+      <Button
+        startIcon={<Avatar src={profilePic} className={classes.avatar} />}
+        className={`${classes.button} ${classes.profileButton}`}
+        onClick={handleProfileMenuClick}
+      >
+        {profileName}
+      </Button>
+      <Menu
+        anchorEl={profileMenuAnchor}
+        getContentAnchorEl={null}
+        anchorOrigin={{
+          vertical: "bottom",
+          horizontal: "right",
+        }}
+        transformOrigin={{
+          vertical: "top",
+          horizontal: "right",
+        }}
+        keepMounted
+        open={Boolean(profileMenuAnchor)}
+        onClose={handleProfileMenuClose}
+      >
+        <MenuItem
+          onClick={handleProfileMenuClose}
+          component={Link}
+          to={`${PROFILE_PATH}/${profileID}`}
+        >
+          Profile
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            handleProfileMenuClose();
+            setAuthenticated(false);
+          }}
+          component={Link}
+          to="/"
+        >
+          Logout
+        </MenuItem>
+      </Menu>
+    </>
+  );
+
+  const Login = (
+    <Button
+      startIcon={<Avatar className={classes.avatar} />}
+      className={`${classes.button} ${classes.profileButton}`}
+      component={Link}
+      to={LOGIN_PATH}
+    >
+      Login
+    </Button>
+  );
+
+  const authToggle = (
+    <Button
+      size="small"
+      variant="outlined"
+      color="secondary"
+      onClick={() => {
+        setAuthenticated(!authenticated);
+      }}
+      className={classes.button}
+      component={Link}
+      to="/"
+    >
+      [DEBUG: toggle auth]
+    </Button>
+  );
 
   return (
     <Box className={classes.root}>
@@ -75,39 +156,17 @@ function Navbar() {
           >
             DownToMeet
           </Typography>
-          <Button
-            size="small"
-            variant="outlined"
-            color="secondary"
-            onClick={() => {
-              setAuthenticated(!authenticated);
-            }}
-            className={classes.button}
-          >
-            [DEBUG: toggle auth]
-          </Button>
+          {authToggle}
           <Button
             startIcon={<AddCircleIcon />}
             className={`${classes.button} ${classes.createButton}`}
             component={Link}
+            // TODO: add redirect to current path
             to={authenticated ? CREATE_PATH : LOGIN_PATH}
           >
             New Meetup
           </Button>
-          <Button
-            startIcon={
-              <Avatar
-                src={authenticated ? profilePic : null}
-                className={classes.avatar}
-              />
-            }
-            className={`${classes.button} ${classes.profileButton}`}
-            component={Link}
-            to={authenticated ? `${PROFILE_PATH}/${profileID}` : LOGIN_PATH}
-            width={100}
-          >
-            {authenticated ? "Test User" : "Login"}
-          </Button>
+          {authenticated ? ProfileMenu : Login}
         </Toolbar>
       </AppBar>
     </Box>
