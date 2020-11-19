@@ -270,6 +270,132 @@ func init() {
         }
       ]
     },
+    "/meetup/{id}/attendee": {
+      "get": {
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "description": "If the specified meetup does not exist, an error is returned",
+        "summary": "Get the current user's attendee status for the specified meetup",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/attendeeStatus"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "$ref": "#/definitions/meetup"
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "description": "If the specified meetup does not exist, an error is returned",
+        "summary": "Post the current user's attendee status (to \"pending\") for the specified meetup",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/attendeeStatus"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          }
+        }
+      },
+      "patch": {
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "description": "If the specified meetup does not exist, an error is returned",
+        "summary": "Patch the current user's attendee status for the specified meetup",
+        "parameters": [
+          {
+            "description": "The ucurrent user's attendee status",
+            "name": "attendeeStatus",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/attendeeStatus"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/attendeeStatus"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          }
+        }
+      },
+      "parameters": [
+        {
+          "type": "string",
+          "description": "ID of the desired meetup",
+          "name": "id",
+          "in": "path",
+          "required": true
+        }
+      ]
+    },
     "/restricted": {
       "get": {
         "security": [
@@ -508,6 +634,16 @@ func init() {
     }
   },
   "definitions": {
+    "attendeeStatus": {
+      "type": "string",
+      "default": "none",
+      "enum": [
+        "attending",
+        "pending",
+        "rejected",
+        "none"
+      ]
+    },
     "coordinates": {
       "type": "object",
       "required": [
@@ -972,6 +1108,132 @@ func init() {
         }
       ]
     },
+    "/meetup/{id}/attendee": {
+      "get": {
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "description": "If the specified meetup does not exist, an error is returned",
+        "summary": "Get the current user's attendee status for the specified meetup",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/attendeeStatus"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "$ref": "#/definitions/meetup"
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "description": "If the specified meetup does not exist, an error is returned",
+        "summary": "Post the current user's attendee status (to \"pending\") for the specified meetup",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/attendeeStatus"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          }
+        }
+      },
+      "patch": {
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
+        "description": "If the specified meetup does not exist, an error is returned",
+        "summary": "Patch the current user's attendee status for the specified meetup",
+        "parameters": [
+          {
+            "description": "The ucurrent user's attendee status",
+            "name": "attendeeStatus",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/attendeeStatus"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/attendeeStatus"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          }
+        }
+      },
+      "parameters": [
+        {
+          "type": "string",
+          "description": "ID of the desired meetup",
+          "name": "id",
+          "in": "path",
+          "required": true
+        }
+      ]
+    },
     "/restricted": {
       "get": {
         "security": [
@@ -1210,6 +1472,16 @@ func init() {
     }
   },
   "definitions": {
+    "attendeeStatus": {
+      "type": "string",
+      "default": "none",
+      "enum": [
+        "attending",
+        "pending",
+        "rejected",
+        "none"
+      ]
+    },
     "coordinates": {
       "type": "object",
       "required": [

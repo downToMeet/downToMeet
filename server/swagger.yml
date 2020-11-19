@@ -150,6 +150,15 @@ definitions:
       maxCapacity:
         type: integer
         minimum: 0
+  attendeeStatus:
+    type: string
+    "default": "none"
+    "enum": [
+      "attending",
+      "pending",
+      "rejected",
+      "none"
+    ]
 
 securityDefinitions:
   cookieSession:
@@ -421,6 +430,85 @@ paths:
       responses:
         204:
           description: No Content
+        400:
+          description: Bad Request
+          schema:
+            $ref: "#/definitions/error"
+        403:
+          description: Forbidden
+          schema:
+            $ref: "#/definitions/error"
+        404:
+          description: Not found
+          schema:
+            $ref: "#/definitions/error"
+  /meetup/{id}/attendee:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+        description: ID of the desired meetup
+    get:
+      summary: Get the current user's attendee status for the specified meetup
+      description: If the specified meetup does not exist, an error is returned
+      security:
+        - cookieSession: []
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: "#/definitions/attendeeStatus"
+        400:
+          description: Bad Request
+          schema:
+            $ref: "#/definitions/error"
+        403:
+          description: Forbidden
+          schema:
+            $ref: "#/definitions/meetup"
+        404:
+          description: Not found
+          schema:
+            $ref: "#/definitions/error"
+    post:
+      summary: Post the current user's attendee status (to "pending") for the specified meetup
+      description: If the specified meetup does not exist, an error is returned
+      security:
+        - cookieSession: []
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: "#/definitions/attendeeStatus"
+        400:
+          description: Bad Request
+          schema:
+            $ref: "#/definitions/error"
+        403:
+          description: Forbidden
+          schema:
+            $ref: "#/definitions/error"
+        404:
+          description: Not found
+          schema:
+            $ref: "#/definitions/error"
+    patch:
+      summary: Patch the current user's attendee status for the specified meetup
+      description: If the specified meetup does not exist, an error is returned
+      parameters:
+        - in: body
+          name: attendeeStatus
+          description: The ucurrent user's attendee status
+          schema:
+            $ref: "#/definitions/attendeeStatus"
+      security:
+        - cookieSession: []
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: "#/definitions/attendeeStatus"
         400:
           description: Bad Request
           schema:

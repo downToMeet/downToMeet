@@ -9,17 +9,18 @@ import (
 
 type Meetup struct {
 	gorm.Model
-	Title            string
-	ContactInfo      string
-	Time             time.Time
-	Description      string
-	Tags             []*Tag `gorm:"many2many:meetup_tag;"`
-	MaxCapacity      int64
-	MinCapacity      int64
-	Owner            uint
-	Attendees        []*User        `gorm:"many2many:meetup_user_attend;"`
-	Location         MeetupLocation `gorm:"embedded;embeddedPrefix:location_"`
-	PendingAttendees []*User        `gorm:"many2many:meetup_user_pending;"`
+	Title             string
+	Time              time.Time
+	Description       string
+	Tags              []*Tag `gorm:"many2many:meetup_tag;"`
+	MaxCapacity       int64
+	MinCapacity       int64
+	Owner             uint
+	Attendees         []*User        `gorm:"many2many:meetup_user_attend;"`
+	Location          MeetupLocation `gorm:"embedded;embeddedPrefix:location_"`
+	PendingAttendees  []*User        `gorm:"many2many:meetup_user_pending;"`
+	RejectedAttendees []*User        `gorm:"many2many:meetup_user_rejected;"`
+	Cancelled         bool
 }
 
 func (m *Meetup) IDString() string {

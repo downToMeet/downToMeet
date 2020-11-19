@@ -55,6 +55,9 @@ func NewDownToMeetAPI(spec *loads.Document) *DownToMeetAPI {
 		GetMeetupIDHandler: GetMeetupIDHandlerFunc(func(params GetMeetupIDParams) middleware.Responder {
 			return middleware.NotImplemented("operation GetMeetupID has not yet been implemented")
 		}),
+		GetMeetupIDAttendeeHandler: GetMeetupIDAttendeeHandlerFunc(func(params GetMeetupIDAttendeeParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation GetMeetupIDAttendee has not yet been implemented")
+		}),
 		GetRestrictedHandler: GetRestrictedHandlerFunc(func(params GetRestrictedParams, principal interface{}) middleware.Responder {
 			return middleware.NotImplemented("operation GetRestricted has not yet been implemented")
 		}),
@@ -79,11 +82,17 @@ func NewDownToMeetAPI(spec *loads.Document) *DownToMeetAPI {
 		PatchMeetupIDHandler: PatchMeetupIDHandlerFunc(func(params PatchMeetupIDParams, principal interface{}) middleware.Responder {
 			return middleware.NotImplemented("operation PatchMeetupID has not yet been implemented")
 		}),
+		PatchMeetupIDAttendeeHandler: PatchMeetupIDAttendeeHandlerFunc(func(params PatchMeetupIDAttendeeParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation PatchMeetupIDAttendee has not yet been implemented")
+		}),
 		PatchUserIDHandler: PatchUserIDHandlerFunc(func(params PatchUserIDParams, principal interface{}) middleware.Responder {
 			return middleware.NotImplemented("operation PatchUserID has not yet been implemented")
 		}),
 		PostMeetupHandler: PostMeetupHandlerFunc(func(params PostMeetupParams, principal interface{}) middleware.Responder {
 			return middleware.NotImplemented("operation PostMeetup has not yet been implemented")
+		}),
+		PostMeetupIDAttendeeHandler: PostMeetupIDAttendeeHandlerFunc(func(params PostMeetupIDAttendeeParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation PostMeetupIDAttendee has not yet been implemented")
 		}),
 		PostUserHandler: PostUserHandlerFunc(func(params PostUserParams) middleware.Responder {
 			return middleware.NotImplemented("operation PostUser has not yet been implemented")
@@ -147,6 +156,8 @@ type DownToMeetAPI struct {
 	GetMeetupHandler GetMeetupHandler
 	// GetMeetupIDHandler sets the operation handler for the get meetup ID operation
 	GetMeetupIDHandler GetMeetupIDHandler
+	// GetMeetupIDAttendeeHandler sets the operation handler for the get meetup ID attendee operation
+	GetMeetupIDAttendeeHandler GetMeetupIDAttendeeHandler
 	// GetRestrictedHandler sets the operation handler for the get restricted operation
 	GetRestrictedHandler GetRestrictedHandler
 	// GetSetCookieHandler sets the operation handler for the get set cookie operation
@@ -163,10 +174,14 @@ type DownToMeetAPI struct {
 	GetUserMeHandler GetUserMeHandler
 	// PatchMeetupIDHandler sets the operation handler for the patch meetup ID operation
 	PatchMeetupIDHandler PatchMeetupIDHandler
+	// PatchMeetupIDAttendeeHandler sets the operation handler for the patch meetup ID attendee operation
+	PatchMeetupIDAttendeeHandler PatchMeetupIDAttendeeHandler
 	// PatchUserIDHandler sets the operation handler for the patch user ID operation
 	PatchUserIDHandler PatchUserIDHandler
 	// PostMeetupHandler sets the operation handler for the post meetup operation
 	PostMeetupHandler PostMeetupHandler
+	// PostMeetupIDAttendeeHandler sets the operation handler for the post meetup ID attendee operation
+	PostMeetupIDAttendeeHandler PostMeetupIDAttendeeHandler
 	// PostUserHandler sets the operation handler for the post user operation
 	PostUserHandler PostUserHandler
 	// ServeError is called when an error is received, there is a default handler
@@ -264,6 +279,9 @@ func (o *DownToMeetAPI) Validate() error {
 	if o.GetMeetupIDHandler == nil {
 		unregistered = append(unregistered, "GetMeetupIDHandler")
 	}
+	if o.GetMeetupIDAttendeeHandler == nil {
+		unregistered = append(unregistered, "GetMeetupIDAttendeeHandler")
+	}
 	if o.GetRestrictedHandler == nil {
 		unregistered = append(unregistered, "GetRestrictedHandler")
 	}
@@ -288,11 +306,17 @@ func (o *DownToMeetAPI) Validate() error {
 	if o.PatchMeetupIDHandler == nil {
 		unregistered = append(unregistered, "PatchMeetupIDHandler")
 	}
+	if o.PatchMeetupIDAttendeeHandler == nil {
+		unregistered = append(unregistered, "PatchMeetupIDAttendeeHandler")
+	}
 	if o.PatchUserIDHandler == nil {
 		unregistered = append(unregistered, "PatchUserIDHandler")
 	}
 	if o.PostMeetupHandler == nil {
 		unregistered = append(unregistered, "PostMeetupHandler")
+	}
+	if o.PostMeetupIDAttendeeHandler == nil {
+		unregistered = append(unregistered, "PostMeetupIDAttendeeHandler")
 	}
 	if o.PostUserHandler == nil {
 		unregistered = append(unregistered, "PostUserHandler")
@@ -415,6 +439,10 @@ func (o *DownToMeetAPI) initHandlerCache() {
 	if o.handlers["GET"] == nil {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}
+	o.handlers["GET"]["/meetup/{id}/attendee"] = NewGetMeetupIDAttendee(o.context, o.GetMeetupIDAttendeeHandler)
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
 	o.handlers["GET"]["/restricted"] = NewGetRestricted(o.context, o.GetRestrictedHandler)
 	if o.handlers["GET"] == nil {
 		o.handlers["GET"] = make(map[string]http.Handler)
@@ -447,11 +475,19 @@ func (o *DownToMeetAPI) initHandlerCache() {
 	if o.handlers["PATCH"] == nil {
 		o.handlers["PATCH"] = make(map[string]http.Handler)
 	}
+	o.handlers["PATCH"]["/meetup/{id}/attendee"] = NewPatchMeetupIDAttendee(o.context, o.PatchMeetupIDAttendeeHandler)
+	if o.handlers["PATCH"] == nil {
+		o.handlers["PATCH"] = make(map[string]http.Handler)
+	}
 	o.handlers["PATCH"]["/user/{id}"] = NewPatchUserID(o.context, o.PatchUserIDHandler)
 	if o.handlers["POST"] == nil {
 		o.handlers["POST"] = make(map[string]http.Handler)
 	}
 	o.handlers["POST"]["/meetup"] = NewPostMeetup(o.context, o.PostMeetupHandler)
+	if o.handlers["POST"] == nil {
+		o.handlers["POST"] = make(map[string]http.Handler)
+	}
+	o.handlers["POST"]["/meetup/{id}/attendee"] = NewPostMeetupIDAttendee(o.context, o.PostMeetupIDAttendeeHandler)
 	if o.handlers["POST"] == nil {
 		o.handlers["POST"] = make(map[string]http.Handler)
 	}
