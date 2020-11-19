@@ -159,7 +159,7 @@ func (i *Implementation) PatchMeetupID(params operations.PatchMeetupIDParams, _ 
 	session := SessionFromContext(ctx)
 	id := session.Values[UserID]
 	if id.(string) != fmt.Sprint(dbMeetup.Owner) {
-		logger.Warn("User tried to PATCH an event they do not own")
+		logger.Warn("User tried to PATCH an meetup they do not own")
 		return operations.NewPatchMeetupIDForbidden().WithPayload(&models.Error{
 			Code:    http.StatusForbidden,
 			Message: "Forbidden",
@@ -218,7 +218,7 @@ func (i *Implementation) DeleteMeetupID(params operations.DeleteMeetupIDParams, 
 	session := SessionFromContext(ctx)
 	id := session.Values[UserID]
 	if id.(string) != fmt.Sprint(dbMeetup.Owner) {
-		logger.Warn("User tried to DELETE an event they do not own")
+		logger.Warn("User tried to DELETE an meetup they do not own")
 		return operations.NewDeleteMeetupIDForbidden().WithPayload(&models.Error{
 			Code:    http.StatusForbidden,
 			Message: "Forbidden",
@@ -256,7 +256,7 @@ func (i *Implementation) GetMeetupIdAttendee(params operations.GetMeetupIDAttend
 	if id.(string) == fmt.Sprint(dbMeetup.Owner) {
 		return operations.NewGetMeetupIDAttendeeBadRequest().WithPayload(&models.Error{
 			Code:    http.StatusBadRequest,
-			Message: "User is the owner of this event",
+			Message: "User is the owner of this meetup",
 		})
 	}
 
@@ -302,6 +302,210 @@ func (i *Implementation) GetMeetupIdAttendee(params operations.GetMeetupIDAttend
 	}
 	attendeeStatus = "none"
 	return operations.NewGetMeetupIDAttendeeOK().WithPayload(attendeeStatus)
+}
+
+func (i *Implementation) PostMeetupIdAttendee(params operations.PostMeetupIDAttendeeParams, _ interface{}) middleware.Responder {
+	ctx := params.HTTPRequest.Context()
+	logger := log.WithContext(ctx)
+
+	tx := i.DB().WithContext(ctx)
+	var dbMeetup db.Meetup
+	err := tx.First(&dbMeetup, params.ID).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return operations.NewPostMeetupIDAttendeeNotFound().WithPayload(&models.Error{
+			Code:    http.StatusNotFound,
+			Message: "Specified meetup not found.",
+		})
+	} else if err != nil {
+		logger.WithError(err).Error("Failed to find meetup in DB")
+		return InternalServerError{}
+	}
+
+	session := SessionFromContext(ctx)
+	id := session.Values[UserID]
+	if id.(string) == fmt.Sprint(dbMeetup.Owner) {
+		return operations.NewPostMeetupIDAttendeeBadRequest().WithPayload(&models.Error{
+			Code:    http.StatusBadRequest,
+			Message: "User is the owner of this meetup",
+		})
+	}
+
+	if dbMeetup.Cancelled == true {
+		return operations.NewPostMeetupIDAttendeeBadRequest().WithPayload(&models.Error{
+			Code:    http.StatusBadRequest,
+			Message: "This meetup has been cancelled",
+		})
+	}
+
+	if err = i.fetchAllAttendeeInformationLists(ctx, &dbMeetup); err != nil {
+		logger.WithError(err).Error("Failed to fetch attendee information lists")
+		return InternalServerError{}
+	}
+
+	// Make sure that the user is not already in one of the lists
+	userIDStr := id.(string)
+	if userIDStr != "" {
+		if dbMeetup.Attendees != nil {
+			for _, attendee := range dbMeetup.Attendees {
+				if attendee.IDString() == userIDStr {
+					return operations.NewPostMeetupIDAttendeeBadRequest().WithPayload(&models.Error{
+						Code:    http.StatusBadRequest,
+						Message: "User is already attending this meetup",
+					})
+				}
+			}
+		}
+		if dbMeetup.PendingAttendees != nil {
+			for _, attendee := range dbMeetup.PendingAttendees {
+				if attendee.IDString() == userIDStr {
+					return operations.NewPostMeetupIDAttendeeBadRequest().WithPayload(&models.Error{
+						Code:    http.StatusBadRequest,
+						Message: "User is already pending approval to attend this meetup",
+					})
+				}
+			}
+		}
+		if dbMeetup.RejectedAttendees != nil {
+			for _, attendee := range dbMeetup.RejectedAttendees {
+				if attendee.IDString() == userIDStr {
+					return operations.NewPostMeetupIDAttendeeBadRequest().WithPayload(&models.Error{
+						Code:    http.StatusBadRequest,
+						Message: "User was rejected from this meetup",
+					})
+				}
+			}
+		}
+	}
+
+	// Fetch the user
+	var dbUser db.User
+	if err = tx.First(&dbUser, db.UserIDFromString(userIDStr)).Error; err != nil {
+		logger.WithError(err).Error("Unable to find current user in DB")
+		return InternalServerError{}
+	}
+	if err := tx.Model(&dbUser).Association("Tags").Find(&dbUser.Tags); err != nil {
+		logger.WithError(err).Error("Unable to find user tags")
+		return InternalServerError{}
+	}
+	dbMeetup.PendingAttendees = append(dbMeetup.PendingAttendees, &dbUser)
+
+	// Update the db meetup
+	if err = tx.Model(&dbMeetup).Updates(&dbMeetup).Error; err != nil {
+		logger.WithError(err).Error("Unable to update DB meetup")
+		return InternalServerError{}
+	}
+
+	var attendeeStatus models.AttendeeStatus = "pending"
+	return operations.NewPostMeetupIDAttendeeOK().WithPayload(attendeeStatus)
+}
+
+func (i *Implementation) PatchMeetupIdAttendee(params operations.PatchMeetupIDAttendeeParams, _ interface{}) middleware.Responder {
+	ctx := params.HTTPRequest.Context()
+	logger := log.WithContext(ctx)
+
+	tx := i.DB().WithContext(ctx)
+	var dbMeetup db.Meetup
+	err := tx.First(&dbMeetup, params.ID).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return operations.NewPatchMeetupIDAttendeeNotFound().WithPayload(&models.Error{
+			Code:    http.StatusNotFound,
+			Message: "Specified meetup not found.",
+		})
+	} else if err != nil {
+		logger.WithError(err).Error("Failed to find meetup in DB")
+		return InternalServerError{}
+	}
+
+	session := SessionFromContext(ctx)
+	id := session.Values[UserID]
+	if id.(string) == fmt.Sprint(dbMeetup.Owner) {
+		return operations.NewPatchMeetupIDAttendeeBadRequest().WithPayload(&models.Error{
+			Code:    http.StatusBadRequest,
+			Message: "User is the owner of this meetup",
+		})
+	}
+
+	if dbMeetup.Cancelled == true {
+		return operations.NewPatchMeetupIDAttendeeBadRequest().WithPayload(&models.Error{
+			Code:    http.StatusBadRequest,
+			Message: "This meetup has been cancelled",
+		})
+	}
+
+	if err = i.fetchAllAttendeeInformationLists(ctx, &dbMeetup); err != nil {
+		logger.WithError(err).Error("Failed to fetch attendee information lists")
+		return InternalServerError{}
+	}
+
+	// Remove the user from whichever list they are currently in
+	userIDStr := id.(string)
+	found := false
+	if userIDStr != "" {
+		if dbMeetup.Attendees != nil {
+			for index, attendee := range dbMeetup.Attendees {
+				if attendee.IDString() == userIDStr {
+					// Remove the user from this array
+					found = true
+					dbMeetup.Attendees[index] = dbMeetup.Attendees[len(dbMeetup.Attendees)-1]
+					dbMeetup.Attendees[len(dbMeetup.Attendees)-1] = nil
+					dbMeetup.Attendees = dbMeetup.Attendees[:len(dbMeetup.Attendees)-1]
+					break
+				}
+			}
+		}
+		if dbMeetup.PendingAttendees != nil && !found {
+			for index, attendee := range dbMeetup.PendingAttendees {
+				if attendee.IDString() == userIDStr {
+					// Remove the user from this array
+					found = true
+					dbMeetup.PendingAttendees[index] = dbMeetup.PendingAttendees[len(dbMeetup.PendingAttendees)-1]
+					dbMeetup.PendingAttendees[len(dbMeetup.PendingAttendees)-1] = nil
+					dbMeetup.PendingAttendees = dbMeetup.PendingAttendees[:len(dbMeetup.PendingAttendees)-1]
+					break
+				}
+			}
+		}
+		if dbMeetup.RejectedAttendees != nil && !found {
+			for index, attendee := range dbMeetup.RejectedAttendees {
+				if attendee.IDString() == userIDStr {
+					found = true
+					dbMeetup.RejectedAttendees[index] = dbMeetup.RejectedAttendees[len(dbMeetup.RejectedAttendees)-1]
+					dbMeetup.RejectedAttendees[len(dbMeetup.RejectedAttendees)-1] = nil
+					dbMeetup.RejectedAttendees = dbMeetup.RejectedAttendees[:len(dbMeetup.RejectedAttendees)-1]
+					break
+				}
+			}
+		}
+	}
+
+	// Fetch the user
+	var dbUser db.User
+	if err = tx.First(&dbUser, db.UserIDFromString(userIDStr)).Error; err != nil {
+		logger.WithError(err).Error("Unable to find current user in DB")
+		return InternalServerError{}
+	}
+	if err := tx.Model(&dbUser).Association("Tags").Find(&dbUser.Tags); err != nil {
+		logger.WithError(err).Error("Unable to find user tags")
+		return InternalServerError{}
+	}
+
+	// Add user to the appropriate array
+	// If attendeeStatus is "none", we don't add them anywhere
+	if params.AttendeeStatus == "pending" {
+		dbMeetup.PendingAttendees = append(dbMeetup.PendingAttendees, &dbUser)
+	} else if params.AttendeeStatus == "attending" {
+		dbMeetup.Attendees = append(dbMeetup.Attendees, &dbUser)
+	} else if params.AttendeeStatus == "rejected" {
+		dbMeetup.RejectedAttendees = append(dbMeetup.RejectedAttendees, &dbUser)
+	}
+
+	// Update the db meetup
+	if err = tx.Model(&dbMeetup).Updates(&dbMeetup).Error; err != nil {
+		logger.WithError(err).Error("Unable to update DB meetup")
+		return InternalServerError{}
+	}
+
+	return operations.NewPatchMeetupIDAttendeeOK().WithPayload(params.AttendeeStatus)
 }
 
 func (i *Implementation) fetchAllAttendeeInformationLists(ctx context.Context, dbMeetup *db.Meetup) error {
