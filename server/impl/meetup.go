@@ -67,7 +67,9 @@ import (
 //	}
 //	return operations.NewGetMeetupOK().WithPayload(modelMeetups)
 //}
-// TODO: check for valid user ID in all endpoints with user ID
+// TODO: check for valid user ID in all endpoints with user ID (maybe)
+// TODO: clean up / shorten this code
+// TODO: test all of the /meetup/{id}/attendee endpoints with multiple users
 func (i *Implementation) GetMeetupID(params operations.GetMeetupIDParams) middleware.Responder {
 	ctx := params.HTTPRequest.Context()
 	logger := log.WithContext(ctx)
@@ -650,7 +652,6 @@ func dbMeetupToModelMeetup(dbMeetup *db.Meetup, userID string) *models.Meetup {
 		location.Name = dbMeetup.Location.Name
 	}
 
-	// TODO: potentially changing this because I will be modifying the DB to have a rejectedAttendees many:many relation
 	// Determine if user was rejected or not
 	var rejected bool
 	if dbMeetup.Attendees != nil && userID != "" {
