@@ -86,6 +86,13 @@ func (i *Implementation) GetMeetupID(params operations.GetMeetupIDParams) middle
 		return InternalServerError{}
 	}
 
+	if dbMeetup.Cancelled == true {
+		return operations.NewGetMeetupIDBadRequest().WithPayload(&models.Error{
+			Code:    http.StatusBadRequest,
+			Message: "This meetup has been cancelled",
+		})
+	}
+
 	if err = tx.Model(&dbMeetup).Association("Tags").Find(&dbMeetup.Tags); err != nil {
 		logger.WithError(err).Error("Unable to find user tags")
 		return InternalServerError{}
@@ -159,6 +166,13 @@ func (i *Implementation) PatchMeetupID(params operations.PatchMeetupIDParams, _ 
 		})
 	}
 
+	if dbMeetup.Cancelled == true {
+		return operations.NewPatchMeetupIDBadRequest().WithPayload(&models.Error{
+			Code:    http.StatusBadRequest,
+			Message: "This meetup has been cancelled",
+		})
+	}
+
 	modelMeetup := modelMeetupRequestBodyToModelMeetup(params.Meetup, id.(string))
 	if err := i.modelMeetupToDBMeetup(&dbMeetup, &modelMeetup); err != nil {
 		logger.WithError(err).Error("Failed to create db meetup object")
@@ -192,6 +206,13 @@ func (i *Implementation) DeleteMeetupID(params operations.DeleteMeetupIDParams, 
 	} else if err != nil {
 		logger.WithError(err).Error("Failed to find meetup in DB")
 		return InternalServerError{}
+	}
+
+	if dbMeetup.Cancelled == true {
+		return operations.NewDeleteMeetupIDBadRequest().WithPayload(&models.Error{
+			Code:    http.StatusBadRequest,
+			Message: "This meetup has already been cancelled",
+		})
 	}
 
 	session := SessionFromContext(ctx)
