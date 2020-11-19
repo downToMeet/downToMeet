@@ -177,7 +177,41 @@ func (i *Implementation) PatchMeetupID(params operations.PatchMeetupIDParams, _ 
 	return operations.NewPatchMeetupIDOK().WithPayload(dbMeetupToModelMeetup(&dbMeetup, id.(string)))
 }
 
-// TODO: Implement Delete
+func (i *Implementation) DeleteMeetupID(params operations.DeleteMeetupIDParams, _ interface{}) middleware.Responder {
+	ctx := params.HTTPRequest.Context()
+	logger := log.WithContext(ctx)
+
+	tx := i.DB().WithContext(ctx)
+	var dbMeetup db.Meetup
+	err := tx.First(&dbMeetup, params.ID).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return operations.NewPatchMeetupIDNotFound().WithPayload(&models.Error{
+			Code:    http.StatusNotFound,
+			Message: "Specified meetup not found.",
+		})
+	} else if err != nil {
+		logger.WithError(err).Error("Failed to find meetup in DB")
+		return InternalServerError{}
+	}
+
+	session := SessionFromContext(ctx)
+	id := session.Values[UserID]
+	if id.(string) != fmt.Sprint(dbMeetup.Owner) {
+		logger.Warn("User tried to DELETE an event they do not own")
+		return operations.NewPatchMeetupIDForbidden().WithPayload(&models.Error{
+			Code:    http.StatusForbidden,
+			Message: "Forbidden",
+		})
+	}
+
+	dbMeetup.Cancelled = true
+
+	if err := i.updateDBMeetup(ctx, &dbMeetup); err != nil {
+		logger.WithError(err).Error("Failed to update meetup")
+		return InternalServerError{}
+	}
+	return operations.NewDeleteMeetupIDNoContent()
+}
 
 func (i *Implementation) updateDBMeetup(ctx context.Context, dbMeetup *db.Meetup) error {
 	tx := i.DB().WithContext(ctx)
