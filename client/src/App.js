@@ -5,13 +5,13 @@ import Login from "./components/Login/Login";
 import Meetup from "./components/Meetup/Meetup";
 import Profile from "./components/Profile/Profile";
 import Search from "./components/Search/Search";
+import Navbar from "./components/Navbar/Navbar";
 
 function App() {
   return (
     <Router>
+      <Navbar />
       <div>
-        <Link to="/create">Create Meetup</Link>
-        <Link to="/login">Login</Link>
         <Link to="/search">Search</Link>
       </div>
       <Switch>
