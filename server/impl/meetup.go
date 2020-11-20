@@ -20,6 +20,40 @@ import (
 	"go.timothygu.me/downtomeet/server/restapi/operations"
 )
 
+/*
+Before running any of these, do
+
+CREATE EXTENSION earthdistance CASCADE;
+
+as a superuser (probably 'postgres')
+*/
+
+/*
+SELECT * FROM (
+    SELECT *,
+           earth_distance(ll_to_earth(@lat, @lon),
+                          ll_to_earth(location_lat, location_lon)) AS distance_from_me
+    FROM meetups
+) AS m
+WHERE m.distance_from_me < 2000
+ORDER BY m.distance_from_me
+LIMIT 100;
+*/
+
+/* TODO: remove duplicate meetups
+
+SELECT * FROM (
+    SELECT *,
+           earth_distance(ll_to_earth(33.9950521, -117.9864217),
+                          ll_to_earth(location_lat, location_lon)) AS distance_from_me
+    FROM meetups
+) AS m
+JOIN meetup_tag mt on m.id = mt.meetup_id
+WHERE m.distance_from_me < 2000 AND tag_id IN (
+    VALUES (1), (2)
+)
+*/
+
 // TODO: Fix GetMeetup
 //func (i *Implementation) GetMeetup(params operations.GetMeetupParams) middleware.Responder {
 //	ctx := params.HTTPRequest.Context()
