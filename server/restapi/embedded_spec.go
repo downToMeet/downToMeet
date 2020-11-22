@@ -771,7 +771,8 @@ func init() {
           }
         },
         "time": {
-          "type": "string"
+          "type": "string",
+          "format": "date-time"
         },
         "title": {
           "type": "string"
@@ -1613,7 +1614,8 @@ func init() {
           }
         },
         "time": {
-          "type": "string"
+          "type": "string",
+          "format": "date-time"
         },
         "title": {
           "type": "string"

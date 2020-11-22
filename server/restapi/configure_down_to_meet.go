@@ -60,6 +60,7 @@ func configureAPI(api *operations.DownToMeetAPI) http.Handler {
 	api.PostMeetupHandler = operations.PostMeetupHandlerFunc(Impl.PostMeetup)
 	api.PatchMeetupIDHandler = operations.PatchMeetupIDHandlerFunc(Impl.PatchMeetupID)
 	api.DeleteMeetupIDHandler = operations.DeleteMeetupIDHandlerFunc(Impl.DeleteMeetupID)
+	api.GetMeetupHandler = operations.GetMeetupHandlerFunc(Impl.GetMeetup)
 
 	api.GetMeetupIDAttendeeHandler = operations.GetMeetupIDAttendeeHandlerFunc(Impl.GetMeetupIdAttendee)
 	api.PostMeetupIDAttendeeHandler = operations.PostMeetupIDAttendeeHandlerFunc(Impl.PostMeetupIdAttendee)

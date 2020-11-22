@@ -136,6 +136,7 @@ definitions:
         type: string
       time:
         type: string
+        format: date-time
       description:
         type: string
       location:

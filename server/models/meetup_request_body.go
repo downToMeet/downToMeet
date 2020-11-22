@@ -35,7 +35,8 @@ type MeetupRequestBody struct {
 	Tags []string `json:"tags"`
 
 	// time
-	Time string `json:"time,omitempty"`
+	// Format: date-time
+	Time strfmt.DateTime `json:"time,omitempty"`
 
 	// title
 	Title string `json:"title,omitempty"`
@@ -54,6 +55,10 @@ func (m *MeetupRequestBody) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateMinCapacity(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateTime(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -101,6 +106,19 @@ func (m *MeetupRequestBody) validateMinCapacity(formats strfmt.Registry) error {
 	}
 
 	if err := validate.MinimumInt("minCapacity", "body", int64(*m.MinCapacity), 0, false); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *MeetupRequestBody) validateTime(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.Time) { // not required
+		return nil
+	}
+
+	if err := validate.FormatOf("time", "body", "date-time", m.Time.String(), formats); err != nil {
 		return err
 	}
 

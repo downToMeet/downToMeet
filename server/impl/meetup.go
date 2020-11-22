@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/go-openapi/swag"
 	"net/http"
 	"strings"
 	"time"
@@ -21,88 +22,77 @@ import (
 )
 
 /*
-Before running any of these, do
+Before running the query in GetMeetup, do
 
 CREATE EXTENSION earthdistance CASCADE;
 
 as a superuser (probably 'postgres')
 */
 
-/*
-SELECT * FROM (
-    SELECT *,
-           earth_distance(ll_to_earth(@lat, @lon),
-                          ll_to_earth(location_lat, location_lon)) AS distance_from_me
-    FROM meetups
-) AS m
-WHERE m.distance_from_me < 2000
-ORDER BY m.distance_from_me
-LIMIT 100;
-*/
+/* TODO: remove duplicate meetups */
+func (i *Implementation) GetMeetup(params operations.GetMeetupParams) middleware.Responder {
+	ctx := params.HTTPRequest.Context()
+	logger := log.WithContext(ctx)
 
-/* TODO: remove duplicate meetups
+	tx := i.DB().WithContext(ctx)
 
-Also note: this does NOT work if we have no tags to search for (i.e., empty VALUES).
+	var tagIds []int
+	var dbTags []db.Tag
+	if err := tx.Where("name IN ?", params.Tags).Find(&dbTags).Error; err != nil {
+		logger.WithError(err).Error("Unable to fetch tags")
+		return InternalServerError{}
+	}
+	for _, tag := range dbTags {
+		tagIds = append(tagIds, int(tag.ID))
+	}
 
-SELECT * FROM (
-    SELECT *,
-           earth_distance(ll_to_earth(33.9950521, -117.9864217),
-                          ll_to_earth(location_lat, location_lon)) AS distance_from_me
-    FROM meetups
-) AS m
-JOIN meetup_tag AS mt ON m.id = mt.meetup_id
-WHERE m.distance_from_me < 2000 AND mt.tag_id IN (
-    VALUES (1), (2)
-)
-*/
+	var meetups []*db.Meetup
+	err := tx.Raw(`
+	SELECT * FROM (
+		SELECT *,
+			earth_distance(ll_to_earth(?, ?),
+			ll_to_earth(location_lat, location_lon)) AS distance_from_me
+		FROM meetups
+	) AS m
+	JOIN meetup_tag AS mt ON m.id = mt.meetup_id
+	WHERE m.distance_from_me < ? AND mt.tag_id IN ?
+	ORDER BY m.distance_from_me
+	LIMIT 100
+	`, params.Lat, params.Lon, params.Radius, tagIds).Scan(&meetups).Error
 
-// TODO: Fix GetMeetup
-//func (i *Implementation) GetMeetup(params operations.GetMeetupParams) middleware.Responder {
-//	ctx := params.HTTPRequest.Context()
-//	logger := log.WithContext(ctx)
-//
-//	tx := i.DB().WithContext(ctx)
-//
-//	var meetups []*db.Meetup
-//	var dbMeetup db.Meetup
-//	// Do fat GORM query - model.where.find? findInBatches?
-//	err := tx.Model(&dbMeetup).Where(tx.Model(&dbMeetup).
-//		Where("acos(sin(location_lat * 0.0175) * sin(@lat * 0.0175) + " +
-//		"cos(location_lat * 0.0175) * cos(@lat * 0.0175) * " +
-//		"cos((@lon * 0.0175) - (location_lon * 0.0175))) * 3959 <= @radius", map[string]interface{}{
-//			"lat": params.Lat,
-//			"lon": params.Lon,
-//			"radius": params.Radius,
-//		})).Or(tx.Model(&dbMeetup).Where("tags IN ?", params.Tags).Association("Tags").Find(&, 20)).Error
-//
-//	if err != nil {
-//		logger.WithError(err).Error("Unable to find meetups that fit the given parameters")
-//		return InternalServerError{}
-//	}
-//
-//	var idStr string
-//	if id := SessionFromContext(ctx).Values[UserID]; id == nil {
-//		idStr = ""
-//	} else {
-//		idStr = id.(string)
-//	}
-//
-//	// Convert each returned dbMeetup to a models.Meetup
-//	var modelMeetups []*models.Meetup
-//	for _, m := range meetups {
-//		if err = tx.Model(&dbMeetup).Association("Attendees").Find(&dbMeetup.Attendees); err != nil {
-//			logger.WithError(err).Error("Unable to find meetup attendee information")
-//			return InternalServerError{}
-//		}
-//
-//		if err = tx.Model(&dbMeetup).Association("Tags").Find(&dbMeetup.Tags); err != nil {
-//			logger.WithError(err).Error("Unable to find user tags")
-//			return InternalServerError{}
-//		}
-//		modelMeetups = append(modelMeetups, dbMeetupToModelMeetup(m, idStr))
-//	}
-//	return operations.NewGetMeetupOK().WithPayload(modelMeetups)
-//}
+	if err != nil {
+		logger.WithError(err).Error("Unable to find meetups that fit the given parameters")
+		return InternalServerError{}
+	}
+
+	var idStr string
+	if id := SessionFromContext(ctx).Values[UserID]; id == nil {
+		idStr = ""
+	} else {
+		idStr = id.(string)
+	}
+
+	// Convert each returned dbMeetup to a models.Meetup
+	var modelMeetups []*models.Meetup
+	for _, meetup := range meetups {
+		if err = tx.Model(&meetup).Association("Attendees").Find(&meetup.Attendees); err != nil {
+			logger.WithError(err).Error("Unable to find meetup attendee information")
+			return InternalServerError{}
+		}
+
+		if err = tx.Model(&meetup).Association("PendingAttendees").Find(&meetup.PendingAttendees); err != nil {
+			logger.WithError(err).Error("Unable to find meetup pending attendee information")
+			return InternalServerError{}
+		}
+
+		if err = tx.Model(&meetup).Association("Tags").Find(&meetup.Tags); err != nil {
+			logger.WithError(err).Error("Unable to find user tags")
+			return InternalServerError{}
+		}
+		modelMeetups = append(modelMeetups, dbMeetupToModelMeetup(meetup, idStr))
+	}
+	return operations.NewGetMeetupOK().WithPayload(modelMeetups)
+}
 // TODO: check for valid user ID in all endpoints with user ID (maybe)
 // TODO: clean up / shorten this code
 // TODO: test all of the /meetup/{id}/attendee endpoints with multiple users
@@ -197,7 +187,7 @@ func (i *Implementation) PatchMeetupID(params operations.PatchMeetupIDParams, _ 
 	session := SessionFromContext(ctx)
 	id := session.Values[UserID]
 	if id.(string) != fmt.Sprint(dbMeetup.Owner) {
-		logger.Warn("User tried to PATCH an meetup they do not own")
+		logger.Warn("User tried to PATCH a meetup they do not own")
 		return operations.NewPatchMeetupIDForbidden().WithPayload(&models.Error{
 			Code:    http.StatusForbidden,
 			Message: "Forbidden",
@@ -256,7 +246,7 @@ func (i *Implementation) DeleteMeetupID(params operations.DeleteMeetupIDParams, 
 	session := SessionFromContext(ctx)
 	id := session.Values[UserID]
 	if id.(string) != fmt.Sprint(dbMeetup.Owner) {
-		logger.Warn("User tried to DELETE an meetup they do not own")
+		logger.Warn("User tried to DELETE a meetup they do not own")
 		return operations.NewDeleteMeetupIDForbidden().WithPayload(&models.Error{
 			Code:    http.StatusForbidden,
 			Message: "Forbidden",
@@ -310,12 +300,12 @@ func (i *Implementation) GetMeetupIdAttendee(params operations.GetMeetupIDAttend
 		return InternalServerError{}
 	}
 
-	userIDStr := id.(string)
+	idStr:= id.(string)
 	var attendeeStatus models.AttendeeStatus
-	if userIDStr != "" {
+	if idStr!= "" {
 		if dbMeetup.Attendees != nil {
 			for _, attendee := range dbMeetup.Attendees {
-				if attendee.IDString() == userIDStr {
+				if attendee.IDString() == idStr{
 					attendeeStatus = "attending"
 					return operations.NewGetMeetupIDAttendeeOK().WithPayload(attendeeStatus)
 				}
@@ -323,7 +313,7 @@ func (i *Implementation) GetMeetupIdAttendee(params operations.GetMeetupIDAttend
 		}
 		if dbMeetup.PendingAttendees != nil {
 			for _, attendee := range dbMeetup.PendingAttendees {
-				if attendee.IDString() == userIDStr {
+				if attendee.IDString() == idStr{
 					attendeeStatus = "pending"
 					return operations.NewGetMeetupIDAttendeeOK().WithPayload(attendeeStatus)
 				}
@@ -331,7 +321,7 @@ func (i *Implementation) GetMeetupIdAttendee(params operations.GetMeetupIDAttend
 		}
 		if dbMeetup.RejectedAttendees != nil {
 			for _, attendee := range dbMeetup.RejectedAttendees {
-				if attendee.IDString() == userIDStr {
+				if attendee.IDString() == idStr{
 					attendeeStatus = "rejected"
 					return operations.NewGetMeetupIDAttendeeOK().WithPayload(attendeeStatus)
 				}
@@ -381,11 +371,11 @@ func (i *Implementation) PostMeetupIdAttendee(params operations.PostMeetupIDAtte
 	}
 
 	// Make sure that the user is not already in one of the lists
-	userIDStr := id.(string)
-	if userIDStr != "" {
+	idStr := id.(string)
+	if idStr != "" {
 		if dbMeetup.Attendees != nil {
 			for _, attendee := range dbMeetup.Attendees {
-				if attendee.IDString() == userIDStr {
+				if attendee.IDString() == idStr {
 					return operations.NewPostMeetupIDAttendeeBadRequest().WithPayload(&models.Error{
 						Code:    http.StatusBadRequest,
 						Message: "User is already attending this meetup",
@@ -395,7 +385,7 @@ func (i *Implementation) PostMeetupIdAttendee(params operations.PostMeetupIDAtte
 		}
 		if dbMeetup.PendingAttendees != nil {
 			for _, attendee := range dbMeetup.PendingAttendees {
-				if attendee.IDString() == userIDStr {
+				if attendee.IDString() == idStr {
 					return operations.NewPostMeetupIDAttendeeBadRequest().WithPayload(&models.Error{
 						Code:    http.StatusBadRequest,
 						Message: "User is already pending approval to attend this meetup",
@@ -405,7 +395,7 @@ func (i *Implementation) PostMeetupIdAttendee(params operations.PostMeetupIDAtte
 		}
 		if dbMeetup.RejectedAttendees != nil {
 			for _, attendee := range dbMeetup.RejectedAttendees {
-				if attendee.IDString() == userIDStr {
+				if attendee.IDString() == idStr {
 					return operations.NewPostMeetupIDAttendeeBadRequest().WithPayload(&models.Error{
 						Code:    http.StatusBadRequest,
 						Message: "User was rejected from this meetup",
@@ -417,7 +407,8 @@ func (i *Implementation) PostMeetupIdAttendee(params operations.PostMeetupIDAtte
 
 	// Fetch the user
 	var dbUser db.User
-	if err = tx.First(&dbUser, db.UserIDFromString(userIDStr)).Error; err != nil {
+	userID, _ := db.UserIDFromString(idStr)
+	if err = tx.First(&dbUser, userID).Error; err != nil {
 		logger.WithError(err).Error("Unable to find current user in DB")
 		return InternalServerError{}
 	}
@@ -476,12 +467,12 @@ func (i *Implementation) PatchMeetupIdAttendee(params operations.PatchMeetupIDAt
 	}
 
 	// Remove the user from whichever list they are currently in
-	userIDStr := id.(string)
+	idStr:= id.(string)
 	found := false
-	if userIDStr != "" {
+	if idStr!= "" {
 		if dbMeetup.Attendees != nil {
 			for index, attendee := range dbMeetup.Attendees {
-				if attendee.IDString() == userIDStr {
+				if attendee.IDString() == idStr{
 					// Remove the user from this array
 					found = true
 					dbMeetup.Attendees[index] = dbMeetup.Attendees[len(dbMeetup.Attendees)-1]
@@ -493,7 +484,7 @@ func (i *Implementation) PatchMeetupIdAttendee(params operations.PatchMeetupIDAt
 		}
 		if dbMeetup.PendingAttendees != nil && !found {
 			for index, attendee := range dbMeetup.PendingAttendees {
-				if attendee.IDString() == userIDStr {
+				if attendee.IDString() == idStr{
 					// Remove the user from this array
 					found = true
 					dbMeetup.PendingAttendees[index] = dbMeetup.PendingAttendees[len(dbMeetup.PendingAttendees)-1]
@@ -505,7 +496,7 @@ func (i *Implementation) PatchMeetupIdAttendee(params operations.PatchMeetupIDAt
 		}
 		if dbMeetup.RejectedAttendees != nil && !found {
 			for index, attendee := range dbMeetup.RejectedAttendees {
-				if attendee.IDString() == userIDStr {
+				if attendee.IDString() == idStr{
 					found = true
 					dbMeetup.RejectedAttendees[index] = dbMeetup.RejectedAttendees[len(dbMeetup.RejectedAttendees)-1]
 					dbMeetup.RejectedAttendees[len(dbMeetup.RejectedAttendees)-1] = nil
@@ -518,7 +509,8 @@ func (i *Implementation) PatchMeetupIdAttendee(params operations.PatchMeetupIDAt
 
 	// Fetch the user
 	var dbUser db.User
-	if err = tx.First(&dbUser, db.UserIDFromString(userIDStr)).Error; err != nil {
+	userID, _ := db.UserIDFromString(idStr)
+	if err = tx.First(&dbUser, userID).Error; err != nil {
 		logger.WithError(err).Error("Unable to find current user in DB")
 		return InternalServerError{}
 	}
@@ -622,12 +614,8 @@ func (i *Implementation) insertMeetupTagsIntoDB(ctx context.Context, dbMeetup *d
 func (i *Implementation) modelMeetupToDBMeetup(dbMeetup *db.Meetup, modelMeetup *models.Meetup) error {
 	dbMeetup.Title = modelMeetup.Title
 	dbMeetup.Description = modelMeetup.Description
-	if modelMeetup.MaxCapacity != nil {
-		dbMeetup.MaxCapacity = *modelMeetup.MaxCapacity
-	}
-	if modelMeetup.MinCapacity != nil {
-		dbMeetup.MinCapacity = *modelMeetup.MinCapacity
-	}
+	dbMeetup.MaxCapacity = swag.Int64Value(modelMeetup.MaxCapacity)
+	dbMeetup.MinCapacity = swag.Int64Value(modelMeetup.MinCapacity)
 	dbMeetup.Description = modelMeetup.Description
 	dbMeetup.Owner, _ = db.UserIDFromString(string(modelMeetup.Owner))
 	dbMeetup.Time = time.Time(modelMeetup.Time)
@@ -655,7 +643,7 @@ func modelMeetupRequestBodyToModelMeetup(modelMeetupRequestBody *models.MeetupRe
 	modelMeetup.Owner = models.UserID(id)
 	modelMeetup.MinCapacity = modelMeetupRequestBody.MinCapacity
 	modelMeetup.MaxCapacity = modelMeetupRequestBody.MaxCapacity
-	modelMeetup.Time, _ = strfmt.ParseDateTime(modelMeetupRequestBody.Time)
+	modelMeetup.Time = modelMeetupRequestBody.Time
 	modelMeetup.Title = modelMeetupRequestBody.Title
 	modelMeetup.Description = modelMeetupRequestBody.Description
 	if modelMeetupRequestBody.Location != nil && modelMeetupRequestBody.Location.Coordinates != nil {
@@ -698,6 +686,8 @@ func dbMeetupToModelMeetup(dbMeetup *db.Meetup, userID string) *models.Meetup {
 			}
 		}
 		rejected = true
+	} else if userID == "" {
+		rejected = false
 	}
 
 	return &models.Meetup{
