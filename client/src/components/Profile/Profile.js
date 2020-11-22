@@ -22,7 +22,7 @@ function Profile({ id }) {
   const renderUser = () => {
     return (
       <Typography>
-        Name is {user.name}, ID is {id}
+        Name is {user.name}, ID is {user.id}
       </Typography>
     );
   };

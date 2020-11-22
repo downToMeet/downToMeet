@@ -1,15 +1,17 @@
 import React, { useState } from "react";
-import CssBaseline from "@material-ui/core/CssBaseline";
-import Box from "@material-ui/core/Box";
-import AppBar from "@material-ui/core/AppBar";
-import Toolbar from "@material-ui/core/Toolbar";
-import Typography from "@material-ui/core/Typography";
-import Button from "@material-ui/core/Button";
-import AddCircleIcon from "@material-ui/icons/AddCircle";
-import Avatar from "@material-ui/core/Avatar";
-import Menu from "@material-ui/core/Menu";
-import MenuItem from "@material-ui/core/MenuItem";
-import { makeStyles } from "@material-ui/core/styles";
+import {
+  AppBar,
+  Avatar,
+  Box,
+  Button,
+  CssBaseline,
+  Menu,
+  MenuItem,
+  Toolbar,
+  Typography,
+} from "@material-ui/core";
+import { AddCircle } from "@material-ui/icons";
+import makeStyles from "@material-ui/styles/makeStyles";
 import { Link } from "react-router-dom";
 
 const useStyles = makeStyles(() => ({
@@ -48,7 +50,7 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-const PROFILE_PATH = "/profile";
+const PROFILE_PATH = "/user";
 const CREATE_PATH = "/create";
 const LOGIN_PATH = "/login";
 
@@ -58,7 +60,7 @@ function Navbar() {
   const [authenticated, setAuthenticated] = useState(true);
   const [profileMenuAnchor, setProfileMenuAnchor] = useState(null);
   // TODO: get profileID and avatar from user
-  const profileID = 1234;
+  // const profileID = 1234;
   const profileName = "Test User";
   const profilePic =
     "http://web.cs.ucla.edu/~miryung/MiryungKimPhotoAugust2018.jpg";
@@ -97,7 +99,7 @@ function Navbar() {
         <MenuItem
           onClick={handleProfileMenuClose}
           component={Link}
-          to={`${PROFILE_PATH}/${profileID}`}
+          to={`${PROFILE_PATH}/me`}
         >
           Profile
         </MenuItem>
@@ -158,7 +160,7 @@ function Navbar() {
           </Typography>
           {authToggle}
           <Button
-            startIcon={<AddCircleIcon />}
+            startIcon={<AddCircle />}
             className={`${classes.button} ${classes.createButton}`}
             component={Link}
             // TODO: add redirect to current path

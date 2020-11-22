@@ -90,7 +90,7 @@ func configureServer(s *http.Server, scheme, addr string) {
 // The middleware executes after routing but before authentication, binding and validation
 func setupMiddlewares(handler http.Handler) http.Handler {
 	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:3000", "http://127.0.0.1:3000"}, // TODO: update for deployment
+		AllowedOrigins:   []string{"http://localhost:3000"}, // TODO: update for deployment
 		AllowCredentials: true,
 		Debug:            !Impl.Options.Production,
 	})
