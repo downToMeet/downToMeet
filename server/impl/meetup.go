@@ -69,6 +69,10 @@ func (i *Implementation) GetMeetup(params operations.GetMeetupParams) middleware
 	if id := SessionFromContext(ctx).Values[UserID]; id == nil {
 		idStr = ""
 	} else {
+		if _, err := db.UserIDFromString(id.(string)); err != nil {
+			logger.Error("Session has invalid user ID")
+			return InternalServerError{}
+		}
 		idStr = id.(string)
 	}
 
@@ -93,7 +97,7 @@ func (i *Implementation) GetMeetup(params operations.GetMeetupParams) middleware
 	}
 	return operations.NewGetMeetupOK().WithPayload(modelMeetups)
 }
-// TODO: check for valid user ID in all endpoints with user ID (maybe)
+
 // TODO: clean up / shorten this code
 // TODO: test all of the /meetup/{id}/attendee endpoints with multiple users
 func (i *Implementation) GetMeetupID(params operations.GetMeetupIDParams) middleware.Responder {
@@ -135,6 +139,10 @@ func (i *Implementation) GetMeetupID(params operations.GetMeetupIDParams) middle
 	if id := SessionFromContext(ctx).Values[UserID]; id == nil {
 		idStr = ""
 	} else {
+		if _, err := db.UserIDFromString(idStr); err != nil {
+			logger.Error("Session has invalid user ID")
+			return InternalServerError{}
+		}
 		idStr = id.(string)
 	}
 
@@ -147,6 +155,11 @@ func (i *Implementation) PostMeetup(params operations.PostMeetupParams, _ interf
 
 	var dbMeetup db.Meetup
 	id := SessionFromContext(ctx).Values[UserID]
+	if _, err := db.UserIDFromString(id.(string)); err != nil {
+		logger.Error("Session has invalid user ID")
+		return InternalServerError{}
+	}
+
 	modelMeetup := modelMeetupRequestBodyToModelMeetup(params.Meetup, id.(string))
 	if err := i.modelMeetupToDBMeetup(&dbMeetup, &modelMeetup); err != nil {
 		logger.WithError(err).Error("Failed to create db meetup object")
@@ -186,6 +199,10 @@ func (i *Implementation) PatchMeetupID(params operations.PatchMeetupIDParams, _ 
 
 	session := SessionFromContext(ctx)
 	id := session.Values[UserID]
+	if _, err := db.UserIDFromString(id.(string)); err != nil {
+		logger.Error("Session has invalid user ID")
+		return InternalServerError{}
+	}
 	if id.(string) != fmt.Sprint(dbMeetup.Owner) {
 		logger.Warn("User tried to PATCH a meetup they do not own")
 		return operations.NewPatchMeetupIDForbidden().WithPayload(&models.Error{
@@ -224,6 +241,7 @@ func (i *Implementation) DeleteMeetupID(params operations.DeleteMeetupIDParams, 
 	logger := log.WithContext(ctx)
 
 	tx := i.DB().WithContext(ctx)
+
 	var dbMeetup db.Meetup
 	err := tx.First(&dbMeetup, params.ID).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -236,20 +254,24 @@ func (i *Implementation) DeleteMeetupID(params operations.DeleteMeetupIDParams, 
 		return InternalServerError{}
 	}
 
+	session := SessionFromContext(ctx)
+	id := session.Values[UserID]
+	if _, err := db.UserIDFromString(id.(string)); err != nil {
+		logger.Error("Session has invalid user ID")
+		return InternalServerError{}
+	}
+	if id.(string) != fmt.Sprint(dbMeetup.Owner) {
+		logger.Warn("User tried to DELETE a meetup they do not own")
+		return operations.NewPatchMeetupIDForbidden().WithPayload(&models.Error{
+			Code:    http.StatusForbidden,
+			Message: "Forbidden",
+		})
+	}
+
 	if dbMeetup.Cancelled == true {
 		return operations.NewDeleteMeetupIDBadRequest().WithPayload(&models.Error{
 			Code:    http.StatusBadRequest,
 			Message: "This meetup has already been cancelled",
-		})
-	}
-
-	session := SessionFromContext(ctx)
-	id := session.Values[UserID]
-	if id.(string) != fmt.Sprint(dbMeetup.Owner) {
-		logger.Warn("User tried to DELETE a meetup they do not own")
-		return operations.NewDeleteMeetupIDForbidden().WithPayload(&models.Error{
-			Code:    http.StatusForbidden,
-			Message: "Forbidden",
 		})
 	}
 
@@ -281,6 +303,11 @@ func (i *Implementation) GetMeetupIdAttendee(params operations.GetMeetupIDAttend
 
 	session := SessionFromContext(ctx)
 	id := session.Values[UserID]
+	if _, err := db.UserIDFromString(id.(string)); err != nil {
+		logger.Error("Session has invalid user ID")
+		return InternalServerError{}
+	}
+
 	if id.(string) == fmt.Sprint(dbMeetup.Owner) {
 		return operations.NewGetMeetupIDAttendeeBadRequest().WithPayload(&models.Error{
 			Code:    http.StatusBadRequest,
@@ -300,12 +327,12 @@ func (i *Implementation) GetMeetupIdAttendee(params operations.GetMeetupIDAttend
 		return InternalServerError{}
 	}
 
-	idStr:= id.(string)
+	idStr := id.(string)
 	var attendeeStatus models.AttendeeStatus
-	if idStr!= "" {
+	if idStr != "" {
 		if dbMeetup.Attendees != nil {
 			for _, attendee := range dbMeetup.Attendees {
-				if attendee.IDString() == idStr{
+				if attendee.IDString() == idStr {
 					attendeeStatus = "attending"
 					return operations.NewGetMeetupIDAttendeeOK().WithPayload(attendeeStatus)
 				}
@@ -313,7 +340,7 @@ func (i *Implementation) GetMeetupIdAttendee(params operations.GetMeetupIDAttend
 		}
 		if dbMeetup.PendingAttendees != nil {
 			for _, attendee := range dbMeetup.PendingAttendees {
-				if attendee.IDString() == idStr{
+				if attendee.IDString() == idStr {
 					attendeeStatus = "pending"
 					return operations.NewGetMeetupIDAttendeeOK().WithPayload(attendeeStatus)
 				}
@@ -321,7 +348,7 @@ func (i *Implementation) GetMeetupIdAttendee(params operations.GetMeetupIDAttend
 		}
 		if dbMeetup.RejectedAttendees != nil {
 			for _, attendee := range dbMeetup.RejectedAttendees {
-				if attendee.IDString() == idStr{
+				if attendee.IDString() == idStr {
 					attendeeStatus = "rejected"
 					return operations.NewGetMeetupIDAttendeeOK().WithPayload(attendeeStatus)
 				}
@@ -351,6 +378,11 @@ func (i *Implementation) PostMeetupIdAttendee(params operations.PostMeetupIDAtte
 
 	session := SessionFromContext(ctx)
 	id := session.Values[UserID]
+	if _, err := db.UserIDFromString(id.(string)); err != nil {
+		logger.Error("Session has invalid user ID")
+		return InternalServerError{}
+	}
+
 	if id.(string) == fmt.Sprint(dbMeetup.Owner) {
 		return operations.NewPostMeetupIDAttendeeBadRequest().WithPayload(&models.Error{
 			Code:    http.StatusBadRequest,
@@ -447,6 +479,11 @@ func (i *Implementation) PatchMeetupIdAttendee(params operations.PatchMeetupIDAt
 
 	session := SessionFromContext(ctx)
 	id := session.Values[UserID]
+	if _, err := db.UserIDFromString(id.(string)); err != nil {
+		logger.Error("Session has invalid user ID")
+		return InternalServerError{}
+	}
+
 	if id.(string) == fmt.Sprint(dbMeetup.Owner) {
 		return operations.NewPatchMeetupIDAttendeeBadRequest().WithPayload(&models.Error{
 			Code:    http.StatusBadRequest,
@@ -467,12 +504,12 @@ func (i *Implementation) PatchMeetupIdAttendee(params operations.PatchMeetupIDAt
 	}
 
 	// Remove the user from whichever list they are currently in
-	idStr:= id.(string)
+	idStr := id.(string)
 	found := false
-	if idStr!= "" {
+	if idStr != "" {
 		if dbMeetup.Attendees != nil {
 			for index, attendee := range dbMeetup.Attendees {
-				if attendee.IDString() == idStr{
+				if attendee.IDString() == idStr {
 					// Remove the user from this array
 					found = true
 					dbMeetup.Attendees[index] = dbMeetup.Attendees[len(dbMeetup.Attendees)-1]
@@ -484,7 +521,7 @@ func (i *Implementation) PatchMeetupIdAttendee(params operations.PatchMeetupIDAt
 		}
 		if dbMeetup.PendingAttendees != nil && !found {
 			for index, attendee := range dbMeetup.PendingAttendees {
-				if attendee.IDString() == idStr{
+				if attendee.IDString() == idStr {
 					// Remove the user from this array
 					found = true
 					dbMeetup.PendingAttendees[index] = dbMeetup.PendingAttendees[len(dbMeetup.PendingAttendees)-1]
@@ -496,7 +533,7 @@ func (i *Implementation) PatchMeetupIdAttendee(params operations.PatchMeetupIDAt
 		}
 		if dbMeetup.RejectedAttendees != nil && !found {
 			for index, attendee := range dbMeetup.RejectedAttendees {
-				if attendee.IDString() == idStr{
+				if attendee.IDString() == idStr {
 					found = true
 					dbMeetup.RejectedAttendees[index] = dbMeetup.RejectedAttendees[len(dbMeetup.RejectedAttendees)-1]
 					dbMeetup.RejectedAttendees[len(dbMeetup.RejectedAttendees)-1] = nil
