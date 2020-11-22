@@ -94,6 +94,7 @@ func setupMiddlewares(handler http.Handler) http.Handler {
 		AllowCredentials: true,
 		Debug:            !Impl.Options.Production,
 	})
+	c.Log = log.WithField("source", "cors")
 	return impl.RequestMiddleware(Impl.SessionMiddleware(c.Handler(handler)))
 }
 

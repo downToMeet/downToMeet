@@ -9,7 +9,7 @@ import (
 func Get(logger FieldLogger, dsn string) (*gorm.DB, error) {
 	var gormLogger gormlogger.Interface
 	if logger != nil {
-		gormLogger = Logger{logger}
+		gormLogger = Logger{logger.WithField("source", "gorm")}
 	}
 
 	database, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
