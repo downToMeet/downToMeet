@@ -49,7 +49,7 @@ func (i *Implementation) GetMeetup(params operations.GetMeetupParams) middleware
 
 	var meetups []*db.Meetup
 	err := tx.Raw(`
-	SELECT * FROM (
+	SELECT id FROM (
 		SELECT *,
 			earth_distance(ll_to_earth(?, ?),
 			ll_to_earth(location_lat, location_lon)) AS distance_from_me
@@ -57,9 +57,10 @@ func (i *Implementation) GetMeetup(params operations.GetMeetupParams) middleware
 	) AS m
 	JOIN meetup_tag AS mt ON m.id = mt.meetup_id
 	WHERE m.distance_from_me < ? AND mt.tag_id IN ?
+	GROUP BY m.id, m.distance_from_me
 	ORDER BY m.distance_from_me
 	LIMIT 100
-	`, params.Lat, params.Lon, params.Radius, tagIds).Scan(&meetups).Error
+	`, params.Lat, params.Lon, params.Radius*1000, tagIds).Scan(&meetups).Error
 
 	if err != nil {
 		logger.WithError(err).Error("Unable to find meetups that fit the given parameters")
@@ -462,14 +463,12 @@ func (i *Implementation) PatchMeetupIdAttendee(params operations.PatchMeetupIDAt
 		return InternalServerError{}
 	}
 
-
 	if params.PatchMeetupAttendeeBody.Attendee == id.(string) {
 		return operations.NewPatchMeetupIDAttendeeNotFound().WithPayload(&models.Error{
 			Code:    http.StatusBadRequest,
 			Message: "To patch current user, omit attendee field",
 		})
 	}
-
 
 	if id.(string) == fmt.Sprint(dbMeetup.Owner) && (attendeeId == 0) {
 		return operations.NewPatchMeetupIDAttendeeBadRequest().WithPayload(&models.Error{
