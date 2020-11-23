@@ -32,15 +32,15 @@ type PatchMeetupIDAttendeeParams struct {
 	// HTTP Request Object
 	HTTPRequest *http.Request `json:"-"`
 
-	/*The ucurrent user's attendee status
-	  In: body
-	*/
-	AttendeeStatus models.AttendeeStatus
 	/*ID of the desired meetup
 	  Required: true
 	  In: path
 	*/
 	ID string
+	/*The id of the user being patched, plus their attendee status. Let attendee be empty if patching current user
+	  In: body
+	*/
+	PatchMeetupAttendeeBody *models.PatchMeetupAttendeeBody
 }
 
 // BindRequest both binds and validates a request, it assumes that complex things implement a Validatable(strfmt.Registry) error interface
@@ -52,11 +52,16 @@ func (o *PatchMeetupIDAttendeeParams) BindRequest(r *http.Request, route *middle
 
 	o.HTTPRequest = r
 
+	rID, rhkID, _ := route.Params.GetOK("id")
+	if err := o.bindID(rID, rhkID, route.Formats); err != nil {
+		res = append(res, err)
+	}
+
 	if runtime.HasBody(r) {
 		defer r.Body.Close()
-		var body models.AttendeeStatus
+		var body models.PatchMeetupAttendeeBody
 		if err := route.Consumer.Consume(r.Body, &body); err != nil {
-			res = append(res, errors.NewParseError("attendeeStatus", "body", "", err))
+			res = append(res, errors.NewParseError("patchMeetupAttendeeBody", "body", "", err))
 		} else {
 			// validate body object
 			if err := body.Validate(route.Formats); err != nil {
@@ -64,15 +69,10 @@ func (o *PatchMeetupIDAttendeeParams) BindRequest(r *http.Request, route *middle
 			}
 
 			if len(res) == 0 {
-				o.AttendeeStatus = body
+				o.PatchMeetupAttendeeBody = &body
 			}
 		}
 	}
-	rID, rhkID, _ := route.Params.GetOK("id")
-	if err := o.bindID(rID, rhkID, route.Formats); err != nil {
-		res = append(res, err)
-	}
-
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}

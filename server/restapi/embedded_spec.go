@@ -278,12 +278,12 @@ func init() {
           }
         ],
         "description": "If the specified meetup does not exist, an error is returned",
-        "summary": "Get the current user's attendee status for the specified meetup",
+        "summary": "Get list of attending and pending attendees for a specified meetup",
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/attendeeStatus"
+              "$ref": "#/definitions/attendeeList"
             }
           },
           "400": {
@@ -295,7 +295,7 @@ func init() {
           "403": {
             "description": "Forbidden",
             "schema": {
-              "$ref": "#/definitions/meetup"
+              "$ref": "#/definitions/error"
             }
           },
           "404": {
@@ -351,11 +351,11 @@ func init() {
         "summary": "Patch the current user's attendee status for the specified meetup",
         "parameters": [
           {
-            "description": "The ucurrent user's attendee status",
-            "name": "attendeeStatus",
+            "description": "The id of the user being patched, plus their attendee status. Let attendee be empty if patching current user",
+            "name": "patchMeetupAttendeeBody",
             "in": "body",
             "schema": {
-              "$ref": "#/definitions/attendeeStatus"
+              "$ref": "#/definitions/patchMeetupAttendeeBody"
             }
           }
         ],
@@ -634,6 +634,23 @@ func init() {
     }
   },
   "definitions": {
+    "attendeeList": {
+      "type": "object",
+      "properties": {
+        "attending": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/userID"
+          }
+        },
+        "pending": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/userID"
+          }
+        }
+      }
+    },
     "attendeeStatus": {
       "type": "string",
       "default": "none",
@@ -776,6 +793,19 @@ func init() {
         },
         "title": {
           "type": "string"
+        }
+      }
+    },
+    "patchMeetupAttendeeBody": {
+      "type": "object",
+      "properties": {
+        "attendee": {
+          "type": "string",
+          "x-omtempty": false
+        },
+        "attendeeStatus": {
+          "x-omitempty": false,
+          "$ref": "#/definitions/attendeeStatus"
         }
       }
     },
@@ -1117,12 +1147,12 @@ func init() {
           }
         ],
         "description": "If the specified meetup does not exist, an error is returned",
-        "summary": "Get the current user's attendee status for the specified meetup",
+        "summary": "Get list of attending and pending attendees for a specified meetup",
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/attendeeStatus"
+              "$ref": "#/definitions/attendeeList"
             }
           },
           "400": {
@@ -1134,7 +1164,7 @@ func init() {
           "403": {
             "description": "Forbidden",
             "schema": {
-              "$ref": "#/definitions/meetup"
+              "$ref": "#/definitions/error"
             }
           },
           "404": {
@@ -1190,11 +1220,11 @@ func init() {
         "summary": "Patch the current user's attendee status for the specified meetup",
         "parameters": [
           {
-            "description": "The ucurrent user's attendee status",
-            "name": "attendeeStatus",
+            "description": "The id of the user being patched, plus their attendee status. Let attendee be empty if patching current user",
+            "name": "patchMeetupAttendeeBody",
             "in": "body",
             "schema": {
-              "$ref": "#/definitions/attendeeStatus"
+              "$ref": "#/definitions/patchMeetupAttendeeBody"
             }
           }
         ],
@@ -1473,6 +1503,23 @@ func init() {
     }
   },
   "definitions": {
+    "attendeeList": {
+      "type": "object",
+      "properties": {
+        "attending": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/userID"
+          }
+        },
+        "pending": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/userID"
+          }
+        }
+      }
+    },
     "attendeeStatus": {
       "type": "string",
       "default": "none",
@@ -1619,6 +1666,19 @@ func init() {
         },
         "title": {
           "type": "string"
+        }
+      }
+    },
+    "patchMeetupAttendeeBody": {
+      "type": "object",
+      "properties": {
+        "attendee": {
+          "type": "string",
+          "x-omtempty": false
+        },
+        "attendeeStatus": {
+          "x-omitempty": false,
+          "$ref": "#/definitions/attendeeStatus"
         }
       }
     },

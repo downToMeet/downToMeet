@@ -160,6 +160,26 @@ definitions:
       "rejected",
       "none"
     ]
+  patchMeetupAttendeeBody:
+    type: object
+    properties:
+      attendeeStatus:
+        $ref: "#/definitions/attendeeStatus"
+        x-omitempty: false
+      attendee:
+        type: string
+        x-omtempty: false
+  attendeeList:
+    type: object
+    properties:
+      attending:
+        type: array
+        items:
+          $ref: "#/definitions/userID"
+      pending:
+        type: array
+        items:
+          $ref: "#/definitions/userID"
 
 securityDefinitions:
   cookieSession:
@@ -451,7 +471,7 @@ paths:
         type: string
         description: ID of the desired meetup
     get:
-      summary: Get the current user's attendee status for the specified meetup
+      summary: Get list of attending and pending attendees for a specified meetup
       description: If the specified meetup does not exist, an error is returned
       security:
         - cookieSession: []
@@ -459,7 +479,7 @@ paths:
         200:
           description: OK
           schema:
-            $ref: "#/definitions/attendeeStatus"
+            $ref: "#/definitions/attendeeList"
         400:
           description: Bad Request
           schema:
@@ -467,7 +487,7 @@ paths:
         403:
           description: Forbidden
           schema:
-            $ref: "#/definitions/meetup"
+            $ref: "#/definitions/error"
         404:
           description: Not found
           schema:
@@ -499,10 +519,10 @@ paths:
       description: If the specified meetup does not exist, an error is returned
       parameters:
         - in: body
-          name: attendeeStatus
-          description: The ucurrent user's attendee status
+          name: patchMeetupAttendeeBody
+          description: The id of the user being patched, plus their attendee status. Let attendee be empty if patching current user
           schema:
-            $ref: "#/definitions/attendeeStatus"
+            $ref: "#/definitions/patchMeetupAttendeeBody"
       security:
         - cookieSession: []
       responses:

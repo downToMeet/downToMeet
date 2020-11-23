@@ -31,7 +31,7 @@ func NewGetMeetupIDAttendee(ctx *middleware.Context, handler GetMeetupIDAttendee
 
 /*GetMeetupIDAttendee swagger:route GET /meetup/{id}/attendee getMeetupIdAttendee
 
-Get the current user's attendee status for the specified meetup
+Get list of attending and pending attendees for a specified meetup
 
 If the specified meetup does not exist, an error is returned
 

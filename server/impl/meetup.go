@@ -5,10 +5,11 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/go-openapi/swag"
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/go-openapi/swag"
 
 	"github.com/go-openapi/strfmt"
 
@@ -98,8 +99,6 @@ func (i *Implementation) GetMeetup(params operations.GetMeetupParams) middleware
 	return operations.NewGetMeetupOK().WithPayload(modelMeetups)
 }
 
-// TODO: clean up / shorten this code
-// TODO: test all of the /meetup/{id}/attendee endpoints with multiple users
 func (i *Implementation) GetMeetupID(params operations.GetMeetupIDParams) middleware.Responder {
 	ctx := params.HTTPRequest.Context()
 	logger := log.WithContext(ctx)
@@ -301,20 +300,6 @@ func (i *Implementation) GetMeetupIdAttendee(params operations.GetMeetupIDAttend
 		return InternalServerError{}
 	}
 
-	session := SessionFromContext(ctx)
-	id := session.Values[UserID]
-	if _, err := db.UserIDFromString(id.(string)); err != nil {
-		logger.Error("Session has invalid user ID")
-		return InternalServerError{}
-	}
-
-	if id.(string) == fmt.Sprint(dbMeetup.Owner) {
-		return operations.NewGetMeetupIDAttendeeBadRequest().WithPayload(&models.Error{
-			Code:    http.StatusBadRequest,
-			Message: "User is the owner of this meetup",
-		})
-	}
-
 	if dbMeetup.Cancelled == true {
 		return operations.NewGetMeetupIDAttendeeBadRequest().WithPayload(&models.Error{
 			Code:    http.StatusBadRequest,
@@ -327,36 +312,22 @@ func (i *Implementation) GetMeetupIdAttendee(params operations.GetMeetupIDAttend
 		return InternalServerError{}
 	}
 
-	idStr := id.(string)
-	var attendeeStatus models.AttendeeStatus
-	if idStr != "" {
-		if dbMeetup.Attendees != nil {
-			for _, attendee := range dbMeetup.Attendees {
-				if attendee.IDString() == idStr {
-					attendeeStatus = "attending"
-					return operations.NewGetMeetupIDAttendeeOK().WithPayload(attendeeStatus)
-				}
-			}
+	var attendeeList models.AttendeeList
+	if dbMeetup.Attendees != nil {
+		var attending []models.UserID
+		for _, attendee := range dbMeetup.Attendees {
+			attending = append(attending, models.UserID(fmt.Sprint(attendee.ID)))
 		}
-		if dbMeetup.PendingAttendees != nil {
-			for _, attendee := range dbMeetup.PendingAttendees {
-				if attendee.IDString() == idStr {
-					attendeeStatus = "pending"
-					return operations.NewGetMeetupIDAttendeeOK().WithPayload(attendeeStatus)
-				}
-			}
-		}
-		if dbMeetup.RejectedAttendees != nil {
-			for _, attendee := range dbMeetup.RejectedAttendees {
-				if attendee.IDString() == idStr {
-					attendeeStatus = "rejected"
-					return operations.NewGetMeetupIDAttendeeOK().WithPayload(attendeeStatus)
-				}
-			}
-		}
+		attendeeList.Attending = attending
 	}
-	attendeeStatus = "none"
-	return operations.NewGetMeetupIDAttendeeOK().WithPayload(attendeeStatus)
+	if dbMeetup.PendingAttendees != nil {
+		var pending []models.UserID
+		for _, attendee := range dbMeetup.PendingAttendees {
+			pending = append(pending, models.UserID(fmt.Sprint(attendee.ID)))
+		}
+		attendeeList.Pending = pending
+	}
+	return operations.NewGetMeetupIDAttendeeOK().WithPayload(&attendeeList)
 }
 
 func (i *Implementation) PostMeetupIdAttendee(params operations.PostMeetupIDAttendeeParams, _ interface{}) middleware.Responder {
@@ -479,15 +450,45 @@ func (i *Implementation) PatchMeetupIdAttendee(params operations.PatchMeetupIDAt
 
 	session := SessionFromContext(ctx)
 	id := session.Values[UserID]
-	if _, err := db.UserIDFromString(id.(string)); err != nil {
+	attendeeId, err := db.UserIDFromString(params.PatchMeetupAttendeeBody.Attendee)
+	status := params.PatchMeetupAttendeeBody.AttendeeStatus
+	if attendeeId != 0 && err != nil {
+		logger.Error("Trying to patch an invalid user ID")
+		return InternalServerError{}
+	}
+
+	if _, err = db.UserIDFromString(id.(string)); err != nil {
 		logger.Error("Session has invalid user ID")
 		return InternalServerError{}
 	}
 
-	if id.(string) == fmt.Sprint(dbMeetup.Owner) {
+
+	if params.PatchMeetupAttendeeBody.Attendee == id.(string) {
+		return operations.NewPatchMeetupIDAttendeeNotFound().WithPayload(&models.Error{
+			Code:    http.StatusBadRequest,
+			Message: "To patch current user, omit attendee field",
+		})
+	}
+
+
+	if id.(string) == fmt.Sprint(dbMeetup.Owner) && (attendeeId == 0) {
 		return operations.NewPatchMeetupIDAttendeeBadRequest().WithPayload(&models.Error{
 			Code:    http.StatusBadRequest,
 			Message: "User is the owner of this meetup",
+		})
+	}
+
+	if (status == "attending" || status == "rejected") && id.(string) != fmt.Sprint(dbMeetup.Owner) {
+		return operations.NewPatchMeetupIDAttendeeBadRequest().WithPayload(&models.Error{
+			Code:    http.StatusBadRequest,
+			Message: "Only the owner of this meetup can approve or reject an attendee",
+		})
+	}
+
+	if (status == "none" || status == "pending") && attendeeId != 0 {
+		return operations.NewPatchMeetupIDAttendeeBadRequest().WithPayload(&models.Error{
+			Code:    http.StatusBadRequest,
+			Message: "A user can only change their own attendee status to either none or pending",
 		})
 	}
 
@@ -504,45 +505,13 @@ func (i *Implementation) PatchMeetupIdAttendee(params operations.PatchMeetupIDAt
 	}
 
 	// Remove the user from whichever list they are currently in
-	idStr := id.(string)
-	found := false
-	if idStr != "" {
-		if dbMeetup.Attendees != nil {
-			for index, attendee := range dbMeetup.Attendees {
-				if attendee.IDString() == idStr {
-					// Remove the user from this array
-					found = true
-					dbMeetup.Attendees[index] = dbMeetup.Attendees[len(dbMeetup.Attendees)-1]
-					dbMeetup.Attendees[len(dbMeetup.Attendees)-1] = nil
-					dbMeetup.Attendees = dbMeetup.Attendees[:len(dbMeetup.Attendees)-1]
-					break
-				}
-			}
-		}
-		if dbMeetup.PendingAttendees != nil && !found {
-			for index, attendee := range dbMeetup.PendingAttendees {
-				if attendee.IDString() == idStr {
-					// Remove the user from this array
-					found = true
-					dbMeetup.PendingAttendees[index] = dbMeetup.PendingAttendees[len(dbMeetup.PendingAttendees)-1]
-					dbMeetup.PendingAttendees[len(dbMeetup.PendingAttendees)-1] = nil
-					dbMeetup.PendingAttendees = dbMeetup.PendingAttendees[:len(dbMeetup.PendingAttendees)-1]
-					break
-				}
-			}
-		}
-		if dbMeetup.RejectedAttendees != nil && !found {
-			for index, attendee := range dbMeetup.RejectedAttendees {
-				if attendee.IDString() == idStr {
-					found = true
-					dbMeetup.RejectedAttendees[index] = dbMeetup.RejectedAttendees[len(dbMeetup.RejectedAttendees)-1]
-					dbMeetup.RejectedAttendees[len(dbMeetup.RejectedAttendees)-1] = nil
-					dbMeetup.RejectedAttendees = dbMeetup.RejectedAttendees[:len(dbMeetup.RejectedAttendees)-1]
-					break
-				}
-			}
-		}
+	var idStr string
+	if attendeeId != 0 {
+		idStr = params.PatchMeetupAttendeeBody.Attendee
+	} else {
+		idStr = id.(string)
 	}
+	found := false
 
 	// Fetch the user
 	var dbUser db.User
@@ -556,23 +525,66 @@ func (i *Implementation) PatchMeetupIdAttendee(params operations.PatchMeetupIDAt
 		return InternalServerError{}
 	}
 
+	if dbMeetup.Attendees != nil {
+		for _, attendee := range dbMeetup.Attendees {
+			if attendee.IDString() == idStr {
+				// Remove the user from this array
+				found = true
+				err := tx.Model(&dbMeetup).Association("Attendees").Delete(&dbUser)
+				if err != nil {
+					logger.Error("Unable to remove attendee from attendee list")
+					return InternalServerError{}
+				}
+				break
+			}
+		}
+	}
+	if dbMeetup.PendingAttendees != nil && !found {
+		for _, attendee := range dbMeetup.PendingAttendees {
+			if attendee.IDString() == idStr {
+				// Remove the user from this array
+				found = true
+				err := tx.Model(&dbMeetup).Association("PendingAttendees").Delete(&dbUser)
+				if err != nil {
+					logger.Error("Unable to remove attendee from pending attendee list")
+					return InternalServerError{}
+				}
+				break
+			}
+		}
+	}
+	if dbMeetup.RejectedAttendees != nil && !found {
+		for _, attendee := range dbMeetup.RejectedAttendees {
+			if attendee.IDString() == idStr {
+				// Remove the user from this array
+				found = true
+				err := tx.Model(&dbMeetup).Association("RejectedAttendees").Delete(&dbUser)
+				if err != nil {
+					logger.Error("Unable to remove attendee from rejected attendee list")
+					return InternalServerError{}
+				}
+				break
+			}
+		}
+	}
+
 	// Add user to the appropriate array
 	// If attendeeStatus is "none", we don't add them anywhere
-	if params.AttendeeStatus == "pending" {
+	if status == "pending" {
 		dbMeetup.PendingAttendees = append(dbMeetup.PendingAttendees, &dbUser)
-	} else if params.AttendeeStatus == "attending" {
+	} else if status == "attending" {
 		dbMeetup.Attendees = append(dbMeetup.Attendees, &dbUser)
-	} else if params.AttendeeStatus == "rejected" {
+	} else if status == "rejected" {
 		dbMeetup.RejectedAttendees = append(dbMeetup.RejectedAttendees, &dbUser)
 	}
 
 	// Update the db meetup
-	if err = tx.Model(&dbMeetup).Updates(&dbMeetup).Error; err != nil {
+	if err = tx.Model(&dbMeetup).Select("Attendees", "PendingAttendees", "RejectedAttendees").Updates(&dbMeetup).Error; err != nil {
 		logger.WithError(err).Error("Unable to update DB meetup")
 		return InternalServerError{}
 	}
 
-	return operations.NewPatchMeetupIDAttendeeOK().WithPayload(params.AttendeeStatus)
+	return operations.NewPatchMeetupIDAttendeeOK().WithPayload(status)
 }
 
 func (i *Implementation) fetchAllAttendeeInformationLists(ctx context.Context, dbMeetup *db.Meetup) error {
@@ -581,10 +593,10 @@ func (i *Implementation) fetchAllAttendeeInformationLists(ctx context.Context, d
 	if err := tx.Model(&dbMeetup).Association("Attendees").Find(&dbMeetup.Attendees); err != nil {
 		return err
 	}
-	if err := tx.Model(&dbMeetup).Association("PendingAttendees").Find(&dbMeetup.Attendees); err != nil {
+	if err := tx.Model(&dbMeetup).Association("PendingAttendees").Find(&dbMeetup.PendingAttendees); err != nil {
 		return err
 	}
-	if err := tx.Model(&dbMeetup).Association("RejectedAttendees").Find(&dbMeetup.Attendees); err != nil {
+	if err := tx.Model(&dbMeetup).Association("RejectedAttendees").Find(&dbMeetup.RejectedAttendees); err != nil {
 		return err
 	}
 

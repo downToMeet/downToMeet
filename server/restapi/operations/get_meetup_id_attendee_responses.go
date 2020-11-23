@@ -25,7 +25,7 @@ type GetMeetupIDAttendeeOK struct {
 	/*
 	  In: Body
 	*/
-	Payload models.AttendeeStatus `json:"body,omitempty"`
+	Payload *models.AttendeeList `json:"body,omitempty"`
 }
 
 // NewGetMeetupIDAttendeeOK creates GetMeetupIDAttendeeOK with default headers values
@@ -35,13 +35,13 @@ func NewGetMeetupIDAttendeeOK() *GetMeetupIDAttendeeOK {
 }
 
 // WithPayload adds the payload to the get meetup Id attendee o k response
-func (o *GetMeetupIDAttendeeOK) WithPayload(payload models.AttendeeStatus) *GetMeetupIDAttendeeOK {
+func (o *GetMeetupIDAttendeeOK) WithPayload(payload *models.AttendeeList) *GetMeetupIDAttendeeOK {
 	o.Payload = payload
 	return o
 }
 
 // SetPayload sets the payload to the get meetup Id attendee o k response
-func (o *GetMeetupIDAttendeeOK) SetPayload(payload models.AttendeeStatus) {
+func (o *GetMeetupIDAttendeeOK) SetPayload(payload *models.AttendeeList) {
 	o.Payload = payload
 }
 
@@ -49,9 +49,11 @@ func (o *GetMeetupIDAttendeeOK) SetPayload(payload models.AttendeeStatus) {
 func (o *GetMeetupIDAttendeeOK) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
 
 	rw.WriteHeader(200)
-	payload := o.Payload
-	if err := producer.Produce(rw, payload); err != nil {
-		panic(err) // let the recovery middleware deal with this
+	if o.Payload != nil {
+		payload := o.Payload
+		if err := producer.Produce(rw, payload); err != nil {
+			panic(err) // let the recovery middleware deal with this
+		}
 	}
 }
 
@@ -111,7 +113,7 @@ type GetMeetupIDAttendeeForbidden struct {
 	/*
 	  In: Body
 	*/
-	Payload *models.Meetup `json:"body,omitempty"`
+	Payload *models.Error `json:"body,omitempty"`
 }
 
 // NewGetMeetupIDAttendeeForbidden creates GetMeetupIDAttendeeForbidden with default headers values
@@ -121,13 +123,13 @@ func NewGetMeetupIDAttendeeForbidden() *GetMeetupIDAttendeeForbidden {
 }
 
 // WithPayload adds the payload to the get meetup Id attendee forbidden response
-func (o *GetMeetupIDAttendeeForbidden) WithPayload(payload *models.Meetup) *GetMeetupIDAttendeeForbidden {
+func (o *GetMeetupIDAttendeeForbidden) WithPayload(payload *models.Error) *GetMeetupIDAttendeeForbidden {
 	o.Payload = payload
 	return o
 }
 
 // SetPayload sets the payload to the get meetup Id attendee forbidden response
-func (o *GetMeetupIDAttendeeForbidden) SetPayload(payload *models.Meetup) {
+func (o *GetMeetupIDAttendeeForbidden) SetPayload(payload *models.Error) {
 	o.Payload = payload
 }
 
