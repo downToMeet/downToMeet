@@ -19,6 +19,8 @@ import {
 } from "@material-ui/pickers";
 import DayUtils from "@date-io/dayjs";
 
+import LocationPicker from "./LocationPicker";
+
 const useStyles = makeStyles(() => ({
   formSection: {
     marginTop: 15,
@@ -34,7 +36,8 @@ function CreateMeetup() {
   const [name, setName] = useState("");
   const [date, setDate] = useState(new Date());
   const [meetupType, setMeetupType] = useState("");
-  const [meetupLocation, setMeetupLocation] = useState("");
+  const [meetupURL, setMeetupURL] = useState("");
+  const [meetupLocation, setMeetupLocation] = useState(null);
   const [groupCount, setGroupCount] = useState([2, 10]);
   const [desc, setDesc] = useState("");
   const [tags, setTags] = useState([]);
@@ -99,12 +102,22 @@ function CreateMeetup() {
             <MenuItem value="remote">Remote</MenuItem>
           </Select>
         </FormControl>
+        {meetupType === "in-person" && (
+          <LocationPicker
+            value={meetupLocation}
+            setValue={setMeetupLocation}
+            style={{
+              marginLeft: 20,
+              flex: 1,
+            }}
+          />
+        )}
         {meetupType === "remote" && (
           <TextField
             label="URL"
             variant="outlined"
-            value={meetupLocation}
-            onChange={(event) => setMeetupLocation(event.target.value)}
+            value={meetupURL}
+            onChange={(event) => setMeetupURL(event.target.value)}
             className={classes.formInput}
             style={{
               marginLeft: 20,
