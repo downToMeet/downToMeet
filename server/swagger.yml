@@ -153,13 +153,12 @@ definitions:
         minimum: 0
   attendeeStatus:
     type: string
-    "default": "none"
-    "enum": [
-      "attending",
-      "pending",
-      "rejected",
-      "none"
-    ]
+    "default": none
+    "enum":
+      - attending
+      - pending
+      - rejected
+      - none
   patchMeetupAttendeeBody:
     type: object
     properties:

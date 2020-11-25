@@ -11,6 +11,7 @@ import (
 
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
+
 	"github.com/go-openapi/runtime/middleware"
 	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
@@ -28,7 +29,6 @@ CREATE EXTENSION earthdistance CASCADE;
 as a superuser (probably 'postgres')
 */
 
-/* TODO: remove duplicate meetups */
 func (i *Implementation) GetMeetup(params operations.GetMeetupParams) middleware.Responder {
 	ctx := params.HTTPRequest.Context()
 	logger := log.WithContext(ctx)
@@ -87,6 +87,11 @@ func (i *Implementation) GetMeetup(params operations.GetMeetupParams) middleware
 			return InternalServerError{}
 		}
 
+		if err = tx.Model(&meetup).Association("RejectedAttendees").Find(&meetup.RejectedAttendees); err != nil {
+			logger.WithError(err).Error("Unable to find meetup rejected attendee information")
+			return InternalServerError{}
+		}
+
 		if err = tx.Model(&meetup).Association("Tags").Find(&meetup.Tags); err != nil {
 			logger.WithError(err).Error("Unable to find user tags")
 			return InternalServerError{}
@@ -128,6 +133,16 @@ func (i *Implementation) GetMeetupID(params operations.GetMeetupIDParams) middle
 
 	if err = tx.Model(&dbMeetup).Association("Attendees").Find(&dbMeetup.Attendees); err != nil {
 		logger.WithError(err).Error("Unable to find meetup attendee information")
+		return InternalServerError{}
+	}
+
+	if err = tx.Model(&dbMeetup).Association("PendingAttendees").Find(&dbMeetup.PendingAttendees); err != nil {
+		logger.WithError(err).Error("Unable to find meetup pending attendee information")
+		return InternalServerError{}
+	}
+
+	if err = tx.Model(&dbMeetup).Association("RejectedAttendees").Find(&dbMeetup.RejectedAttendees); err != nil {
+		logger.WithError(err).Error("Unable to find meetup rejected attendee information")
 		return InternalServerError{}
 	}
 
@@ -195,11 +210,11 @@ func (i *Implementation) PatchMeetupID(params operations.PatchMeetupIDParams, _ 
 
 	session := SessionFromContext(ctx)
 	userID := session.Values[UserID].(string)
-	if _, err := db.UserIDFromString(id.(string)); err != nil {
+	if _, err := db.UserIDFromString(userID); err != nil {
 		logger.Error("Session has invalid user ID")
 		return InternalServerError{}
 	}
-	if id.(string) != fmt.Sprint(dbMeetup.Owner) {
+	if userID != fmt.Sprint(dbMeetup.Owner) {
 		logger.Warn("User tried to PATCH a meetup they do not own")
 		return operations.NewPatchMeetupIDForbidden().WithPayload(&models.Error{
 			Code:    http.StatusForbidden,
@@ -214,7 +229,7 @@ func (i *Implementation) PatchMeetupID(params operations.PatchMeetupIDParams, _ 
 		})
 	}
 
-	modelMeetup := modelMeetupRequestBodyToModelMeetup(params.Meetup, id.(string))
+	modelMeetup := modelMeetupRequestBodyToModelMeetup(params.Meetup, userID)
 	if err := i.modelMeetupToDBMeetup(&dbMeetup, &modelMeetup); err != nil {
 		logger.WithError(err).Error("Failed to create db meetup object")
 		return InternalServerError{}
@@ -229,7 +244,7 @@ func (i *Implementation) PatchMeetupID(params operations.PatchMeetupIDParams, _ 
 		logger.WithError(err).Error("Failed to update meetup")
 		return InternalServerError{}
 	}
-	return operations.NewPatchMeetupIDOK().WithPayload(dbMeetupToModelMeetup(&dbMeetup, id.(string)))
+	return operations.NewPatchMeetupIDOK().WithPayload(dbMeetupToModelMeetup(&dbMeetup, userID))
 }
 
 func (i *Implementation) DeleteMeetupID(params operations.DeleteMeetupIDParams, _ interface{}) middleware.Responder {
@@ -720,17 +735,14 @@ func dbMeetupToModelMeetup(dbMeetup *db.Meetup, userID string) *models.Meetup {
 	}
 
 	// Determine if user was rejected or not
-	var rejected bool
-	if dbMeetup.Attendees != nil && userID != "" {
-		for _, attendee := range dbMeetup.Attendees {
+	rejected := false
+	if dbMeetup.RejectedAttendees != nil && userID != "" {
+		for _, attendee := range dbMeetup.RejectedAttendees {
 			if attendee.IDString() == userID {
-				rejected = false
+				rejected = true
 				break
 			}
 		}
-		rejected = true
-	} else if userID == "" {
-		rejected = false
 	}
 
 	return &models.Meetup{
