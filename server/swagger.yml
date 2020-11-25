@@ -29,7 +29,7 @@ definitions:
     required:
       - lat
       - lon
-    properties: 
+    properties:
       lat:
         type: number
         minimum: -90
@@ -66,7 +66,7 @@ definitions:
       interests:
         type: array
         x-omitempty: true
-        items: 
+        items:
           type: string
       location:
         x-omitempty: true
@@ -74,7 +74,7 @@ definitions:
       pendingApproval:
         type: array
         x-omitempty: true
-        items: 
+        items:
           $ref: "#/definitions/meetupID"
       attending:
         type: array
@@ -102,9 +102,10 @@ definitions:
         $ref: "#/definitions/location"
       time:
         type: string
+        format: date-time
       description:
         type: string
-      tags: 
+      tags:
         type: array
         items:
           type: string
@@ -113,11 +114,12 @@ definitions:
         minimum: 0
       maxCapacity:
         type: integer
-      owner: 
+        minimum: 0
+      owner:
         $ref: "#/definitions/userID"
       attendees:
         type: array
-        items: 
+        items:
           $ref: "#/definitions/userID"
       pendingAttendees:
         type: array
@@ -134,6 +136,9 @@ definitions:
         type: string
       time:
         type: string
+        format: date-time
+      description:
+        type: string
       location:
         $ref: "#/definitions/location"
       tags:
@@ -145,6 +150,35 @@ definitions:
         minimum: 0
       maxCapacity:
         type: integer
+        minimum: 0
+  attendeeStatus:
+    type: string
+    "default": none
+    "enum":
+      - attending
+      - pending
+      - rejected
+      - none
+  patchMeetupAttendeeBody:
+    type: object
+    properties:
+      attendeeStatus:
+        $ref: "#/definitions/attendeeStatus"
+        x-omitempty: false
+      attendee:
+        type: string
+        x-omtempty: false
+  attendeeList:
+    type: object
+    properties:
+      attending:
+        type: array
+        items:
+          $ref: "#/definitions/userID"
+      pending:
+        type: array
+        items:
+          $ref: "#/definitions/userID"
 
 securityDefinitions:
   cookieSession:
@@ -309,24 +343,24 @@ paths:
         - name: lon
           in: query
           required: true
-          type: number 
+          type: number
           minimum: -180
           maximum: 180
           description: The longitude of the center of search
         - name: radius
           in: query
           required: true
-          type: number 
+          type: number
           minimum: 0
           description: Desired search radius (kilometers)
         - name: tags
           in: query
           required: true
           type: array
-          items: 
+          items:
             type: string
           description: Interests to search for
-      summary: Get the list of meetups 
+      summary: Get the list of meetups
       description: If the required parameters were not specified correctly, an error is returned
       responses:
         200:
@@ -347,6 +381,8 @@ paths:
           description: The meetup to create
           schema:
             $ref: "#/definitions/meetupRequestBody"
+      security:
+        - cookieSession: []
       responses:
         201:
           description: Created
@@ -387,6 +423,8 @@ paths:
           description: The updated meetup information
           schema:
             $ref: "#/definitions/meetupRequestBody"
+      security:
+        - cookieSession: []
       responses:
         200:
           description: OK
@@ -396,7 +434,7 @@ paths:
           description: Bad Request
           schema:
             $ref: "#/definitions/error"
-        403: 
+        403:
           description: Forbidden
           schema:
             $ref: "#/definitions/error"
@@ -407,6 +445,8 @@ paths:
     delete:
       summary: Delete the specified meetup
       description: If the specified meetup does not exist, an error is returned
+      security:
+        - cookieSession: []
       responses:
         204:
           description: No Content
@@ -414,9 +454,88 @@ paths:
           description: Bad Request
           schema:
             $ref: "#/definitions/error"
-        403: 
+        403:
           description: Forbidden
-          schema: 
+          schema:
+            $ref: "#/definitions/error"
+        404:
+          description: Not found
+          schema:
+            $ref: "#/definitions/error"
+  /meetup/{id}/attendee:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+        description: ID of the desired meetup
+    get:
+      summary: Get list of attending and pending attendees for a specified meetup
+      description: If the specified meetup does not exist, an error is returned
+      security:
+        - cookieSession: []
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: "#/definitions/attendeeList"
+        400:
+          description: Bad Request
+          schema:
+            $ref: "#/definitions/error"
+        403:
+          description: Forbidden
+          schema:
+            $ref: "#/definitions/error"
+        404:
+          description: Not found
+          schema:
+            $ref: "#/definitions/error"
+    post:
+      summary: Post the current user's attendee status (to "pending") for the specified meetup
+      description: If the specified meetup does not exist, an error is returned
+      security:
+        - cookieSession: []
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: "#/definitions/attendeeStatus"
+        400:
+          description: Bad Request
+          schema:
+            $ref: "#/definitions/error"
+        403:
+          description: Forbidden
+          schema:
+            $ref: "#/definitions/error"
+        404:
+          description: Not found
+          schema:
+            $ref: "#/definitions/error"
+    patch:
+      summary: Patch the current user's attendee status for the specified meetup
+      description: If the specified meetup does not exist, an error is returned
+      parameters:
+        - in: body
+          name: patchMeetupAttendeeBody
+          description: The id of the user being patched, plus their attendee status. Let attendee be empty if patching current user
+          schema:
+            $ref: "#/definitions/patchMeetupAttendeeBody"
+      security:
+        - cookieSession: []
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: "#/definitions/attendeeStatus"
+        400:
+          description: Bad Request
+          schema:
+            $ref: "#/definitions/error"
+        403:
+          description: Forbidden
+          schema:
             $ref: "#/definitions/error"
         404:
           description: Not found

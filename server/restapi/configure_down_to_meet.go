@@ -57,7 +57,15 @@ func configureAPI(api *operations.DownToMeetAPI) http.Handler {
 	api.GetUserFacebookAuthHandler = operations.GetUserFacebookAuthHandlerFunc(Impl.GetUserFacebookAuth)
 	api.GetUserFacebookRedirectHandler = operations.GetUserFacebookRedirectHandlerFunc(Impl.GetUserFacebookRedirect)
 
-	api.GetMeetupIDHandler = operations.GetMeetupIDHandlerFunc(impl.GetMeetupID)
+	api.GetMeetupIDHandler = operations.GetMeetupIDHandlerFunc(Impl.GetMeetupID)
+	api.PostMeetupHandler = operations.PostMeetupHandlerFunc(Impl.PostMeetup)
+	api.PatchMeetupIDHandler = operations.PatchMeetupIDHandlerFunc(Impl.PatchMeetupID)
+	api.DeleteMeetupIDHandler = operations.DeleteMeetupIDHandlerFunc(Impl.DeleteMeetupID)
+	api.GetMeetupHandler = operations.GetMeetupHandlerFunc(Impl.GetMeetup)
+
+	api.GetMeetupIDAttendeeHandler = operations.GetMeetupIDAttendeeHandlerFunc(Impl.GetMeetupIdAttendee)
+	api.PostMeetupIDAttendeeHandler = operations.PostMeetupIDAttendeeHandlerFunc(Impl.PostMeetupIdAttendee)
+	api.PatchMeetupIDAttendeeHandler = operations.PatchMeetupIDAttendeeHandlerFunc(Impl.PatchMeetupIdAttendee)
 
 	api.APIKeyAuthenticator = func(name, in string, authentication security.TokenAuthentication) runtime.Authenticator {
 		if name == "COOKIE" {

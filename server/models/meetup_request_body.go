@@ -17,11 +17,15 @@ import (
 // swagger:model meetupRequestBody
 type MeetupRequestBody struct {
 
+	// description
+	Description string `json:"description,omitempty"`
+
 	// location
 	Location *Location `json:"location,omitempty"`
 
 	// max capacity
-	MaxCapacity int64 `json:"maxCapacity,omitempty"`
+	// Minimum: 0
+	MaxCapacity *int64 `json:"maxCapacity,omitempty"`
 
 	// min capacity
 	// Minimum: 0
@@ -31,7 +35,8 @@ type MeetupRequestBody struct {
 	Tags []string `json:"tags"`
 
 	// time
-	Time string `json:"time,omitempty"`
+	// Format: date-time
+	Time strfmt.DateTime `json:"time,omitempty"`
 
 	// title
 	Title string `json:"title,omitempty"`
@@ -45,7 +50,15 @@ func (m *MeetupRequestBody) Validate(formats strfmt.Registry) error {
 		res = append(res, err)
 	}
 
+	if err := m.validateMaxCapacity(formats); err != nil {
+		res = append(res, err)
+	}
+
 	if err := m.validateMinCapacity(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateTime(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -73,6 +86,19 @@ func (m *MeetupRequestBody) validateLocation(formats strfmt.Registry) error {
 	return nil
 }
 
+func (m *MeetupRequestBody) validateMaxCapacity(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.MaxCapacity) { // not required
+		return nil
+	}
+
+	if err := validate.MinimumInt("maxCapacity", "body", int64(*m.MaxCapacity), 0, false); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (m *MeetupRequestBody) validateMinCapacity(formats strfmt.Registry) error {
 
 	if swag.IsZero(m.MinCapacity) { // not required
@@ -80,6 +106,19 @@ func (m *MeetupRequestBody) validateMinCapacity(formats strfmt.Registry) error {
 	}
 
 	if err := validate.MinimumInt("minCapacity", "body", int64(*m.MinCapacity), 0, false); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *MeetupRequestBody) validateTime(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.Time) { // not required
+		return nil
+	}
+
+	if err := validate.FormatOf("time", "body", "date-time", m.Time.String(), formats); err != nil {
 		return err
 	}
 
