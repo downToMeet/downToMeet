@@ -9,10 +9,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-openapi/swag"
-
 	"github.com/go-openapi/strfmt"
-
+	"github.com/go-openapi/swag"
 	"github.com/go-openapi/runtime/middleware"
 	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
@@ -68,9 +66,7 @@ func (i *Implementation) GetMeetup(params operations.GetMeetupParams) middleware
 	}
 
 	var idStr string
-	if id := SessionFromContext(ctx).Values[UserID]; id == nil {
-		idStr = ""
-	} else {
+	if id := SessionFromContext(ctx).Values[UserID]; id != nil {
 		if _, err := db.UserIDFromString(id.(string)); err != nil {
 			logger.Error("Session has invalid user ID")
 			return InternalServerError{}
@@ -198,7 +194,7 @@ func (i *Implementation) PatchMeetupID(params operations.PatchMeetupIDParams, _ 
 	}
 
 	session := SessionFromContext(ctx)
-	id := session.Values[UserID]
+	userID := session.Values[UserID].(string)
 	if _, err := db.UserIDFromString(id.(string)); err != nil {
 		logger.Error("Session has invalid user ID")
 		return InternalServerError{}
@@ -301,7 +297,7 @@ func (i *Implementation) GetMeetupIdAttendee(params operations.GetMeetupIDAttend
 		return InternalServerError{}
 	}
 
-	if dbMeetup.Cancelled == true {
+	if dbMeetup.Cancelled {
 		return operations.NewGetMeetupIDAttendeeBadRequest().WithPayload(&models.Error{
 			Code:    http.StatusBadRequest,
 			Message: "This meetup has been cancelled",
@@ -711,11 +707,10 @@ func modelMeetupRequestBodyToModelMeetup(modelMeetupRequestBody *models.MeetupRe
 func dbMeetupToModelMeetup(dbMeetup *db.Meetup, userID string) *models.Meetup {
 	location := &models.Location{}
 	if dbMeetup.Location.Coordinates.Lat != nil && dbMeetup.Location.Coordinates.Lon != nil {
-		coordinates := &models.Coordinates{
+		location.Coordinates = &models.Coordinates{
 			Lat: dbMeetup.Location.Coordinates.Lat,
 			Lon: dbMeetup.Location.Coordinates.Lon,
 		}
-		location.Coordinates = coordinates
 	}
 	if dbMeetup.Location.URL != "" {
 		location.URL = dbMeetup.Location.URL
