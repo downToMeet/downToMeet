@@ -8,13 +8,13 @@ import {
   InputLabel,
   MenuItem,
   Select,
+  Slider,
   TextField,
   Typography,
 } from "@material-ui/core";
 import AutoComplete from "@material-ui/lab/Autocomplete";
 import {
-  KeyboardDatePicker,
-  KeyboardTimePicker,
+  KeyboardDateTimePicker,
   MuiPickersUtilsProvider,
 } from "@material-ui/pickers";
 import DayUtils from "@date-io/dayjs";
@@ -35,8 +35,7 @@ function CreateMeetup() {
   const [date, setDate] = useState(new Date());
   const [meetupType, setMeetupType] = useState("");
   const [meetupLocation, setMeetupLocation] = useState("");
-  const [groupMin, setGroupMin] = useState(0);
-  const [groupMax, setGroupMax] = useState(0);
+  const [groupCount, setGroupCount] = useState([2, 10]);
   const [desc, setDesc] = useState("");
   const [tags, setTags] = useState([]);
 
@@ -55,10 +54,10 @@ function CreateMeetup() {
         <TextField
           required
           variant="outlined"
-          label="Meetup Name"
+          label="Title"
           value={name}
           onChange={(event) => setName(event.target.value)}
-          className={classes.formInput}
+          style={{ width: "100%" }}
         />
       </div>
     );
@@ -68,27 +67,17 @@ function CreateMeetup() {
     return (
       <div className={classes.formSection}>
         <MuiPickersUtilsProvider utils={DayUtils}>
-          <KeyboardDatePicker
+          <KeyboardDateTimePicker
             required
             variant="inline"
             inputVariant="outlined"
-            format="MM/DD/YYYY"
-            label="Meetup Date"
+            label="Time"
             value={date}
             onChange={(newDate) => setDate(newDate)}
             className={classes.formInput}
             style={{
-              marginRight: 20,
+              width: "100%",
             }}
-          />
-          <KeyboardTimePicker
-            required
-            variant="inline"
-            inputVariant="outlined"
-            label="Meetup Time"
-            value={date}
-            onChange={(newDate) => setDate(newDate)}
-            className={classes.formInput}
           />
         </MuiPickersUtilsProvider>
       </div>
@@ -98,10 +87,10 @@ function CreateMeetup() {
   const renderMeetupLocation = () => {
     return (
       <Box display="flex" flexWrap="wrap" className={classes.formSection}>
-        <FormControl required variant="outlined" className={classes.formInput}>
-          <InputLabel id="select-meetup-type-label">Meetup Type</InputLabel>
+        <FormControl required variant="outlined" style={{ width: 150 }}>
+          <InputLabel id="select-meetup-type-label">Type</InputLabel>
           <Select
-            label="Meetup Type"
+            label="Type"
             labelId="select-meetup-type-label"
             value={meetupType}
             onChange={(event) => setMeetupType(event.target.value)}
@@ -110,16 +99,16 @@ function CreateMeetup() {
             <MenuItem value="remote">Remote</MenuItem>
           </Select>
         </FormControl>
-        {meetupType === "remote" && ( // TODO: add location support for in-person events
+        {meetupType === "remote" && (
           <TextField
-            required
-            label="Meetup Location"
+            label="URL"
             variant="outlined"
             value={meetupLocation}
             onChange={(event) => setMeetupLocation(event.target.value)}
             className={classes.formInput}
             style={{
               marginLeft: 20,
+              flex: 1,
             }}
           />
         )}
@@ -129,34 +118,28 @@ function CreateMeetup() {
 
   const renderGroupSizeInput = () => {
     return (
-      <Box display="flex" alignItems="baseline" className={classes.formSection}>
-        <Typography>Group Size: </Typography>
-        <TextField
-          variant="outlined"
-          label="Min"
-          type="number"
-          helperText="0 for no minimum"
-          size="small"
-          value={groupMin}
-          onChange={(event) => setGroupMin(parseInt(event.target.value, 10))}
+      <Box
+        display="flex"
+        justifyContent="space-between"
+        className={classes.formSection}
+      >
+        <Typography id="group-slider">Group Size</Typography>
+        <Slider
+          value={groupCount}
+          onChange={(event, newValue) => setGroupCount(newValue)}
+          valueLabelDisplay="auto"
+          aria-labelledby="group-slider"
           style={{
-            margin: "0px 20px",
-            width: 100,
+            marginLeft: 20,
+            marginRight: 20,
+            flex: 1,
           }}
-        />
-        <Typography> to </Typography>
-        <TextField
-          variant="outlined"
-          label="Max"
-          type="number"
-          helperText="0 for no maximum"
-          size="small"
-          value={groupMax}
-          onChange={(event) => setGroupMax(parseInt(event.target.value, 10))}
-          style={{
-            margin: "0px 20px",
-            width: 100,
-          }}
+          min={1}
+          max={50}
+          marks={[
+            { value: 1, label: "1" },
+            { value: 50, label: "50" },
+          ]}
         />
       </Box>
     );
@@ -166,7 +149,7 @@ function CreateMeetup() {
     return (
       <div className={classes.formSection}>
         <TextField
-          label="Meetup Description"
+          label="Description"
           value={desc}
           onChange={(event) => setDesc(event.target.value)}
           multiline
@@ -206,7 +189,7 @@ function CreateMeetup() {
               {...params}
               required
               variant="outlined"
-              label="Meetup tags"
+              label="Tags"
             />
           )}
         />
@@ -228,10 +211,11 @@ function CreateMeetup() {
         {renderTags()}
         <Box alignSelf="flex-end">
           <Button
-            variant="outlined"
+            variant="contained"
+            color="primary"
             onClick={onSubmit}
             style={{
-              margin: 20,
+              marginTop: 20,
             }}
           >
             Create Meetup
