@@ -181,6 +181,7 @@ function Profile({ id }) {
   if (!loaded) {
     return <Typography>Loading...</Typography>; // TODO: replace with nice loading screen
   }
+
   if (user === null) {
     return renderNotFound();
   }

@@ -1,4 +1,4 @@
-import { SERVER_URL } from "../constants";
+import { IN_PERSON, REMOTE, SERVER_URL } from "../constants";
 
 export async function getUserData(id) {
   const getUserDataEndpoint = `${SERVER_URL}/user/${id}`;
@@ -9,6 +9,55 @@ export async function getUserData(id) {
   return { res, resJSON: await res.json() };
 }
 
-export const doOtherThing = () => {
+export function blah() {
   return null;
-};
+}
+
+export async function createMeetup({
+  title,
+  time,
+  meetupType,
+  meetupURL,
+  meetupLocation,
+  groupCount,
+  description,
+  tags,
+}) {
+  const createMeetupEndpoint = `${SERVER_URL}/meetup`;
+
+  let location;
+  if (meetupType === IN_PERSON) {
+    location = {
+      coordinates: {
+        lat: meetupLocation.coords[0],
+        lon: meetupLocation.coords[1],
+      },
+    };
+  }
+  if (meetupType === REMOTE) {
+    location = {
+      url: meetupURL,
+    };
+  }
+
+  const meetup = {
+    description,
+    location,
+    maxCapacity: groupCount[1],
+    minCapacity: groupCount[0],
+    tags,
+    time: time.toISOString(),
+    title,
+  };
+
+  const res = await fetch(createMeetupEndpoint, {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(meetup),
+  });
+
+  return { res, resJSON: await res.json() };
+}
