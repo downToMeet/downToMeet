@@ -150,7 +150,7 @@ func (i *Implementation) GetMeetupID(params operations.GetMeetupIDParams) middle
 	if id := SessionFromContext(ctx).Values[UserID]; id == nil {
 		idStr = ""
 	} else {
-		if _, err := db.UserIDFromString(idStr); err != nil {
+		if _, err := db.UserIDFromString(id.(string)); err != nil {
 			logger.Error("Session has invalid user ID")
 			return InternalServerError{}
 		}
@@ -616,7 +616,7 @@ func (i *Implementation) fetchAllAttendeeInformationLists(ctx context.Context, d
 func (i *Implementation) updateDBMeetup(ctx context.Context, dbMeetup *db.Meetup) error {
 	tx := i.DB().WithContext(ctx)
 	return tx.Model(dbMeetup).
-		Select("title, time, description, max_capacity, min_capacity, location_lat, location_lon, location_url, location_name").
+		Select("title, time, description, max_capacity, min_capacity, location_lat, location_lon, location_url").
 		Updates(dbMeetup).Error
 }
 
@@ -689,7 +689,6 @@ func (i *Implementation) modelMeetupToDBMeetup(dbMeetup *db.Meetup, modelMeetup 
 		}
 		dbMeetup.Location = db.MeetupLocation{
 			Coordinates: coordinates,
-			Name:        modelMeetup.Location.Name,
 			URL:         modelMeetup.Location.URL,
 		}
 	}
@@ -712,7 +711,6 @@ func modelMeetupRequestBodyToModelMeetup(modelMeetupRequestBody *models.MeetupRe
 		}
 		modelMeetup.Location = &models.Location{
 			Coordinates: coordinates,
-			Name:        modelMeetupRequestBody.Location.Name,
 			URL:         modelMeetupRequestBody.Location.URL,
 		}
 	}
@@ -729,9 +727,6 @@ func dbMeetupToModelMeetup(dbMeetup *db.Meetup, userID string) *models.Meetup {
 	}
 	if dbMeetup.Location.URL != "" {
 		location.URL = dbMeetup.Location.URL
-	}
-	if dbMeetup.Location.Name != "" {
-		location.Name = dbMeetup.Location.Name
 	}
 
 	// Determine if user was rejected or not

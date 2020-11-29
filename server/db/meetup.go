@@ -41,6 +41,5 @@ type Coordinates struct {
 
 type MeetupLocation struct {
 	Coordinates
-	URL  string
-	Name string
+	URL string
 }

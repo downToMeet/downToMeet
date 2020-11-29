@@ -1,4 +1,4 @@
-import { React, useState } from "react";
+import React, { useState } from "react";
 import makeStyles from "@material-ui/styles/makeStyles";
 import {
   Box,
