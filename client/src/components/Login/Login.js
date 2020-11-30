@@ -8,6 +8,7 @@ import { SERVER_URL } from "../../constants";
 const useStyles = makeStyles((theme) => ({
   loginButton: {
     margin: "1em",
+    width: 160,
     backgroundColor: "#EEEEEE",
     textTransform: "capitalize",
     fontFamily: theme.fontFamily,
