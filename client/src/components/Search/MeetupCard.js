@@ -1,6 +1,13 @@
 import React from "react";
 import PropTypes from "prop-types";
-import { Box, Card, CardContent, Chip, Typography } from "@material-ui/core";
+import {
+  Box,
+  Card,
+  CardActionArea,
+  CardContent,
+  Chip,
+  Typography,
+} from "@material-ui/core";
 import { Link } from "react-router-dom";
 
 function MeetupCard({ title, time, location, id, tags }) {
@@ -15,15 +22,34 @@ function MeetupCard({ title, time, location, id, tags }) {
 
   const tagList = tags.map((tag) => <Chip label={tag} key={tag} />);
 
+  const locale = "en-US";
+  const eventTimeOptions = {
+    hour: "numeric",
+    minute: "numeric",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZoneName: "short",
+  };
+
   return (
-    <Card variant="outlined">
-      <CardContent>
-        <Typography>{title}</Typography>
-        <Typography>{new Date(time).toLocaleString()}</Typography>
-        <Typography>{locationString}</Typography>
-        <Link to={`/meetup/${id}`}>See Details</Link>
-        <Box display="flex">{tagList}</Box>
-      </CardContent>
+    <Card variant="outlined" style={{ margin: "10px 0px" }}>
+      <CardActionArea component={Link} to={`/meetup/${id}`}>
+        <CardContent>
+          <Box display="flex" flexDirection="column">
+            <Typography variant="h5" component="h2">
+              {title}
+            </Typography>
+            <Typography color="textSecondary">
+              when: {new Date(time).toLocaleString(locale, eventTimeOptions)}
+            </Typography>
+            {locationString && <Typography>where: {locationString}</Typography>}
+            <Box display="flex" mt={1}>
+              {tagList}
+            </Box>
+          </Box>
+        </CardContent>
+      </CardActionArea>
     </Card>
   );
 }
