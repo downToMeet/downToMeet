@@ -102,11 +102,11 @@ function Profile({ id }) {
     return (
       <>
         {user.contactInfo && (
-          <Typography variant="p">Contact info: {user.contactInfo}</Typography>
+          <Typography>Contact info: {user.contactInfo}</Typography>
         )}
-        {user.email && <Typography variant="p">Email: {user.email}</Typography>}
+        {user.email && <Typography>Email: {user.email}</Typography>}
         {user.location && (
-          <Typography variant="p">
+          <Typography>
             Location: lat {user.location.lat}, lon {user.location.lon}
           </Typography>
           // TODO: replace with sensible representation
@@ -122,7 +122,6 @@ function Profile({ id }) {
           <AppBar position="static">
             <StyledTabList
               onChange={(_, newValue) => setTabValue(newValue)}
-              indicatorColor="black"
               variant="scrollable"
               scrollButtons="auto"
             >
@@ -181,6 +180,7 @@ function Profile({ id }) {
   if (!loaded) {
     return <Typography>Loading...</Typography>; // TODO: replace with nice loading screen
   }
+
   if (user === null) {
     return renderNotFound();
   }

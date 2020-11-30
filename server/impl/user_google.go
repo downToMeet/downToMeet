@@ -59,8 +59,7 @@ func (i *Implementation) GetUserGoogleRedirect(param operations.GetUserGoogleRed
 		logger.Warn("no cookie found, but already tried trampoline")
 	}
 
-	redirectToHome := operations.NewGetUserGoogleRedirectSeeOther().
-		WithLocation(i.buildURL(param.HTTPRequest, &operations.GetUserMeURL{}))
+	redirectToHome := operations.NewGetUserGoogleRedirectSeeOther().WithLocation(i.Options.Frontend)
 
 	// Step 1: Check request state validity to protect against CSRF attacks.
 	// See https://auth0.com/docs/protocols/state-parameters.
