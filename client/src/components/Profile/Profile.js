@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import { AppBar, Box, Container, Tab, Typography } from "@material-ui/core";
+import AccountCircleIcon from "@material-ui/icons/AccountCircle";
 import { TabList, TabContext, TabPanel } from "@material-ui/lab";
 import { makeStyles, withStyles } from "@material-ui/styles";
 import { Link } from "react-router-dom";
@@ -100,13 +101,11 @@ function Profile({ id }) {
     }
     return (
       <>
-        {"contactInfo" in user && (
+        {user.contactInfo && (
           <Typography variant="p">Contact info: {user.contactInfo}</Typography>
         )}
-        {"email" in user && (
-          <Typography variant="p">Email: {user.email}</Typography>
-        )}
-        {"location" in user && (
+        {user.email && <Typography variant="p">Email: {user.email}</Typography>}
+        {user.location && (
           <Typography variant="p">
             Location: lat {user.location.lat}, lon {user.location.lon}
           </Typography>
@@ -144,12 +143,27 @@ function Profile({ id }) {
     return (
       <Container maxWidth="md">
         <Box display="flex" flexDirection="column" alignItems="center">
-          {"profilePic" in user && user.profilePic !== "" && (
+          {user.profilePic && (
             <img
               src={user.profilePic}
               alt="profile pic"
               className={classes.profilePic}
             />
+          )}
+          {!user.profilePic && (
+            <div
+              style={{ position: "relative", width: "150px", height: "150px" }}
+            >
+              <AccountCircleIcon
+                style={{
+                  position: "absolute",
+                  left: 0,
+                  top: 0,
+                  width: "100%",
+                  height: "100%",
+                }}
+              />
+            </div>
           )}
           <Typography component="h2" variant="h3">
             {user.name}

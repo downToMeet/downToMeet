@@ -198,7 +198,7 @@ func (i *Implementation) GetUserFacebookRedirect(param operations.GetUserFaceboo
 	dbUser.Name = info.Name
 	dbUser.Email = info.Email
 	dbUser.FacebookID = swag.String(info.ID)
-	if info.Picture.Data.URL != "" {
+	if info.Picture.Data.URL != "" && !info.Picture.Data.IsSilhouette {
 		dbUser.ProfilePic = swag.String(info.Picture.Data.URL)
 	}
 	if err := tx.Create(&dbUser).Error; err != nil {

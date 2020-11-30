@@ -8,9 +8,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/go-openapi/swag"
-
 	"github.com/go-openapi/runtime/middleware"
+	"github.com/go-openapi/swag"
 	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 
