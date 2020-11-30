@@ -37,7 +37,7 @@ func TestMain(m *testing.M) {
 	u.Path = "postgres"
 
 	mgrDB, err := gorm.Open(postgres.Open(u.String()), &gorm.Config{
-		Logger: db.Logger{log.WithField("source", "gormmgr")},
+		Logger: db.Logger{Logger: log.WithField("source", "gormmgr")},
 	})
 	mgrDB.Exec(`DROP DATABASE downtomeet_test`)
 	defer mgrDB.Exec(`DROP DATABASE downtomeet_test`)
