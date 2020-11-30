@@ -41,6 +41,8 @@ definitions:
   location:
     type: object
     properties:
+      name:
+        type: string
       coordinates:
         $ref: "#/definitions/coordinates"
       url:

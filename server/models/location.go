@@ -19,6 +19,9 @@ type Location struct {
 	// coordinates
 	Coordinates *Coordinates `json:"coordinates,omitempty"`
 
+	// name
+	Name string `json:"name,omitempty"`
+
 	// url
 	URL string `json:"url,omitempty"`
 }

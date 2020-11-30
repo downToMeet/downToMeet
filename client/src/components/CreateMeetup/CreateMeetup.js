@@ -56,24 +56,8 @@ function CreateMeetup() {
     setGroupCount([2, 10]);
     setDescription("");
     setTags([]);
-  };
-
-  const createMeetup = async () => {
-    const { res } = await fetcher.createMeetup({
-      title,
-      time,
-      meetupType,
-      meetupURL,
-      meetupLocation,
-      groupCount,
-      description,
-      tags,
-    });
-    if (res.ok) {
-      // console.log("Created meetup with id: ", resJSON.id);
-      clearForm();
-      // TODO: redirect to newly created meetup
-    }
+    setError(false);
+    setCreatingMeetup(false);
   };
 
   // TODO: load options from the server instead
@@ -254,13 +238,28 @@ function CreateMeetup() {
     );
   };
 
-  const onSubmit = () => {
-    setCreatingMeetup(true);
+  const onSubmit = async () => {
     if (!validateForm()) {
       setCreatingMeetup(false);
       return;
     }
-    createMeetup();
+
+    setCreatingMeetup(true);
+    const { res } = await fetcher.createMeetup({
+      title,
+      time,
+      meetupType,
+      meetupURL,
+      meetupLocation,
+      groupCount,
+      description,
+      tags,
+    });
+    if (res.ok) {
+      // console.log("Created meetup with id: ", resJSON.id);
+      clearForm();
+      // TODO: redirect to newly created meetup
+    }
   };
 
   return (

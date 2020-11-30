@@ -778,6 +778,9 @@ func init() {
         "coordinates": {
           "$ref": "#/definitions/coordinates"
         },
+        "name": {
+          "type": "string"
+        },
         "url": {
           "type": "string"
         }
@@ -1726,6 +1729,9 @@ func init() {
       "properties": {
         "coordinates": {
           "$ref": "#/definitions/coordinates"
+        },
+        "name": {
+          "type": "string"
         },
         "url": {
           "type": "string"

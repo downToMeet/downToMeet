@@ -6,12 +6,11 @@ import (
 	"crypto/tls"
 	"net/http"
 
-	"github.com/rs/cors"
-
 	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/go-openapi/runtime/security"
 	"github.com/go-openapi/swag"
+	"github.com/rs/cors"
 	log "github.com/sirupsen/logrus"
 
 	"go.timothygu.me/downtomeet/server/impl"
@@ -104,7 +103,7 @@ func configureServer(s *http.Server, scheme, addr string) {
 // The middleware configuration is for the handler executors. These do not apply to the swagger.json document.
 // The middleware executes after routing but before authentication, binding and validation
 func setupMiddlewares(handler http.Handler) http.Handler {
-	return handler
+	return Impl.SessionMiddleware(handler)
 }
 
 // The middleware configuration happens before anything, this middleware also applies to serving the swagger.json document.
@@ -116,5 +115,5 @@ func setupGlobalMiddleware(handler http.Handler) http.Handler {
 		Debug:            !Impl.Options.Production,
 	})
 	c.Log = log.WithField("source", "cors")
-	return impl.RequestMiddleware(Impl.SessionMiddleware(c.Handler(handler)))
+	return impl.RequestMiddleware(c.Handler(handler))
 }

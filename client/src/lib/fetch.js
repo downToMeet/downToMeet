@@ -9,10 +9,6 @@ export async function getUserData(id) {
   return { res, resJSON: await res.json() };
 }
 
-export function blah() {
-  return null;
-}
-
 export async function createMeetup({
   title,
   time,
@@ -32,6 +28,7 @@ export async function createMeetup({
         lat: meetupLocation.coords[0],
         lon: meetupLocation.coords[1],
       },
+      name: meetupLocation.description,
     };
   }
   if (meetupType === REMOTE) {
@@ -43,10 +40,10 @@ export async function createMeetup({
   const meetup = {
     description,
     location,
-    maxCapacity: groupCount[1],
     minCapacity: groupCount[0],
+    maxCapacity: groupCount[1],
     tags,
-    time: time.toISOString(),
+    time,
     title,
   };
 
