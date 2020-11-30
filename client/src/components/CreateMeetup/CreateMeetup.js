@@ -19,7 +19,7 @@ import {
 } from "@material-ui/pickers";
 import DayUtils from "@date-io/dayjs";
 
-import LocationPicker from "./LocationPicker";
+import LocationPicker from "../common/LocationPicker";
 
 const useStyles = makeStyles(() => ({
   formSection: {

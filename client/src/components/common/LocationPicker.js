@@ -6,7 +6,7 @@ import parse from "autosuggest-highlight/parse";
 import throttle from "lodash/throttle";
 import PropTypes from "prop-types";
 
-const googleMapsKey = ""; // fill this in with your own key
+const googleMapsKey = "AIzaSyCUhoOofhPE1Cc7jVRE2-Lfri_ueCiDcDM"; // fill this in with your own key
 
 function loadScript(src, position, id) {
   if (!position) {
