@@ -144,12 +144,13 @@ function Profile({ id }) {
     return (
       <Container maxWidth="md">
         <Box display="flex" flexDirection="column" alignItems="center">
-          {/* TODO: get the actual profile pic */}
-          <img
-            src="https://pbs.twimg.com/profile_images/672007177654181888/mVsduZGb_400x400.jpg"
-            alt="angry pusheen"
-            className={classes.profilePic}
-          />
+          {"profilePic" in user && user.profilePic !== "" && (
+            <img
+              src={user.profilePic}
+              alt="profile pic"
+              className={classes.profilePic}
+            />
+          )}
           <Typography component="h2" variant="h3">
             {user.name}
           </Typography>
