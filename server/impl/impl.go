@@ -19,6 +19,7 @@ type Implementation struct {
 	Options struct {
 		Production bool   `long:"production" description:"Run in production mode"`
 		Database   string `long:"database" description:"URL of Postgres DB" default:"postgresql://localhost:5432/downtomeet"`
+		Frontend   string `long:"frontend" description:"Base URL of frontend" default:"http://localhost:3000/"`
 	}
 
 	sessionStore     sessions.Store // could be lazily initialized; use SessionStore() instead!
