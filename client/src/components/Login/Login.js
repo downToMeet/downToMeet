@@ -3,6 +3,7 @@ import { makeStyles } from "@material-ui/core/styles";
 import { Box, Button, Container, Typography } from "@material-ui/core";
 import FacebookLogo from "./assets/FacebookLogo";
 import GoogleLogo from "./assets/GoogleLogo";
+import { SERVER_URL } from "../../constants";
 
 const useStyles = makeStyles((theme) => ({
   loginButton: {
@@ -37,7 +38,7 @@ function Login() {
       <Box display="flex" justifyContent="center">
         <Button
           component="a"
-          href="http://localhost:9000/user/facebook/auth"
+          href={`${SERVER_URL}/user/facebook/auth`}
           className={classes.loginButton}
           startIcon={<FacebookLogo />}
         >
@@ -45,7 +46,7 @@ function Login() {
         </Button>
         <Button
           component="a"
-          href="http://localhost:9000/user/google/auth"
+          href={`${SERVER_URL}/user/google/auth`}
           className={classes.loginButton}
           startIcon={<GoogleLogo />}
         >

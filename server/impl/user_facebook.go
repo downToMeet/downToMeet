@@ -85,8 +85,7 @@ func (i *Implementation) GetUserFacebookRedirect(param operations.GetUserFaceboo
 	}
 
 	// See comment at top of the file.
-	redirectToHome := operations.NewGetUserFacebookRedirectSeeOther().
-		WithLocation(i.buildURL(param.HTTPRequest, &operations.GetUserMeURL{})) // TODO: redirect to actual homepage
+	redirectToHome := operations.NewGetUserFacebookRedirectSeeOther().WithLocation(i.Options.Frontend)
 
 	// Step 1: Check request state validity to protect against CSRF attacks.
 	// See https://auth0.com/docs/protocols/state-parameters.
