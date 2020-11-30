@@ -148,6 +148,13 @@ func (i *Implementation) GetUserGoogleRedirect(param operations.GetUserGoogleRed
 				}
 			}
 
+			if dbUser.ProfilePic == nil && claims.PictureURL != "" {
+				dbUser.ProfilePic = swag.String(claims.PictureURL)
+				if err := tx.Model(&dbUser).Update("ProfilePic", dbUser.ProfilePic).Error; err != nil {
+					logger.WithError(err).Warn("Unable to update user's profile picture")
+				}
+			}
+
 			logger.Info("logged in through email")
 			return redirectToHome
 		}
@@ -160,6 +167,9 @@ func (i *Implementation) GetUserGoogleRedirect(param operations.GetUserGoogleRed
 		dbUser.Email = claims.Email
 	}
 	dbUser.GoogleID = swag.String(claims.Subject)
+	if claims.PictureURL != "" {
+		dbUser.ProfilePic = swag.String(claims.PictureURL)
+	}
 	if err := tx.Create(&dbUser).Error; err != nil {
 		logger.WithError(err).Error("Unable to create new user")
 		return redirectToHome
@@ -186,7 +196,7 @@ type googleClaims struct {
 	Locale        string `json:"locale,omitempty"` // BCP 47
 	Name          string `json:"name,omitempty"`
 	Nonce         string `json:"nonce,omitempty"`
-	Picture       string `json:"picture,omitempty"`
+	PictureURL    string `json:"picture,omitempty"`
 	ProfileURL    string `json:"profile,omitempty"`
 }
 

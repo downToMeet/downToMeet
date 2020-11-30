@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/go-openapi/swag"
+
 	"github.com/go-openapi/runtime/middleware"
 	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
@@ -79,8 +81,9 @@ func (i *Implementation) GetUserID(params operations.GetUserIDParams) middleware
 	session := SessionFromContext(params.HTTPRequest.Context())
 	if session.Values[UserID] != dbUser.IDString() {
 		modelUser := &models.User{
-			ID:   models.UserID(dbUser.IDString()),
-			Name: dbUser.Name,
+			ID:         models.UserID(dbUser.IDString()),
+			Name:       dbUser.Name,
+			ProfilePic: swag.StringValue(dbUser.ProfilePic),
 		}
 		return operations.NewGetUserIDOK().WithPayload(modelUser)
 	}
@@ -243,6 +246,7 @@ func dbUserToModelUser(dbUser *db.User) *models.User {
 		ID:              models.UserID(fmt.Sprint(dbUser.ID)),
 		Name:            dbUser.Name,
 		Email:           dbUser.Email,
+		ProfilePic:      swag.StringValue(dbUser.ProfilePic),
 		Connections:     connections,
 		ContactInfo:     dbUser.ContactInfo,
 		Location:        location,

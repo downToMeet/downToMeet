@@ -949,6 +949,9 @@ func init() {
             "$ref": "#/definitions/meetupID"
           },
           "x-omitempty": true
+        },
+        "profilePic": {
+          "type": "string"
         }
       }
     },
@@ -1902,6 +1905,9 @@ func init() {
             "$ref": "#/definitions/meetupID"
           },
           "x-omitempty": true
+        },
+        "profilePic": {
+          "type": "string"
         }
       }
     },

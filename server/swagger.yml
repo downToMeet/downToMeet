@@ -58,6 +58,8 @@ definitions:
         type: string
       email:
         type: string
+      profilePic:
+        type: string
       connections:
         type: array
         x-omitempty: true
