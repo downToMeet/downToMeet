@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter as Router, Switch, Route, Link } from "react-router-dom";
+import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 import CreateMeetup from "./components/CreateMeetup/CreateMeetup";
 import Login from "./components/Login/Login";
 import Meetup from "./components/Meetup/Meetup";
@@ -11,9 +11,6 @@ function App() {
   return (
     <Router>
       <Navbar />
-      <div>
-        <Link to="/search">Search</Link>
-      </div>
       <Switch>
         <Route path="/create">
           <CreateMeetup />
@@ -29,7 +26,7 @@ function App() {
           path="/user/:id"
           render={(input) => <Profile id={input.match.params.id} />}
         />
-        <Route path="/search">
+        <Route path="/">
           <Search />
         </Route>
       </Switch>
