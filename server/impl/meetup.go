@@ -62,7 +62,7 @@ func (i *Implementation) GetMeetup(params operations.GetMeetupParams) middleware
 
 	if err != nil {
 		logger.WithError(err).Error("Unable to find meetups that fit the given parameters")
-		return InternalServerError{}
+		return operations.NewGetMeetupOK().WithPayload([]*models.Meetup{})
 	}
 
 	var idStr string
@@ -76,7 +76,14 @@ func (i *Implementation) GetMeetup(params operations.GetMeetupParams) middleware
 
 	// Convert each returned dbMeetup to a models.Meetup
 	var modelMeetups []*models.Meetup
-	for _, meetup := range meetups {
+	for _, meetupID := range meetups {
+		var meetup db.Meetup
+		err := tx.First(&meetup, meetupID).Error
+		if err != nil {
+			logger.WithError(err).Error("Unable to get meetup from ID")
+			return InternalServerError{}
+		}
+
 		if err = tx.Model(&meetup).Association("Attendees").Find(&meetup.Attendees); err != nil {
 			logger.WithError(err).Error("Unable to find meetup attendee information")
 			return InternalServerError{}
@@ -96,7 +103,7 @@ func (i *Implementation) GetMeetup(params operations.GetMeetupParams) middleware
 			logger.WithError(err).Error("Unable to find user tags")
 			return InternalServerError{}
 		}
-		modelMeetups = append(modelMeetups, dbMeetupToModelMeetup(meetup, idStr))
+		modelMeetups = append(modelMeetups, dbMeetupToModelMeetup(&meetup, idStr))
 	}
 	return operations.NewGetMeetupOK().WithPayload(modelMeetups)
 }
@@ -150,7 +157,7 @@ func (i *Implementation) GetMeetupID(params operations.GetMeetupIDParams) middle
 	if id := SessionFromContext(ctx).Values[UserID]; id == nil {
 		idStr = ""
 	} else {
-		if _, err := db.UserIDFromString(idStr); err != nil {
+		if _, err := db.UserIDFromString(id.(string)); err != nil {
 			logger.Error("Session has invalid user ID")
 			return InternalServerError{}
 		}
