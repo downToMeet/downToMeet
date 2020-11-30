@@ -46,8 +46,9 @@ func (i *Implementation) GetMeetup(params operations.GetMeetupParams) middleware
 	}
 
 	var meetups []*db.Meetup
+	log.Printf("\n\n%v, %v\n\n", params.Lat, params.Lon)
 	err := tx.Raw(`
-	SELECT id FROM (
+	SELECT * FROM (
 		SELECT *,
 			earth_distance(ll_to_earth(?, ?),
 			ll_to_earth(location_lat, location_lon)) AS distance_from_me
@@ -55,7 +56,6 @@ func (i *Implementation) GetMeetup(params operations.GetMeetupParams) middleware
 	) AS m
 	JOIN meetup_tag AS mt ON m.id = mt.meetup_id
 	WHERE m.distance_from_me < ? AND mt.tag_id IN ?
-	GROUP BY m.id, m.distance_from_me
 	ORDER BY m.distance_from_me
 	LIMIT 100
 	`, params.Lat, params.Lon, params.Radius*1000, tagIds).Scan(&meetups).Error
