@@ -273,7 +273,7 @@ func (i *Implementation) DeleteMeetupID(params operations.DeleteMeetupIDParams, 
 	}
 	if id.(string) != fmt.Sprint(dbMeetup.Owner) {
 		logger.Warn("User tried to DELETE a meetup they do not own")
-		return operations.NewPatchMeetupIDForbidden().WithPayload(&models.Error{
+		return operations.NewDeleteMeetupIDForbidden().WithPayload(&models.Error{
 			Code:    http.StatusForbidden,
 			Message: "Forbidden",
 		})
