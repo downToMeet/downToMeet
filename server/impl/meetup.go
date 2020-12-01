@@ -46,9 +46,9 @@ func (i *Implementation) GetMeetup(params operations.GetMeetupParams) middleware
 	}
 
 	var meetups []*db.Meetup
-	log.Printf("\n\n%v, %v\n\n", params.Lat, params.Lon)
 	err := tx.Raw(`
-	SELECT * FROM (
+	SELECT DISTINCT ON (id) *
+	FROM (
 		SELECT *,
 			earth_distance(ll_to_earth(?, ?),
 			ll_to_earth(location_lat, location_lon)) AS distance_from_me
