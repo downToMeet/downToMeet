@@ -45,6 +45,19 @@ jobs:
     name: Test Go Code
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - '5432:5432'
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v2
@@ -69,7 +82,10 @@ jobs:
       - run: go vet ./...
 
       - name: Run go test
-        run: go test -race ./...
+        # -vet=off as we've already run vet.
+        run: go test -vet=off -race ./...
+        env:
+          POSTGRES_TEST_DSN: 'postgres://postgres:postgres@localhost:5432/downtomeet_test'
 
       - name: Format code
         run: |
