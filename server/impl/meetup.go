@@ -705,7 +705,7 @@ func modelMeetupRequestBodyToModelMeetup(modelMeetupRequestBody *models.MeetupRe
 	modelMeetup.Time = modelMeetupRequestBody.Time
 	modelMeetup.Title = modelMeetupRequestBody.Title
 	modelMeetup.Description = modelMeetupRequestBody.Description
-	if modelMeetupRequestBody.Location != nil{
+	if modelMeetupRequestBody.Location != nil {
 		if modelMeetupRequestBody.Location.Coordinates != nil {
 			coordinates := &models.Coordinates{
 				Lat: modelMeetupRequestBody.Location.Coordinates.Lat,
@@ -718,7 +718,7 @@ func modelMeetupRequestBodyToModelMeetup(modelMeetupRequestBody *models.MeetupRe
 			}
 		} else {
 			modelMeetup.Location = &models.Location{
-				URL:         modelMeetupRequestBody.Location.URL,
+				URL: modelMeetupRequestBody.Location.URL,
 			}
 		}
 	}
