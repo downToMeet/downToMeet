@@ -26,6 +26,7 @@ function Search() {
   const [meetups, setMeetups] = useState(null);
   const [meetupType, setMeetupType] = useState("");
   const [searchLocation, setSearchLocation] = useState(null);
+  const [radius, setRadius] = useState(null);
 
   // TODO: load options from the server instead
   const tagOptions = [
@@ -50,7 +51,7 @@ function Search() {
     if (meetupType === "") {
       return false;
     }
-    if (meetupType === IN_PERSON && coords === null) {
+    if ((meetupType === IN_PERSON && coords === null) || radius === null) {
       return false;
     }
     return true;
@@ -66,7 +67,7 @@ function Search() {
       const { res, resJSON } = await fetcher.searchForMeetups({
         lat: coords[0],
         lon: coords[1],
-        radius: 10,
+        radius,
         tags,
       });
       if (res.ok) {
@@ -201,6 +202,25 @@ function Search() {
             flex: 1,
           }}
         />
+        <FormControl
+          required
+          variant="outlined"
+          style={{ width: 100, marginLeft: 10 }}
+        >
+          <InputLabel id="select-radius-label">Radius</InputLabel>
+          <Select
+            label="Radius"
+            labelId="select-radius-label"
+            value={radius}
+            onChange={(event) => setRadius(event.target.value)}
+          >
+            <MenuItem value={1}>1 km</MenuItem>
+            <MenuItem value={5}>5 km</MenuItem>
+            <MenuItem value={10}>10 km</MenuItem>
+            <MenuItem value={50}>50 km</MenuItem>
+            <MenuItem value={100}>100 km</MenuItem>
+          </Select>
+        </FormControl>
       </Box>
     );
   };
