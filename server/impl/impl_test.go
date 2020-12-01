@@ -2,11 +2,6 @@ package impl_test
 
 import (
 	"bytes"
-	"github.com/go-openapi/swag"
-	log "github.com/sirupsen/logrus"
-	"go.timothygu.me/downtomeet/server/db"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
 	"fmt"
 	"math/rand"
 	"net/url"
@@ -14,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-openapi/swag"
 	"github.com/gorilla/sessions"
 	log "github.com/sirupsen/logrus"
 	"gorm.io/driver/postgres"
@@ -30,10 +26,10 @@ var testImpl = NewMockImplementation(mockCookieStore(), rand.NewSource(0))
 var (
 	mockAuthenticationKey = bytes.Repeat([]byte{'n'}, 32)
 	mockEncryptionKey     = bytes.Repeat([]byte{'e'}, 16)
-	TestUser *db.User
-	FakeUser *db.User
-	TestMeetup *db.Meetup
-	TestTag *db.Tag
+	TestUser              *db.User
+	FakeUser              *db.User
+	TestMeetup            *db.Meetup
+	TestTag               *db.Tag
 )
 
 func mockCookieStore() *sessions.CookieStore {
@@ -43,13 +39,13 @@ func mockCookieStore() *sessions.CookieStore {
 func populateDatabase(i *Implementation) {
 	database := i.DB()
 	TestUser = &db.User{
-		Email:           "trediehs@g.ucla.edu",
-		Name:            "Tim Rediehs",
-		ContactInfo:     "trediehs@g.ucla.edu",
-		ProfilePic:      nil,
-		FacebookID:      nil,
-		GoogleID:        nil,
-		Location:        db.Coordinates{
+		Email:       "trediehs@g.ucla.edu",
+		Name:        "Tim Rediehs",
+		ContactInfo: "trediehs@g.ucla.edu",
+		ProfilePic:  nil,
+		FacebookID:  nil,
+		GoogleID:    nil,
+		Location: db.Coordinates{
 			Lat: swag.Float64(0),
 			Lon: swag.Float64(0),
 		},
@@ -59,35 +55,35 @@ func populateDatabase(i *Implementation) {
 		PendingApproval: nil,
 	}
 	TestTag = &db.Tag{
-		Name:    "Mental Health",
+		Name: "Mental Health",
 	}
 	TestUser.Tags = append(TestUser.Tags, TestTag)
 	database.Create(TestUser)
 	FakeUser = &db.User{
-		Model:           gorm.Model{},
-		Email:           "",
-		Name:            "",
-		ContactInfo:     "",
-		Location:        db.Coordinates{},
+		Model:       gorm.Model{},
+		Email:       "",
+		Name:        "",
+		ContactInfo: "",
+		Location:    db.Coordinates{},
 	}
 	testImpl.DB().Create(&FakeUser)
 	TestMeetup = &db.Meetup{
-		Title:             "Group Painting",
-		Time:              time.Unix(0,0),
-		Description:       "",
-		Tags:              nil,
-		MaxCapacity:       10,
-		MinCapacity:       1,
-		Owner:             TestUser.ID,
-		Location:          db.MeetupLocation{
+		Title:       "Group Painting",
+		Time:        time.Unix(0, 0),
+		Description: "",
+		Tags:        nil,
+		MaxCapacity: 10,
+		MinCapacity: 1,
+		Owner:       TestUser.ID,
+		Location: db.MeetupLocation{
 			Coordinates: db.Coordinates{
 				Lat: swag.Float64(0),
 				Lon: swag.Float64(0),
 			},
-			URL:         "",
-			Name:        "Null Island",
+			URL:  "",
+			Name: "Null Island",
 		},
-		Cancelled:         false,
+		Cancelled: false,
 	}
 	TestMeetup.Tags = append(TestMeetup.Tags, TestTag)
 	TestMeetup.Attendees = append(TestMeetup.Attendees, TestUser)
