@@ -39,16 +39,16 @@ func (i *Implementation) GetMeetup(params operations.GetMeetupParams) middleware
 	var err error
 	if len(params.Tags) == 0 {
 		err = tx.Raw(`
-      SELECT * FROM (
-        SELECT *,
-          earth_distance(ll_to_earth(?, ?),
-          ll_to_earth(location_lat, location_lon)) AS distance_from_me
-        FROM meetups
-      ) AS m
-      WHERE m.distance_from_me < ? AND m.time >= CURRENT_TIMESTAMP
-      ORDER BY m.distance_from_me
-      LIMIT 100
-    `, params.Lat, params.Lon, params.Radius*1000).Scan(&meetups).Error
+			SELECT * FROM (
+				SELECT *,
+					earth_distance(ll_to_earth(?, ?),
+					ll_to_earth(location_lat, location_lon)) AS distance_from_me
+				FROM meetups
+			) AS m
+			WHERE m.distance_from_me < ? AND m.time >= CURRENT_TIMESTAMP
+			ORDER BY m.distance_from_me
+			LIMIT 100
+		`, params.Lat, params.Lon, params.Radius*1000).Scan(&meetups).Error
 	} else {
 		var tagIds []uint
 		var dbTags []db.Tag
@@ -61,18 +61,21 @@ func (i *Implementation) GetMeetup(params operations.GetMeetupParams) middleware
 		}
 
 		err = tx.Raw(`
-      SELECT DISTINCT ON (id) *
-      FROM (
-        SELECT *,
-          earth_distance(ll_to_earth(?, ?),
-          ll_to_earth(location_lat, location_lon)) AS distance_from_me
-        FROM meetups
-      ) AS m
-      JOIN meetup_tag AS mt ON m.id = mt.meetup_id
-      WHERE m.distance_from_me < ? AND mt.tag_id IN ? AND m.time >= CURRENT_TIMESTAMP
-      ORDER BY m.distance_from_me
-      LIMIT 100
-    `, params.Lat, params.Lon, params.Radius*1000, tagIds).Scan(&meetups).Error
+			SELECT * FROM (
+				SELECT DISTINCT ON (m.id) *
+				FROM (
+					SELECT *,
+						earth_distance(ll_to_earth(?, ?),
+						ll_to_earth(location_lat, location_lon)) AS distance_from_me
+					FROM meetups
+				) AS m
+				JOIN meetup_tag AS mt ON m.id = mt.meetup_id
+				WHERE m.distance_from_me < ? AND mt.tag_id IN ? AND m.time >= CURRENT_TIMESTAMP
+				ORDER BY m.id
+				LIMIT 100
+			) AS m
+			ORDER BY m.distance_from_me
+		`, params.Lat, params.Lon, params.Radius*1000, tagIds).Scan(&meetups).Error
 	}
 
 	if err != nil {
@@ -133,11 +136,12 @@ func (i *Implementation) GetMeetupRemote(params operations.GetMeetupRemoteParams
 	var err error
 	if len(params.Tags) == 0 {
 		err = tx.Raw(`
-      SELECT *
-      FROM meetups AS m
-      WHERE m.location_lat IS NULL AND m.time >= CURRENT_TIMESTAMP
-      LIMIT 100
-    `).Scan(&meetups).Error
+			SELECT *
+			FROM meetups AS m
+			WHERE m.location_lat IS NULL AND m.time >= CURRENT_TIMESTAMP
+			ORDER BY m.time
+			LIMIT 100
+		`).Scan(&meetups).Error
 	} else {
 		var tagIds []uint
 		var dbTags []db.Tag
@@ -150,13 +154,16 @@ func (i *Implementation) GetMeetupRemote(params operations.GetMeetupRemoteParams
 		}
 
 		err = tx.Raw(`
-      SELECT DISTINCT ON (id) *
-      FROM meetups AS m
-      JOIN meetup_tag AS mt ON m.id = mt.meetup_id
-      WHERE m.location_lat IS NULL AND mt.tag_id IN ? AND m.time >= CURRENT_TIMESTAMP
-      ORDER BY m.time
-      LIMIT 100
-    `, tagIds).Scan(&meetups).Error
+			SELECT * FROM (
+				SELECT DISTINCT ON (m.id) *
+				FROM meetups AS m
+				JOIN meetup_tag AS mt ON m.id = mt.meetup_id
+				WHERE m.location_lat IS NULL AND mt.tag_id IN ? AND m.time >= CURRENT_TIMESTAMP
+				ORDER BY m.id
+				LIMIT 100
+			) AS m
+			ORDER BY m.time
+		`, tagIds).Scan(&meetups).Error
 	}
 
 	if err != nil {

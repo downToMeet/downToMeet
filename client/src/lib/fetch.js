@@ -18,6 +18,15 @@ export async function searchForMeetups({ lat, lon, radius, tags }) {
   return { res, resJSON: await res.json() };
 }
 
+export async function searchForRemoteMeetups(tags) {
+  const getMeetupsEndpoint = `${SERVER_URL}/meetup/remote?tags=${tags}`;
+  const res = await fetch(getMeetupsEndpoint, {
+    credentials: "include",
+  });
+
+  return { res, resJSON: await res.json() };
+}
+
 export async function createMeetup({
   title,
   time,
