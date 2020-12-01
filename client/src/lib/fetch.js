@@ -58,3 +58,17 @@ export async function createMeetup({
 
   return { res, resJSON: await res.json() };
 }
+
+export async function getMeetup(id) {
+  const getMeetupEndpoint = `${SERVER_URL}/meetup/${id}`;
+
+  const res = await fetch(getMeetupEndpoint, {
+    method: "GET",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  return { res, resJSON: await res.json() };
+}
