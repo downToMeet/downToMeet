@@ -62,6 +62,9 @@ func NewDownToMeetAPI(spec *loads.Document) *DownToMeetAPI {
 		GetMeetupIDAttendeeHandler: GetMeetupIDAttendeeHandlerFunc(func(params GetMeetupIDAttendeeParams, principal interface{}) middleware.Responder {
 			return middleware.NotImplemented("operation GetMeetupIDAttendee has not yet been implemented")
 		}),
+		GetMeetupRemoteHandler: GetMeetupRemoteHandlerFunc(func(params GetMeetupRemoteParams) middleware.Responder {
+			return middleware.NotImplemented("operation GetMeetupRemote has not yet been implemented")
+		}),
 		GetRestrictedHandler: GetRestrictedHandlerFunc(func(params GetRestrictedParams, principal interface{}) middleware.Responder {
 			return middleware.NotImplemented("operation GetRestricted has not yet been implemented")
 		}),
@@ -171,6 +174,8 @@ type DownToMeetAPI struct {
 	GetMeetupIDHandler GetMeetupIDHandler
 	// GetMeetupIDAttendeeHandler sets the operation handler for the get meetup ID attendee operation
 	GetMeetupIDAttendeeHandler GetMeetupIDAttendeeHandler
+	// GetMeetupRemoteHandler sets the operation handler for the get meetup remote operation
+	GetMeetupRemoteHandler GetMeetupRemoteHandler
 	// GetRestrictedHandler sets the operation handler for the get restricted operation
 	GetRestrictedHandler GetRestrictedHandler
 	// GetSetCookieHandler sets the operation handler for the get set cookie operation
@@ -301,6 +306,9 @@ func (o *DownToMeetAPI) Validate() error {
 	}
 	if o.GetMeetupIDAttendeeHandler == nil {
 		unregistered = append(unregistered, "GetMeetupIDAttendeeHandler")
+	}
+	if o.GetMeetupRemoteHandler == nil {
+		unregistered = append(unregistered, "GetMeetupRemoteHandler")
 	}
 	if o.GetRestrictedHandler == nil {
 		unregistered = append(unregistered, "GetRestrictedHandler")
@@ -468,6 +476,10 @@ func (o *DownToMeetAPI) initHandlerCache() {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}
 	o.handlers["GET"]["/meetup/{id}/attendee"] = NewGetMeetupIDAttendee(o.context, o.GetMeetupIDAttendeeHandler)
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"]["/meetup/remote"] = NewGetMeetupRemote(o.context, o.GetMeetupRemoteHandler)
 	if o.handlers["GET"] == nil {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}

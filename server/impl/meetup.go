@@ -35,34 +35,133 @@ func (i *Implementation) GetMeetup(params operations.GetMeetupParams) middleware
 
 	tx := i.DB().WithContext(ctx)
 
-	var tagIds []int
-	var dbTags []db.Tag
-	if err := tx.Where("name IN ?", params.Tags).Find(&dbTags).Error; err != nil {
-		logger.WithError(err).Error("Unable to fetch tags")
-		return InternalServerError{}
-	}
-	for _, tag := range dbTags {
-		tagIds = append(tagIds, int(tag.ID))
-	}
-
 	var meetups []*db.Meetup
-	err := tx.Raw(`
-	SELECT DISTINCT ON (id) *
-	FROM (
-		SELECT *,
-			earth_distance(ll_to_earth(?, ?),
-			ll_to_earth(location_lat, location_lon)) AS distance_from_me
-		FROM meetups
-	) AS m
-	JOIN meetup_tag AS mt ON m.id = mt.meetup_id
-	WHERE m.distance_from_me < ? AND mt.tag_id IN ?
-	ORDER BY m.distance_from_me
-	LIMIT 100
-	`, params.Lat, params.Lon, params.Radius*1000, tagIds).Scan(&meetups).Error
+	var err error
+	if len(params.Tags) == 0 {
+		err = tx.Raw(`
+      SELECT * FROM (
+        SELECT *,
+          earth_distance(ll_to_earth(?, ?),
+          ll_to_earth(location_lat, location_lon)) AS distance_from_me
+        FROM meetups
+      ) AS m
+      WHERE m.distance_from_me < ? AND m.time >= CURRENT_TIMESTAMP
+      ORDER BY m.distance_from_me
+      LIMIT 100
+    `, params.Lat, params.Lon, params.Radius*1000).Scan(&meetups).Error
+	} else {
+		var tagIds []uint
+		var dbTags []db.Tag
+		if err := tx.Where("name IN ?", params.Tags).Find(&dbTags).Error; err != nil {
+			logger.WithError(err).Error("Unable to fetch tags")
+			return InternalServerError{}
+		}
+		for _, tag := range dbTags {
+			tagIds = append(tagIds, tag.ID)
+		}
+
+		err = tx.Raw(`
+      SELECT DISTINCT ON (id) *
+      FROM (
+        SELECT *,
+          earth_distance(ll_to_earth(?, ?),
+          ll_to_earth(location_lat, location_lon)) AS distance_from_me
+        FROM meetups
+      ) AS m
+      JOIN meetup_tag AS mt ON m.id = mt.meetup_id
+      WHERE m.distance_from_me < ? AND mt.tag_id IN ? AND m.time >= CURRENT_TIMESTAMP
+      ORDER BY m.distance_from_me
+      LIMIT 100
+    `, params.Lat, params.Lon, params.Radius*1000, tagIds).Scan(&meetups).Error
+	}
 
 	if err != nil {
 		logger.WithError(err).Error("Unable to find meetups that fit the given parameters")
 		return operations.NewGetMeetupOK().WithPayload([]*models.Meetup{})
+	}
+
+	var idStr string
+	if id := SessionFromContext(ctx).Values[UserID]; id != nil {
+		if _, err := db.UserIDFromString(id.(string)); err != nil {
+			logger.Error("Session has invalid user ID")
+			return InternalServerError{}
+		}
+		idStr = id.(string)
+	}
+
+	// Convert each returned dbMeetup to a models.Meetup
+	var modelMeetups []*models.Meetup
+	for _, meetupID := range meetups {
+		var meetup db.Meetup
+		err := tx.First(&meetup, meetupID).Error
+		if err != nil {
+			logger.WithError(err).Error("Unable to get meetup from ID")
+			return InternalServerError{}
+		}
+
+		if err = tx.Model(&meetup).Association("Attendees").Find(&meetup.Attendees); err != nil {
+			logger.WithError(err).Error("Unable to find meetup attendee information")
+			return InternalServerError{}
+		}
+
+		if err = tx.Model(&meetup).Association("PendingAttendees").Find(&meetup.PendingAttendees); err != nil {
+			logger.WithError(err).Error("Unable to find meetup pending attendee information")
+			return InternalServerError{}
+		}
+
+		if err = tx.Model(&meetup).Association("RejectedAttendees").Find(&meetup.RejectedAttendees); err != nil {
+			logger.WithError(err).Error("Unable to find meetup rejected attendee information")
+			return InternalServerError{}
+		}
+
+		if err = tx.Model(&meetup).Association("Tags").Find(&meetup.Tags); err != nil {
+			logger.WithError(err).Error("Unable to find user tags")
+			return InternalServerError{}
+		}
+		modelMeetups = append(modelMeetups, dbMeetupToModelMeetup(&meetup, idStr))
+	}
+	return operations.NewGetMeetupOK().WithPayload(modelMeetups)
+}
+
+func (i *Implementation) GetMeetupRemote(params operations.GetMeetupRemoteParams) middleware.Responder {
+	ctx := params.HTTPRequest.Context()
+	logger := log.WithContext(ctx)
+
+	tx := i.DB().WithContext(ctx)
+
+	var meetups []*db.Meetup
+	var err error
+	if len(params.Tags) == 0 {
+		err = tx.Raw(`
+      SELECT *
+      FROM meetups AS m
+      WHERE m.location_lat IS NULL AND m.time >= CURRENT_TIMESTAMP
+      LIMIT 100
+    `).Scan(&meetups).Error
+	} else {
+		var tagIds []uint
+		var dbTags []db.Tag
+		if err := tx.Where("name IN ?", params.Tags).Find(&dbTags).Error; err != nil {
+			logger.WithError(err).Error("Unable to fetch tags")
+			return InternalServerError{}
+		}
+		for _, tag := range dbTags {
+			tagIds = append(tagIds, tag.ID)
+		}
+
+		err = tx.Raw(`
+      SELECT DISTINCT ON (id) *
+      FROM meetups AS m
+      JOIN meetup_tag AS mt ON m.id = mt.meetup_id
+      WHERE m.location_lat IS NULL AND mt.tag_id IN ? AND m.time >= CURRENT_TIMESTAMP
+      ORDER BY m.time
+      LIMIT 100
+    `, tagIds).Scan(&meetups).Error
+	}
+
+	if err != nil {
+		logger.WithError(err).Error("Unable to find meetups that fit the given parameters")
+		return operations.NewGetMeetupRemoteOK().WithPayload([]*models.Meetup{})
 	}
 
 	var idStr string

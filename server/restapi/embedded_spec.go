@@ -70,7 +70,7 @@ func init() {
     "/meetup": {
       "get": {
         "description": "If the required parameters were not specified correctly, an error is returned",
-        "summary": "Get the list of meetups",
+        "summary": "Get the list of in-person meetups",
         "parameters": [
           {
             "maximum": 90,
@@ -148,6 +148,41 @@ func init() {
             "description": "Created",
             "schema": {
               "$ref": "#/definitions/meetup"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          }
+        }
+      }
+    },
+    "/meetup/remote": {
+      "get": {
+        "description": "If the required parameters were not specified correctly, an error is returned",
+        "summary": "Get the list of remote meetups",
+        "parameters": [
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Interests to search for",
+            "name": "tags",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/meetup"
+              }
             }
           },
           "400": {
@@ -1021,7 +1056,7 @@ func init() {
     "/meetup": {
       "get": {
         "description": "If the required parameters were not specified correctly, an error is returned",
-        "summary": "Get the list of meetups",
+        "summary": "Get the list of in-person meetups",
         "parameters": [
           {
             "maximum": 90,
@@ -1100,6 +1135,41 @@ func init() {
             "description": "Created",
             "schema": {
               "$ref": "#/definitions/meetup"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/error"
+            }
+          }
+        }
+      }
+    },
+    "/meetup/remote": {
+      "get": {
+        "description": "If the required parameters were not specified correctly, an error is returned",
+        "summary": "Get the list of remote meetups",
+        "parameters": [
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Interests to search for",
+            "name": "tags",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/meetup"
+              }
             }
           },
           "400": {
