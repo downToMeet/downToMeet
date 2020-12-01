@@ -211,7 +211,7 @@ func (i *Implementation) GetMeetupRemote(params operations.GetMeetupRemoteParams
 		}
 		modelMeetups = append(modelMeetups, dbMeetupToModelMeetup(&meetup, idStr))
 	}
-	return operations.NewGetMeetupOK().WithPayload(modelMeetups)
+	return operations.NewGetMeetupRemoteOK().WithPayload(modelMeetups)
 }
 
 func (i *Implementation) GetMeetupID(params operations.GetMeetupIDParams) middleware.Responder {

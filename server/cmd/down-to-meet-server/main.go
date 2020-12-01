@@ -8,7 +8,6 @@ import (
 
 	"github.com/go-openapi/loads"
 	flags "github.com/jessevdk/go-flags"
-
 	"go.timothygu.me/downtomeet/server/restapi"
 	"go.timothygu.me/downtomeet/server/restapi/operations"
 )
