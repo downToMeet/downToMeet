@@ -19,6 +19,7 @@ import { IN_PERSON, REMOTE } from "../../constants";
 import * as fetcher from "../../lib/fetch";
 
 function Search() {
+  const [error, setError] = useState(null);
   const [tags, setTags] = useState([]);
   const [coords, setCoords] = useState(null);
   const [position, setPosition] = useState(null); // position object from navigator.geolocation
@@ -35,15 +36,47 @@ function Search() {
     "cooking",
   ];
 
+  const resetSearch = () => {
+    setError(null);
+    setTags([]);
+    setCoords(null);
+    setPosition(null);
+    setMeetups(null);
+    setMeetupType("");
+    setSearchLocation(null);
+  };
+
+  const validateSearch = () => {
+    if (meetupType === "") {
+      return false;
+    }
+    if (meetupType === IN_PERSON && coords === null) {
+      return false;
+    }
+    return true;
+  };
+
   const onSubmit = async () => {
-    const { res, resJSON } = await fetcher.searchForMeetups({
-      lat: coords[0],
-      lon: coords[1],
-      radius: 10,
-      tags,
-    });
-    if (res.ok) {
-      setMeetups(resJSON);
+    if (!validateSearch()) {
+      setError(true);
+      return;
+    }
+    setError(false);
+    if (meetupType === IN_PERSON) {
+      const { res, resJSON } = await fetcher.searchForMeetups({
+        lat: coords[0],
+        lon: coords[1],
+        radius: 10,
+        tags,
+      });
+      if (res.ok) {
+        setMeetups(resJSON);
+      }
+    } else {
+      const { res, resJSON } = await fetcher.searchForRemoteMeetups(tags);
+      if (res.ok) {
+        setMeetups(resJSON);
+      }
     }
   };
 
@@ -116,7 +149,7 @@ function Search() {
 
   const renderSearch = () => {
     return (
-      <Box display="flex" flexDirection="row" flexWrap="wrap" mt={6}>
+      <Box display="flex" flexDirection="row" flexWrap="wrap" mt={2}>
         <FormControl required variant="outlined" style={{ width: 120 }}>
           <InputLabel id="select-meetup-type-label">Type</InputLabel>
           <Select
@@ -178,7 +211,7 @@ function Search() {
     }
     if (meetups.length === 0) {
       return (
-        <Typography>
+        <Typography style={{ marginTop: 16 }}>
           We couldn’t find any meetups, try widening your search or{" "}
           <Link to="/create">create your own meetup!</Link>
         </Typography>
@@ -200,12 +233,35 @@ function Search() {
 
   return (
     <Container maxWidth="sm">
-      {renderSearch()}
-      {meetupType === IN_PERSON && renderLocation()}
-      <Button onClick={onSubmit} variant="contained">
-        Search
-      </Button>
-      {renderMeetups()}
+      <Typography
+        variant="h2"
+        component="h1"
+        style={{ marginTop: 20, textAlign: "center" }}
+      >
+        Search for Meetups
+      </Typography>
+      {error && (
+        <Typography color="error">
+          Please ensure all required fields (marked with *) are filled out.
+        </Typography>
+      )}
+      <Box display="flex" flexDirection="column">
+        {renderSearch()}
+        {meetupType === IN_PERSON && renderLocation()}
+        <Box alignSelf="flex-end" mt={2}>
+          <Button
+            onClick={resetSearch}
+            variant="contained"
+            style={{ marginRight: 20 }}
+          >
+            Reset Search
+          </Button>
+          <Button onClick={onSubmit} variant="contained">
+            Search
+          </Button>
+        </Box>
+        {renderMeetups()}
+      </Box>
     </Container>
   );
 }

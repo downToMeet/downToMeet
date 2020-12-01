@@ -64,6 +64,7 @@ func configureAPI(api *operations.DownToMeetAPI) http.Handler {
 	api.GetUserGoogleRedirectHandler = operations.GetUserGoogleRedirectHandlerFunc(Impl.GetUserGoogleRedirect)
 
 	api.GetMeetupIDHandler = operations.GetMeetupIDHandlerFunc(Impl.GetMeetupID)
+	api.GetMeetupRemoteHandler = operations.GetMeetupRemoteHandlerFunc(Impl.GetMeetupRemote)
 	api.PostMeetupHandler = operations.PostMeetupHandlerFunc(Impl.PostMeetup)
 	api.PatchMeetupIDHandler = operations.PatchMeetupIDHandlerFunc(Impl.PatchMeetupID)
 	api.DeleteMeetupIDHandler = operations.DeleteMeetupIDHandlerFunc(Impl.DeleteMeetupID)
