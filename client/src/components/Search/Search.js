@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import AutoComplete from "@material-ui/lab/Autocomplete";
 import {
   Box,
@@ -10,7 +10,7 @@ import {
 import makeStyles from "@material-ui/styles/makeStyles";
 import { Link } from "react-router-dom";
 
-import LocationPicker from "../common/LocationPicker";
+import LocationPicker, { useGoogleMaps } from "../common/LocationPicker";
 import MeetupCard from "./MeetupCard";
 import * as fetcher from "../../lib/fetch";
 
@@ -24,8 +24,8 @@ function Search() {
   const classes = useStyles();
 
   const [tags, setTags] = useState([]);
-  const [lat, setLat] = useState(null);
-  const [lon, setLon] = useState(null);
+  const [coords, setCoords] = useState(null);
+  const [position, setPosition] = useState(null); // position object from navigator.geolocation
   const [meetups, setMeetups] = useState(null);
   const [searchLocation, setSearchLocation] = useState(null);
 
@@ -40,8 +40,8 @@ function Search() {
 
   const onSubmit = async () => {
     const { res, resJSON } = await fetcher.searchForMeetups({
-      lat,
-      lon,
+      lat: coords[0],
+      lon: coords[1],
       radius: 10,
       tags,
     });
@@ -52,13 +52,70 @@ function Search() {
 
   const locate = () => {
     if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition((position) => {
-        const { latitude, longitude } = position.coords;
-        setLat(latitude);
-        setLon(longitude);
+      navigator.geolocation.getCurrentPosition((pos) => {
+        const { latitude, longitude } = pos.coords;
+        setCoords([latitude, longitude]);
+        setPosition(pos);
       });
     }
   };
+
+  const { isReady, geocode } = useGoogleMaps([position]);
+
+  useEffect(() => {
+    // Try to geocode the current user location – but only if the current
+    // coordinates to search for are the ones we got from geolocation.
+    if (
+      position &&
+      position.coords.latitude === coords[0] &&
+      position.coords.longitude === coords[1] &&
+      isReady()
+    ) {
+      const controller = new AbortController();
+
+      geocode(
+        {
+          location: {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          },
+        },
+        (res) => {
+          // If this request has been aborted, or if the current coordinates to
+          // search for are no longer the position we got from geolocation,
+          // abort.
+          if (
+            controller.signal.aborted ||
+            position.coords.latitude !== coords[0] ||
+            position.coords.longitude !== coords[1]
+          ) {
+            return;
+          }
+
+          for (const place of res || []) {
+            // Don't try to get accurate places if the location we got had low
+            // accuracy.
+            if (
+              position.coords.accuracy > 2000 &&
+              place.geometry.location_type !== "APPROXIMATE"
+            ) {
+              continue;
+            }
+
+            setSearchLocation({
+              description: place.formatted_address,
+              coords: [position.coords.latitude, position.coords.longitude],
+            });
+            break;
+          }
+        }
+      );
+      return () => {
+        controller.abort();
+      };
+    }
+    return undefined;
+  }, [position]);
 
   const renderSearchBar = () => {
     return (
@@ -85,10 +142,14 @@ function Search() {
   const renderLocation = () => {
     return (
       <Box display="flex" alignItems="center">
-        <Button onClick={locate} variant="contained">
-          Use GPS
-        </Button>
-        <Typography style={{ margin: 10 }}>or</Typography>
+        {navigator.geolocation && (
+          <>
+            <Button onClick={locate} variant="contained">
+              Use GPS
+            </Button>
+            <Typography style={{ margin: 10 }}>or</Typography>
+          </>
+        )}
         <LocationPicker
           value={searchLocation}
           setValue={setSearchLocation}
