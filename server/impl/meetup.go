@@ -48,7 +48,7 @@ func (i *Implementation) GetMeetup(params operations.GetMeetupParams) middleware
 	var meetups []*db.Meetup
 	err := tx.Raw(`
 		SELECT * FROM (
-			SELECT DISTINCT ON (id) *
+			SELECT DISTINCT ON (m.id) *
 			FROM (
 				SELECT *,
 					earth_distance(ll_to_earth(?, ?),
