@@ -48,6 +48,9 @@ type User struct {
 
 	// pending approval
 	PendingApproval []MeetupID `json:"pendingApproval,omitempty"`
+
+	// profile pic
+	ProfilePic string `json:"profilePic,omitempty"`
 }
 
 // Validate validates this user

@@ -11,6 +11,7 @@ type User struct {
 	Email           string `gorm:"uniqueIndex"`
 	Name            string
 	ContactInfo     string
+	ProfilePic      *string
 	FacebookID      *string     `gorm:"uniqueIndex"`
 	GoogleID        *string     `gorm:"uniqueIndex"`
 	Location        Coordinates `gorm:"embedded;embeddedPrefix:location_"`

@@ -150,7 +150,7 @@ func (i *Implementation) GetMeetupID(params operations.GetMeetupIDParams) middle
 	if id := SessionFromContext(ctx).Values[UserID]; id == nil {
 		idStr = ""
 	} else {
-		if _, err := db.UserIDFromString(idStr); err != nil {
+		if _, err := db.UserIDFromString(id.(string)); err != nil {
 			logger.Error("Session has invalid user ID")
 			return InternalServerError{}
 		}

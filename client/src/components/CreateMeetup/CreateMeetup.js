@@ -1,4 +1,4 @@
-import { React, useState } from "react";
+import React, { useState } from "react";
 import makeStyles from "@material-ui/styles/makeStyles";
 import {
   Box,
@@ -19,7 +19,9 @@ import {
 } from "@material-ui/pickers";
 import DayUtils from "@date-io/dayjs";
 
+import { IN_PERSON, REMOTE } from "../../constants";
 import LocationPicker from "./LocationPicker";
+import * as fetcher from "../../lib/fetch";
 
 const useStyles = makeStyles(() => ({
   formSection: {
@@ -33,14 +35,30 @@ const useStyles = makeStyles(() => ({
 
 function CreateMeetup() {
   const classes = useStyles();
-  const [name, setName] = useState("");
-  const [date, setDate] = useState(new Date());
+  const [title, setTitle] = useState("");
+  const [time, setTime] = useState(new Date());
   const [meetupType, setMeetupType] = useState("");
   const [meetupURL, setMeetupURL] = useState("");
   const [meetupLocation, setMeetupLocation] = useState(null);
   const [groupCount, setGroupCount] = useState([2, 10]);
-  const [desc, setDesc] = useState("");
+  const [description, setDescription] = useState("");
   const [tags, setTags] = useState([]);
+
+  const [error, setError] = useState(false);
+  const [creatingMeetup, setCreatingMeetup] = useState(false);
+
+  const clearForm = () => {
+    setTitle("");
+    setTime(new Date());
+    setMeetupType("");
+    setMeetupURL("");
+    setMeetupLocation(null);
+    setGroupCount([2, 10]);
+    setDescription("");
+    setTags([]);
+    setError(false);
+    setCreatingMeetup(false);
+  };
 
   // TODO: load options from the server instead
   const tagOptions = [
@@ -51,6 +69,23 @@ function CreateMeetup() {
     "cooking",
   ];
 
+  const validateForm = () => {
+    if (title === "" || meetupType === "" || tags.length === 0) {
+      setError(true);
+      return false;
+    }
+    if (meetupType === IN_PERSON && meetupLocation === null) {
+      setError(true);
+      return false;
+    }
+    if (meetupType === REMOTE && meetupURL === "") {
+      setError(true);
+      return false;
+    }
+    setError(false);
+    return true;
+  };
+
   const renderNameInput = () => {
     return (
       <div className={classes.formSection}>
@@ -58,8 +93,8 @@ function CreateMeetup() {
           required
           variant="outlined"
           label="Title"
-          value={name}
-          onChange={(event) => setName(event.target.value)}
+          value={title}
+          onChange={(event) => setTitle(event.target.value)}
           style={{ width: "100%" }}
         />
       </div>
@@ -75,8 +110,8 @@ function CreateMeetup() {
             variant="inline"
             inputVariant="outlined"
             label="Time"
-            value={date}
-            onChange={(newDate) => setDate(newDate)}
+            value={time}
+            onChange={(newDate) => setTime(newDate)}
             className={classes.formInput}
             style={{
               width: "100%",
@@ -98,11 +133,11 @@ function CreateMeetup() {
             value={meetupType}
             onChange={(event) => setMeetupType(event.target.value)}
           >
-            <MenuItem value="in-person">In person</MenuItem>
-            <MenuItem value="remote">Remote</MenuItem>
+            <MenuItem value={IN_PERSON}>In person</MenuItem>
+            <MenuItem value={REMOTE}>Remote</MenuItem>
           </Select>
         </FormControl>
-        {meetupType === "in-person" && (
+        {meetupType === IN_PERSON && (
           <LocationPicker
             value={meetupLocation}
             setValue={setMeetupLocation}
@@ -112,10 +147,11 @@ function CreateMeetup() {
             }}
           />
         )}
-        {meetupType === "remote" && (
+        {meetupType === REMOTE && (
           <TextField
             label="URL"
             variant="outlined"
+            required
             value={meetupURL}
             onChange={(event) => setMeetupURL(event.target.value)}
             className={classes.formInput}
@@ -163,8 +199,8 @@ function CreateMeetup() {
       <div className={classes.formSection}>
         <TextField
           label="Description"
-          value={desc}
-          onChange={(event) => setDesc(event.target.value)}
+          value={description}
+          onChange={(event) => setDescription(event.target.value)}
           multiline
           variant="outlined"
           rows={3}
@@ -176,14 +212,6 @@ function CreateMeetup() {
         />
       </div>
     );
-  };
-
-  const onSubmit = () => {
-    // TODO: disable button while waiting
-    // TODO: validate form
-    // console.log("Creating meetup: ");
-    // console.log({ name, date, meetupType, meetupLocation, groupMin, groupMax, desc, tags });
-    // TODO: create a meetup and redirect user
   };
 
   const renderTags = () => {
@@ -210,11 +238,40 @@ function CreateMeetup() {
     );
   };
 
+  const onSubmit = async () => {
+    if (!validateForm()) {
+      setCreatingMeetup(false);
+      return;
+    }
+
+    setCreatingMeetup(true);
+    const { res } = await fetcher.createMeetup({
+      title,
+      time,
+      meetupType,
+      meetupURL,
+      meetupLocation,
+      groupCount,
+      description,
+      tags,
+    });
+    if (res.ok) {
+      // console.log("Created meetup with id: ", resJSON.id);
+      clearForm();
+      // TODO: redirect to newly created meetup
+    }
+  };
+
   return (
     <Container maxWidth="sm">
       <Typography variant="h2" component="h1">
         Create your meetup
       </Typography>
+      {error && (
+        <Typography style={{ color: "red" }}>
+          Please ensure all required fields (marked with *) are filled out.
+        </Typography>
+      )}
       <Box component="form" display="flex" flexDirection="column">
         {renderNameInput()}
         {renderDateInput()}
@@ -227,6 +284,7 @@ function CreateMeetup() {
             variant="contained"
             color="primary"
             onClick={onSubmit}
+            disabled={creatingMeetup}
             style={{
               marginTop: 20,
             }}

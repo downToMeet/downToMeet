@@ -155,6 +155,7 @@ export default function LocationPicker({ value, setValue, style }) {
       renderInput={(params) => (
         <TextField
           {...params} // eslint-disable-line react/jsx-props-no-spreading
+          required
           label="Add a location"
           variant="outlined"
           fullWidth

@@ -32,7 +32,7 @@ const (
 	stateNonceLen = 30
 	stateExpiry   = 30 * time.Minute // login must be complete within 30 min
 
-	facebookInfoURL = "https://graph.facebook.com/v9.0/me?fields=id%2Cname%2Cemail&format=json"
+	facebookInfoURL = "https://graph.facebook.com/v9.0/me?fields=id%2Cname%2Cemail%2Cpicture.type(large)&format=json"
 )
 
 type OAuthState struct {
@@ -85,8 +85,7 @@ func (i *Implementation) GetUserFacebookRedirect(param operations.GetUserFaceboo
 	}
 
 	// See comment at top of the file.
-	redirectToHome := operations.NewGetUserFacebookRedirectSeeOther().
-		WithLocation(i.buildURL(param.HTTPRequest, &operations.GetUserMeURL{})) // TODO: redirect to actual homepage
+	redirectToHome := operations.NewGetUserFacebookRedirectSeeOther().WithLocation(i.Options.Frontend)
 
 	// Step 1: Check request state validity to protect against CSRF attacks.
 	// See https://auth0.com/docs/protocols/state-parameters.
@@ -136,7 +135,16 @@ func (i *Implementation) GetUserFacebookRedirect(param operations.GetUserFaceboo
 	defer resp.Body.Close()
 
 	jsonDec := json.NewDecoder(resp.Body)
-	var info struct{ ID, Name, Email string }
+	var info struct {
+		ID, Name, Email string
+		Picture         struct {
+			Data struct {
+				Width, Height int
+				IsSilhouette  bool `json:"is_silhouette"`
+				URL           string
+			}
+		}
+	}
 	if err := jsonDec.Decode(&info); err != nil {
 		logger.WithField("token", token).WithError(err).Error("Unable to get user information from Facebook")
 		return redirectToHome
@@ -173,6 +181,12 @@ func (i *Implementation) GetUserFacebookRedirect(param operations.GetUserFaceboo
 				logger.WithError(err).Warn("Unable to update user's Facebook ID")
 			}
 		}
+		if dbUser.ProfilePic == nil && info.Picture.Data.URL != "" {
+			dbUser.ProfilePic = swag.String(info.Picture.Data.URL)
+			if err := tx.Model(&dbUser).Update("ProfilePic", dbUser.ProfilePic).Error; err != nil {
+				logger.WithError(err).Warn("Unable to update user's profile picture")
+			}
+		}
 
 		logger.Info("logged in through email")
 		return redirectToHome
@@ -183,6 +197,9 @@ func (i *Implementation) GetUserFacebookRedirect(param operations.GetUserFaceboo
 	dbUser.Name = info.Name
 	dbUser.Email = info.Email
 	dbUser.FacebookID = swag.String(info.ID)
+	if info.Picture.Data.URL != "" && !info.Picture.Data.IsSilhouette {
+		dbUser.ProfilePic = swag.String(info.Picture.Data.URL)
+	}
 	if err := tx.Create(&dbUser).Error; err != nil {
 		logger.WithError(err).Error("Unable to create new user")
 		return redirectToHome
@@ -212,10 +229,12 @@ func (i *Implementation) buildURL(r *http.Request, b urlBuilder) string {
 	if r.TLS != nil {
 		scheme = "https"
 	}
-	if r.Host == "" && !i.Options.Production {
-		host = "localhost:9000"
-	} else {
-		panic("cannot find the host name")
+	if host == "" {
+		if !i.Options.Production {
+			host = "localhost:9000"
+		} else {
+			panic("cannot find the host name")
+		}
 	}
 	return b.StringFull(scheme, host)
 }

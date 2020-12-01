@@ -1,2 +1,4 @@
 export const SERVER_URL = "http://localhost:9000";
-export const FISH = "Red snapper";
+
+export const IN_PERSON = "in-person";
+export const REMOTE = "remote";
