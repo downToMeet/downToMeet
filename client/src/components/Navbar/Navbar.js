@@ -15,7 +15,7 @@ import makeStyles from "@material-ui/styles/makeStyles";
 import { Link } from "react-router-dom";
 import store from "../../app/store";
 import { clearUserData, updateUserData } from "../../stores/user/actions";
-import { getUserData, logout } from "../../lib/fetch";
+import * as fetcher from "../../lib/fetch";
 
 const useStyles = makeStyles(() => ({
   // TODO: mobile scaling
@@ -75,15 +75,12 @@ function Navbar() {
     setProfileMenuAnchor(null);
   };
 
-  const handleLogout = () => {
-    (async () => {
-      const res = await logout();
-      if (!res.ok) {
-        return;
-      }
-      console.log(res);
-      store.dispatch(clearUserData());
-    })();
+  const handleLogout = async () => {
+    const res = await fetcher.logout();
+    if (!res.ok) {
+      return;
+    }
+    store.dispatch(clearUserData());
     handleProfileMenuClose();
     setAuthenticated(false);
   };
@@ -137,27 +134,25 @@ function Navbar() {
     </Button>
   );
 
+  const handleAuthToggle = async () => {
+    if (authenticated) {
+      store.dispatch(clearUserData());
+    } else {
+      const { res, resJSON } = await fetcher.getUserData();
+      if (!res.ok) {
+        return;
+      }
+      store.dispatch(updateUserData({ id: resJSON.id, name: resJSON.name }));
+    }
+    setAuthenticated(!authenticated);
+  };
+
   const authToggle = (
     <Button
       size="small"
       variant="outlined"
       color="secondary"
-      onClick={() => {
-        if (authenticated) {
-          store.dispatch(clearUserData());
-        } else {
-          (async () => {
-            const { res, resJSON } = await getUserData();
-            if (!res.ok) {
-              return;
-            }
-            store.dispatch(
-              updateUserData({ id: resJSON.id, name: resJSON.name })
-            );
-          })();
-        }
-        setAuthenticated(!authenticated);
-      }}
+      onClick={handleAuthToggle}
       className={classes.button}
       component={Link}
       to="/"
