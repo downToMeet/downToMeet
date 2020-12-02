@@ -15,7 +15,7 @@ import makeStyles from "@material-ui/styles/makeStyles";
 import { Link } from "react-router-dom";
 import store from "../../app/store";
 import { clearUserData, updateUserData } from "../../stores/user/actions";
-import { getUserData } from "../../lib/fetch";
+import { getUserData, logout } from "../../lib/fetch";
 
 const useStyles = makeStyles(() => ({
   // TODO: mobile scaling
@@ -75,6 +75,19 @@ function Navbar() {
     setProfileMenuAnchor(null);
   };
 
+  const handleLogout = () => {
+    (async () => {
+      const res = await logout();
+      if (!res.ok) {
+        return;
+      }
+      console.log(res);
+      store.dispatch(clearUserData());
+    })();
+    handleProfileMenuClose();
+    setAuthenticated(false);
+  };
+
   const ProfileMenu = (
     <>
       <Button
@@ -106,14 +119,7 @@ function Navbar() {
         >
           Profile
         </MenuItem>
-        <MenuItem
-          onClick={() => {
-            handleProfileMenuClose();
-            setAuthenticated(false);
-          }}
-          component={Link}
-          to="/"
-        >
+        <MenuItem onClick={handleLogout} component={Link} to="/login">
           Logout
         </MenuItem>
       </Menu>

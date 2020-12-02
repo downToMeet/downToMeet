@@ -66,3 +66,11 @@ export async function createMeetup({
 
   return { res, resJSON: await res.json() };
 }
+
+export async function logout() {
+  const getLogoutEndpoint = `${SERVER_URL}/user/logout`;
+  const res = await fetch(getLogoutEndpoint, {
+    credentials: "include",
+  });
+  return res;
+}
