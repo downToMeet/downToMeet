@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
@@ -13,6 +14,10 @@ import {
   Button,
   Grid,
   CircularProgress,
+  Dialog,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
 } from "@material-ui/core";
 import GroupAddIcon from "@material-ui/icons/GroupAdd";
 import { makeStyles } from "@material-ui/core/styles";
@@ -83,15 +88,19 @@ function Meetup({ id }) {
   const classes = useStyles();
 
   const [isLoading, setIsLoading] = useState(true);
-  const [resStatus, setResStatus] = useState(null);
+  const [user, setUser] = useState(null);
+  const [loginDialog, setLoginDialog] = useState(false);
+  const [fetchMeetupError, setFetchMeetupError] = useState(null);
+  const [userMeetupStatus, setUserMeetupStatus] = useState("");
   const [title, setTitle] = useState("");
-  const [time, setTime] = useState(new Date());
+  const [time, setTime] = useState(null);
   const [meetupLocation, setMeetupLocation] = useState(null);
-  const [groupCount, setGroupCount] = useState([2, 18]);
+  const [groupCount, setGroupCount] = useState([]);
   const [description, setDescription] = useState("");
   const [tags, setTags] = useState([]);
-  const [attendees, setAttendees] = useState([]);
   const [organizer, setOrganizer] = useState("");
+  const [attendees, setAttendees] = useState([]);
+  const [pendingAttendees, setPendingAttendees] = useState([]);
   const profilePic =
     "http://web.cs.ucla.edu/~miryung/MiryungKimPhotoAugust2018.jpg";
 
@@ -110,21 +119,44 @@ function Meetup({ id }) {
     year: "numeric",
   };
 
-  const setData = (data) => {
-    setTitle(data.title);
-    setTime(new Date(data.time));
-    setMeetupLocation(data.location);
-    setGroupCount([data.minCapacity, data.maxCapacity]);
-    setDescription(data.description);
-    setTags(data.tags);
-    setAttendees(data.attendees);
-    setOrganizer(data.organizer);
+  const setData = (userData, meetupData) => {
+    setTitle(meetupData.title);
+    setTime(new Date(meetupData.time));
+    setMeetupLocation(meetupData.location);
+    setGroupCount([meetupData.minCapacity, meetupData.maxCapacity]);
+    setDescription(meetupData.description);
+    setTags(meetupData.tags);
+    setOrganizer(meetupData.organizer);
+    setAttendees(meetupData.attendees);
+    setPendingAttendees(meetupData.pendingAttendees);
+    if (meetupData.owner === userData.id) {
+      setUserMeetupStatus("owner");
+    } else if (
+      meetupData.pendingAttendees &&
+      meetupData.pendingAttendees.includes(userData.id)
+    ) {
+      setUserMeetupStatus("pending");
+    } else if (
+      meetupData.attendees &&
+      meetupData.attendees.includes(userData.id)
+    ) {
+      setUserMeetupStatus("attending");
+    } else if (meetupData.rejected) {
+      setUserMeetupStatus("rejected");
+    }
   };
 
   useEffect(async () => {
-    const { res, resJSON } = await fetcher.getMeetup(id);
-    setResStatus(res.status);
-    setData(resJSON);
+    const { res: userRes, resJSON: userJSON } = await fetcher.getUserData();
+    if (!userRes.ok) {
+      console.log("User not logged in");
+    }
+    const { res: meetupRes, resJSON: meetupJSON } = await fetcher.getMeetup(id);
+    if (meetupRes.ok) {
+      setData(userJSON, meetupJSON);
+    } else {
+      setFetchMeetupError(meetupRes.status);
+    }
     setIsLoading(false);
   }, []);
 
@@ -147,7 +179,7 @@ function Meetup({ id }) {
       case 404:
         errorMessage = "Error: Meetup not found.";
         break;
-      case 200:
+      case 400:
         errorMessage = "Error: Bad request.";
         break;
       case null:
@@ -296,15 +328,64 @@ function Meetup({ id }) {
     );
   };
 
-  const handleJoinMeetup = () => {
+  const handleJoinMeetup = async () => {
     // TODO: get user ID and submit join meetup to backend
     // eslint-disable-next-line no-console
-    console.log("Joining meetup");
+    if (user) {
+      fetcher.joinMeetup(id);
+      console.log("Joining meetup");
+    } else {
+      setLoginDialog(true);
+    }
   };
 
-  const renderMeetup = (status) => {
-    if (status !== 200) {
-      return renderError(status);
+  const handleLeaveMeetup = async () => {
+    console.log("Canceling join request");
+    // patch with status = "none"
+  };
+
+  const renderMeetupAction = () => {
+    let button;
+    // TODO: Edit meetup redirect to pre-populated CreateMeetup page
+    switch (userMeetupStatus) {
+      case "owner":
+        button = (
+          <Button startIcon={<GroupAddIcon />} component={RouterLink}>
+            Edit Meetup
+          </Button>
+        );
+        break;
+      case "attending":
+        button = (
+          <Button startIcon={<GroupAddIcon />} onClick={handleLeaveMeetup}>
+            Leave Meetup
+          </Button>
+        );
+        break;
+      case "pending":
+        button = (
+          <Button startIcon={<GroupAddIcon />} onClick={handleLeaveMeetup}>
+            Cancel Join Request
+          </Button>
+        );
+        break;
+      default:
+        button = (
+          <Button startIcon={<GroupAddIcon />} onClick={handleJoinMeetup}>
+            Join Meetup
+          </Button>
+        );
+    }
+    return (
+      <Grid item xs={2} container justify="center" alignItems="flex-start">
+        {button}
+      </Grid>
+    );
+  };
+
+  const renderMeetup = (errorStatus) => {
+    if (errorStatus) {
+      return renderError(errorStatus);
     }
 
     return (
@@ -314,11 +395,7 @@ function Meetup({ id }) {
             <Typography variant="h3">{title}</Typography>
             {/* add share/link copy icon here? */}
           </Grid>
-          <Grid item xs={2} container justify="center" alignItems="flex-start">
-            <Button startIcon={<GroupAddIcon />} onClick={handleJoinMeetup}>
-              Join Meetup
-            </Button>
-          </Grid>
+          {renderMeetupAction()}
         </Grid>
         <Grid
           item
@@ -364,6 +441,17 @@ function Meetup({ id }) {
 
   return (
     <Box className={classes.root}>
+      <Dialog open={loginDialog} onClose={() => setLoginDialog(false)}>
+        <DialogContent>
+          <DialogContentText>Please log in to join a meetup.</DialogContentText>
+          <DialogActions>
+            <Button onClick={() => setLoginDialog(false)}>OK</Button>
+            <Button component={RouterLink} to="/login" color="primary">
+              Sign in
+            </Button>
+          </DialogActions>
+        </DialogContent>
+      </Dialog>
       <Paper className={classes.paper}>
         <Grid container spacing={1}>
           <Grid item>
@@ -376,7 +464,7 @@ function Meetup({ id }) {
               &lt; return home
             </Typography>
           </Grid>
-          {isLoading ? Spinner : renderMeetup(resStatus)}
+          {isLoading ? Spinner : renderMeetup(fetchMeetupError)}
         </Grid>
       </Paper>
     </Box>

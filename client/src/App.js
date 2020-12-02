@@ -18,7 +18,7 @@ function App() {
       <div>
         <Link to="/search">Search</Link>
         <br />
-        <Link to="meetup/123">Test meetup</Link>
+        <Link to="/meetup/2">Test meetup</Link>
       </div>
       <Switch>
         <Route path="/create">
@@ -27,6 +27,10 @@ function App() {
         <Route path="/login">
           <Login />
         </Route>
+        <Route
+          path="/meetup/:id/edit"
+          render={(input) => <CreateMeetup id={input.match.params.id} />}
+        />
         <Route
           path="/meetup/:id"
           render={(input) => <Meetup id={input.match.params.id} />}

@@ -1,6 +1,6 @@
 import { IN_PERSON, REMOTE, SERVER_URL } from "../constants";
 
-export async function getUserData(id) {
+export async function getUserData(id = "me") {
   const getUserDataEndpoint = `${SERVER_URL}/user/${id}`;
   const res = await fetch(getUserDataEndpoint, {
     credentials: "include",
@@ -64,6 +64,20 @@ export async function getMeetup(id) {
 
   const res = await fetch(getMeetupEndpoint, {
     method: "GET",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  return { res, resJSON: await res.json() };
+}
+
+export async function joinMeetup(id) {
+  const addAttendeeEndpoint = `${SERVER_URL}/meetup/${id}/attendee`;
+
+  const res = await fetch(addAttendeeEndpoint, {
+    method: "POST",
     credentials: "include",
     headers: {
       "Content-Type": "application/json",
