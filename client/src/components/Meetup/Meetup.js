@@ -34,6 +34,7 @@ import { Link as RouterLink } from "react-router-dom";
 import * as fetcher from "../../lib/fetch";
 
 const useStyles = makeStyles((theme) => ({
+  // TODO: reorganize styles, possibly refactor into separate file
   // TODO: mobile scaling
   // TODO: finalize styles (font, color)
   root: {
@@ -70,7 +71,7 @@ const useStyles = makeStyles((theme) => ({
     listStyle: "none",
   },
   attendee: {
-    marginBottom: theme.spacing(2),
+    marginBottom: theme.spacing(1),
   },
   organizer: {
     marginTop: theme.spacing(2),
@@ -90,6 +91,10 @@ const useStyles = makeStyles((theme) => ({
   avatar: {
     width: theme.spacing(8),
     height: theme.spacing(8),
+  },
+  profileName: {
+    textDecoration: "none",
+    color: theme.palette.common.black,
   },
   spinner: {
     marginTop: theme.spacing(1),
@@ -298,9 +303,27 @@ function Meetup({ id }) {
               <Avatar
                 className={classes.organizerAvatar}
                 src={eventDetails.owner.profilePic}
+                component={RouterLink}
+                to={`/user/${
+                  eventDetails.owner.id === user.id
+                    ? "me"
+                    : eventDetails.owner.id
+                }`}
               />
             }
-            title={eventDetails.owner.name}
+            title={
+              <Typography
+                className={classes.profileName}
+                component={RouterLink}
+                to={`/user/${
+                  eventDetails.owner.id === user.id
+                    ? "me"
+                    : eventDetails.owner.id
+                }`}
+              >
+                {eventDetails.owner.name}
+              </Typography>
+            }
             subheader={`member since ${new Date(
               eventDetails.owner.joinDate
             ).toLocaleString(locale, userDateOptions)}`}
@@ -385,10 +408,22 @@ function Meetup({ id }) {
               spacing={1}
             >
               <Grid item>
-                <Avatar className={classes.avatar} src={attendee.profilePic} />
+                <Avatar
+                  className={classes.avatar}
+                  src={attendee.profilePic}
+                  component={RouterLink}
+                  to={`/user/${attendee.id === user.id ? "me" : attendee.id}`}
+                />
               </Grid>
               <Grid item>
-                <Typography variant="body2">{attendee.name}</Typography>
+                <Typography
+                  variant="body2"
+                  className={classes.profileName}
+                  component={RouterLink}
+                  to={`/user/${attendee.id === user.id ? "me" : attendee.id}`}
+                >
+                  {attendee.name}
+                </Typography>
               </Grid>
             </Grid>
           ))}
@@ -621,7 +656,7 @@ function Meetup({ id }) {
             </Typography>
           </Grid>
           {renderOrganizer()}
-          <Grid item container justify="center">
+          <Grid item container justify="center" spacing={1}>
             {renderAttendees()}
             {user &&
               user.id === eventDetails.owner.id &&
