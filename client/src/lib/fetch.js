@@ -86,3 +86,35 @@ export async function joinMeetup(id) {
 
   return { res, resJSON: await res.json() };
 }
+export async function getMeetupAttendees(id) {
+  const getMeetupEndpoint = `${SERVER_URL}/meetup/${id}/attendee`;
+
+  const res = await fetch(getMeetupEndpoint, {
+    method: "GET",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  return { res, resJSON: await res.json() };
+}
+
+export async function updateAttendeeStatus({ id, attendee, attendeeStatus }) {
+  const updateAttendeeEndpoint = `${SERVER_URL}/meetup/${id}/attendee`;
+  const attendeePatch = {
+    attendee, // If empty, patches current user
+    attendeeStatus,
+  };
+
+  const res = await fetch(updateAttendeeEndpoint, {
+    method: "PATCH",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(attendeePatch),
+  });
+
+  return { res, resJSON: await res.json() };
+}

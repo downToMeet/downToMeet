@@ -3,27 +3,34 @@
 import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import {
-  Box,
-  Typography,
-  Chip,
-  Card,
-  CardHeader,
-  CardContent,
-  CardActions,
   Avatar,
+  Box,
   Button,
-  Grid,
+  ButtonGroup,
+  Card,
+  CardActions,
+  CardContent,
+  CardHeader,
+  Chip,
   CircularProgress,
   Dialog,
+  DialogActions,
   DialogContent,
   DialogContentText,
-  DialogActions,
+  Grid,
+  IconButton,
+  Tooltip,
+  Typography,
 } from "@material-ui/core";
-import GroupAddIcon from "@material-ui/icons/GroupAdd";
-import { makeStyles } from "@material-ui/core/styles";
-import { Link as RouterLink } from "react-router-dom";
 import Link from "@material-ui/core/Link";
 import Paper from "@material-ui/core/Paper";
+import CheckIcon from "@material-ui/icons/Check";
+import ClearIcon from "@material-ui/icons/Clear";
+import EditIcon from "@material-ui/icons/Edit";
+import PersonAddDisabledIcon from "@material-ui/icons/PersonAddDisabled";
+import PersonAddIcon from "@material-ui/icons/PersonAdd";
+import { makeStyles } from "@material-ui/core/styles";
+import { Link as RouterLink } from "react-router-dom";
 import * as fetcher from "../../lib/fetch";
 
 const useStyles = makeStyles((theme) => ({
@@ -69,12 +76,20 @@ const useStyles = makeStyles((theme) => ({
     marginTop: theme.spacing(2),
     width: 500,
   },
+  organizerAvatar: {
+    width: theme.spacing(8),
+    height: theme.spacing(8),
+  },
   organizerBio: {
     overflow: "hidden",
     textOverflow: "ellipsis",
     display: "-webkit-box",
     "-webkit-line-clamp": 3,
     "-webkit-box-orient": "vertical",
+  },
+  avatar: {
+    width: theme.spacing(8),
+    height: theme.spacing(8),
   },
   spinner: {
     marginTop: theme.spacing(1),
@@ -88,6 +103,7 @@ function Meetup({ id }) {
   const classes = useStyles();
 
   const [isLoading, setIsLoading] = useState(true);
+  const [isUpdating, setIsUpdating] = useState(false);
   const [user, setUser] = useState(null);
   const [loginDialog, setLoginDialog] = useState(false);
   const [fetchMeetupError, setFetchMeetupError] = useState(null);
@@ -126,10 +142,10 @@ function Meetup({ id }) {
     setGroupCount([meetupData.minCapacity, meetupData.maxCapacity]);
     setDescription(meetupData.description);
     setTags(meetupData.tags);
-    setOrganizer(meetupData.organizer);
+    setOrganizer(meetupData.owner);
     setAttendees(meetupData.attendees);
     setPendingAttendees(meetupData.pendingAttendees);
-    if (meetupData.owner === userData.id) {
+    if (userData && meetupData.owner === userData.id) {
       setUserMeetupStatus("owner");
     } else if (
       meetupData.pendingAttendees &&
@@ -148,8 +164,8 @@ function Meetup({ id }) {
 
   useEffect(async () => {
     const { res: userRes, resJSON: userJSON } = await fetcher.getUserData();
-    if (!userRes.ok) {
-      console.log("User not logged in");
+    if (userRes.ok) {
+      setUser(userJSON);
     }
     const { res: meetupRes, resJSON: meetupJSON } = await fetcher.getMeetup(id);
     if (meetupRes.ok) {
@@ -281,28 +297,66 @@ function Meetup({ id }) {
     );
   };
 
-  const renderAttendees = (attendeeList) => {
+  const handleUpdateAttendee = async ({ attendee, status }) => {
+    // If status is "none", remove attendee
+    // If attendee is null, update self
+    if (!attendee && status === "none") {
+      setUserMeetupStatus("");
+    }
+    setIsUpdating(true);
+    await fetcher.updateAttendeeStatus({
+      id,
+      attendee,
+      attendeeStatus: status,
+    });
+    const { res, resJSON } = await fetcher.getMeetupAttendees(id);
+    if (res.ok) {
+      setAttendees(resJSON.attending);
+      setPendingAttendees(resJSON.pending);
+    }
+    setIsUpdating(false);
+  };
+
+  const handleJoinMeetup = async () => {
+    // TODO: get user ID and submit join meetup to backend
+    // eslint-disable-next-line no-console
+    if (user) {
+      setIsUpdating(true);
+      await fetcher.joinMeetup(id);
+      setIsUpdating(false);
+      setUserMeetupStatus("pending");
+    } else {
+      setLoginDialog(true);
+    }
+  };
+
+  const renderAttendees = () => {
     // https://github.com/mui-org/material-ui/blob/master/packages/material-ui-lab/src/AvatarGroup/AvatarGroup.js
     // TODO: convert to modal expandable list when too many attendees
 
     let attendeeDisplay;
-    if (attendeeList) {
+    if (attendees) {
       attendeeDisplay = (
-        <Grid item container justify="center">
-          {attendeeList.map((attendee) => (
+        <>
+          {attendees.map((attendee) => (
             <Grid
+              key={attendee}
               item
               container
               direction="column"
-              xs={3}
+              xs={2}
               alignItems="center"
               className={classes.attendee}
             >
-              <Avatar size="small" />
-              {attendee}
+              <Grid item>
+                <Avatar className={classes.avatar} />
+              </Grid>
+              <Grid item>
+                <Typography variant="body2">{attendee}</Typography>
+              </Grid>
             </Grid>
           ))}
-        </Grid>
+        </>
       );
     } else {
       attendeeDisplay = (
@@ -317,31 +371,94 @@ function Meetup({ id }) {
         item
         container
         direction="column"
-        spacing={1}
+        spacing={3}
         className={classes.attendeeList}
       >
         <Grid item>
           <Typography variant="body2">Attendees: </Typography>
         </Grid>
-        {attendeeDisplay}
+        <Grid item>{attendeeDisplay}</Grid>
       </Grid>
     );
   };
 
-  const handleJoinMeetup = async () => {
-    // TODO: get user ID and submit join meetup to backend
-    // eslint-disable-next-line no-console
-    if (user) {
-      fetcher.joinMeetup(id);
-      console.log("Joining meetup");
-    } else {
-      setLoginDialog(true);
-    }
-  };
+  const renderPendingAttendees = () => {
+    // https://github.com/mui-org/material-ui/blob/master/packages/material-ui-lab/src/AvatarGroup/AvatarGroup.js
+    // TODO: convert to modal expandable list when too many attendees
 
-  const handleLeaveMeetup = async () => {
-    console.log("Canceling join request");
-    // patch with status = "none"
+    let pendingDisplay;
+    if (pendingAttendees) {
+      pendingDisplay = (
+        <Grid item container justify="flex-start">
+          {pendingAttendees.map((attendee) => (
+            <Grid
+              key={attendee}
+              item
+              container
+              direction="column"
+              xs={2}
+              alignItems="center"
+              className={classes.attendee}
+              spacing={1}
+            >
+              <Grid item>
+                <Avatar className={classes.avatar} />
+              </Grid>
+              <Grid item>
+                <Typography variant="body2">{attendee}</Typography>
+              </Grid>
+              <Grid item>
+                <ButtonGroup size="small">
+                  <Tooltip title="Accept attendee">
+                    <IconButton
+                      size="small"
+                      onClick={() =>
+                        handleUpdateAttendee({ attendee, status: "attending" })
+                      }
+                      disabled={isUpdating}
+                    >
+                      <CheckIcon />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="Reject attendee">
+                    <IconButton
+                      size="small"
+                      onClick={() =>
+                        handleUpdateAttendee({ attendee, status: "rejected" })
+                      }
+                      disabled={isUpdating}
+                    >
+                      <ClearIcon />
+                    </IconButton>
+                  </Tooltip>
+                </ButtonGroup>
+              </Grid>
+            </Grid>
+          ))}
+        </Grid>
+      );
+    } else {
+      pendingDisplay = (
+        <Grid item>
+          <Typography>No pending attendees.</Typography>
+        </Grid>
+      );
+    }
+
+    return (
+      <Grid
+        item
+        container
+        direction="column"
+        spacing={3}
+        className={classes.attendeeList}
+      >
+        <Grid item>
+          <Typography variant="body2">Pending Attendees: </Typography>
+        </Grid>
+        <Grid item>{pendingDisplay}</Grid>
+      </Grid>
+    );
   };
 
   const renderMeetupAction = () => {
@@ -350,28 +467,40 @@ function Meetup({ id }) {
     switch (userMeetupStatus) {
       case "owner":
         button = (
-          <Button startIcon={<GroupAddIcon />} component={RouterLink}>
+          <Button startIcon={<EditIcon />} component={RouterLink}>
             Edit Meetup
           </Button>
         );
         break;
       case "attending":
         button = (
-          <Button startIcon={<GroupAddIcon />} onClick={handleLeaveMeetup}>
+          <Button
+            startIcon={<ClearIcon />}
+            onClick={() => handleUpdateAttendee({ status: "none" })}
+            disabled={isUpdating}
+          >
             Leave Meetup
           </Button>
         );
         break;
       case "pending":
         button = (
-          <Button startIcon={<GroupAddIcon />} onClick={handleLeaveMeetup}>
+          <Button
+            startIcon={<PersonAddDisabledIcon />}
+            onClick={() => handleUpdateAttendee({ status: "none" })}
+            disabled={isUpdating}
+          >
             Cancel Join Request
           </Button>
         );
         break;
       default:
         button = (
-          <Button startIcon={<GroupAddIcon />} onClick={handleJoinMeetup}>
+          <Button
+            startIcon={<PersonAddIcon />}
+            onClick={handleJoinMeetup}
+            disabled={isUpdating}
+          >
             Join Meetup
           </Button>
         );
@@ -433,7 +562,12 @@ function Meetup({ id }) {
             </Typography>
           </Grid>
           {renderOrganizer()}
-          {renderAttendees(attendees)}
+          <Grid item container justify="center">
+            {renderAttendees()}
+            {user &&
+              user.id === organizer &&
+              renderPendingAttendees(pendingAttendees)}
+          </Grid>
         </Grid>
       </Grid>
     );
