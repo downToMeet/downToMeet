@@ -9,6 +9,16 @@ export async function getUserData(id = "me") {
   return { res, resJSON: await res.json() };
 }
 
+export async function getDataForUsers(users) {
+  if (!users) return [];
+
+  return Promise.all(
+    users.map((user) =>
+      fetch(`${SERVER_URL}/user/${user}`, { credentials: "include" })
+    )
+  ).then((responses) => Promise.all(responses.map((res) => res.json())));
+}
+
 export async function createMeetup({
   title,
   time,

@@ -135,7 +135,12 @@ function Meetup({ id }) {
     year: "numeric",
   };
 
-  const setData = (userData, meetupData) => {
+  async function setAttendeeLists(attendeeList, pendingAttendeesList) {
+    setAttendees(await fetcher.getDataForUsers(attendeeList));
+    setPendingAttendees(await fetcher.getDataForUsers(pendingAttendeesList));
+  }
+
+  const setData = async (userData, meetupData) => {
     setTitle(meetupData.title);
     setTime(new Date(meetupData.time));
     setMeetupLocation(meetupData.location);
@@ -143,8 +148,7 @@ function Meetup({ id }) {
     setDescription(meetupData.description);
     setTags(meetupData.tags);
     setOrganizer(meetupData.owner);
-    setAttendees(meetupData.attendees);
-    setPendingAttendees(meetupData.pendingAttendees);
+    setAttendeeLists(meetupData.attendees, meetupData.pendingAttendees);
     if (userData && meetupData.owner === userData.id) {
       setUserMeetupStatus("owner");
     } else if (
@@ -311,8 +315,7 @@ function Meetup({ id }) {
     });
     const { res, resJSON } = await fetcher.getMeetupAttendees(id);
     if (res.ok) {
-      setAttendees(resJSON.attending);
-      setPendingAttendees(resJSON.pending);
+      setAttendeeLists(resJSON.attending, resJSON.pending);
     }
     setIsUpdating(false);
   };
@@ -323,6 +326,10 @@ function Meetup({ id }) {
     if (user) {
       setIsUpdating(true);
       await fetcher.joinMeetup(id);
+      const { res, resJSON } = await fetcher.getMeetupAttendees(id);
+      if (res.ok) {
+        setAttendeeLists(resJSON.attending, resJSON.pending);
+      }
       setIsUpdating(false);
       setUserMeetupStatus("pending");
     } else {
@@ -340,19 +347,20 @@ function Meetup({ id }) {
         <>
           {attendees.map((attendee) => (
             <Grid
-              key={attendee}
+              key={attendee.id}
               item
               container
               direction="column"
               xs={2}
               alignItems="center"
               className={classes.attendee}
+              spacing={1}
             >
               <Grid item>
-                <Avatar className={classes.avatar} />
+                <Avatar className={classes.avatar} src={attendee.profilePic} />
               </Grid>
               <Grid item>
-                <Typography variant="body2">{attendee}</Typography>
+                <Typography variant="body2">{attendee.name}</Typography>
               </Grid>
             </Grid>
           ))}
@@ -392,7 +400,7 @@ function Meetup({ id }) {
         <Grid item container justify="flex-start">
           {pendingAttendees.map((attendee) => (
             <Grid
-              key={attendee}
+              key={attendee.id}
               item
               container
               direction="column"
@@ -402,10 +410,10 @@ function Meetup({ id }) {
               spacing={1}
             >
               <Grid item>
-                <Avatar className={classes.avatar} />
+                <Avatar className={classes.avatar} src={attendee.profilePic} />
               </Grid>
               <Grid item>
-                <Typography variant="body2">{attendee}</Typography>
+                <Typography variant="body2">{attendee.name}</Typography>
               </Grid>
               <Grid item>
                 <ButtonGroup size="small">
@@ -413,7 +421,10 @@ function Meetup({ id }) {
                     <IconButton
                       size="small"
                       onClick={() =>
-                        handleUpdateAttendee({ attendee, status: "attending" })
+                        handleUpdateAttendee({
+                          attendee: attendee.id,
+                          status: "attending",
+                        })
                       }
                       disabled={isUpdating}
                     >
@@ -424,7 +435,10 @@ function Meetup({ id }) {
                     <IconButton
                       size="small"
                       onClick={() =>
-                        handleUpdateAttendee({ attendee, status: "rejected" })
+                        handleUpdateAttendee({
+                          attendee: attendee.id,
+                          status: "rejected",
+                        })
                       }
                       disabled={isUpdating}
                     >
