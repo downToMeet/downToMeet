@@ -26,6 +26,7 @@ var (
 	}
 )
 
+// GetUserGoogleAuth implements the GET /user/google/auth endpoint
 func (i *Implementation) GetUserGoogleAuth(param operations.GetUserGoogleAuthParams) middleware.Responder {
 	ctx := param.HTTPRequest.Context()
 	session := SessionFromContext(ctx)
@@ -38,6 +39,7 @@ func (i *Implementation) GetUserGoogleAuth(param operations.GetUserGoogleAuthPar
 		WithLocation(config.AuthCodeURL(oauthState.State))
 }
 
+// GetUserGoogleRedirect implements the GET /user/google/redirect endpoint
 func (i *Implementation) GetUserGoogleRedirect(param operations.GetUserGoogleRedirectParams) middleware.Responder {
 	ctx := param.HTTPRequest.Context()
 	logger := log.WithContext(ctx)

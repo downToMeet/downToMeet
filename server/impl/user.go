@@ -18,6 +18,7 @@ import (
 	"go.timothygu.me/downtomeet/server/restapi/operations"
 )
 
+// GetUserMe implements the GET /user/me endpoint
 func (i *Implementation) GetUserMe(params operations.GetUserMeParams, _ interface{}) middleware.Responder {
 	ctx := params.HTTPRequest.Context()
 	logger := log.WithContext(ctx)
@@ -51,6 +52,7 @@ func (i *Implementation) GetUserMe(params operations.GetUserMeParams, _ interfac
 	return operations.NewGetUserMeOK().WithPayload(dbUserToModelUser(&dbUser))
 }
 
+// GetUserID implements the GET /user/:id endpoint
 func (i *Implementation) GetUserID(params operations.GetUserIDParams) middleware.Responder {
 	ctx := params.HTTPRequest.Context()
 	logger := log.WithContext(ctx)
@@ -95,6 +97,7 @@ func (i *Implementation) GetUserID(params operations.GetUserIDParams) middleware
 	return operations.NewGetUserIDOK().WithPayload(dbUserToModelUser(&dbUser))
 }
 
+// PatchUserID implements the PATCH /user/:id endpoint
 func (i *Implementation) PatchUserID(params operations.PatchUserIDParams, _ interface{}) middleware.Responder {
 	ctx := params.HTTPRequest.Context()
 	logger := log.WithContext(ctx)
@@ -129,6 +132,7 @@ func (i *Implementation) PatchUserID(params operations.PatchUserIDParams, _ inte
 	return operations.NewPatchUserIDOK().WithPayload(dbUserToModelUser(&dbUser))
 }
 
+// Deprecated: This is a dummy endpoint that should be removed
 func (i *Implementation) PostUser(params operations.PostUserParams) middleware.Responder {
 	ctx := params.HTTPRequest.Context()
 	logger := log.WithContext(ctx)
@@ -145,6 +149,7 @@ func (i *Implementation) PostUser(params operations.PostUserParams) middleware.R
 	return operations.NewPostUserOK().WithPayload(dbUserToModelUser(dbUser))
 }
 
+// GetUserLogout implements the GET /user/logout endpoint
 func (i *Implementation) GetUserLogout(params operations.GetUserLogoutParams) middleware.Responder {
 	session := SessionFromContext(params.HTTPRequest.Context())
 	session.Options.MaxAge = -1

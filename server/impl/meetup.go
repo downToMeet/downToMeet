@@ -29,6 +29,7 @@ CREATE EXTENSION earthdistance CASCADE;
 as a superuser (probably 'postgres')
 */
 
+// GetMeetup implements the GET /meetup endpoint
 func (i *Implementation) GetMeetup(params operations.GetMeetupParams) middleware.Responder {
 	ctx := params.HTTPRequest.Context()
 	logger := log.WithContext(ctx)
@@ -104,6 +105,7 @@ func (i *Implementation) GetMeetup(params operations.GetMeetupParams) middleware
 	return operations.NewGetMeetupOK().WithPayload(modelMeetups)
 }
 
+// GetMeetupID implements the GET /meetup/:id endpoint
 func (i *Implementation) GetMeetupID(params operations.GetMeetupIDParams) middleware.Responder {
 	ctx := params.HTTPRequest.Context()
 	logger := log.WithContext(ctx)
@@ -163,6 +165,7 @@ func (i *Implementation) GetMeetupID(params operations.GetMeetupIDParams) middle
 	return operations.NewGetMeetupIDOK().WithPayload(dbMeetupToModelMeetup(&dbMeetup, idStr))
 }
 
+// PostMeetup implements the POST /meetup endpoint
 func (i *Implementation) PostMeetup(params operations.PostMeetupParams, _ interface{}) middleware.Responder {
 	ctx := params.HTTPRequest.Context()
 	logger := log.WithContext(ctx)
@@ -194,6 +197,7 @@ func (i *Implementation) PostMeetup(params operations.PostMeetupParams, _ interf
 	return operations.NewPostMeetupCreated().WithPayload(dbMeetupToModelMeetup(&dbMeetup, id.(string)))
 }
 
+// PatchMeetupID implements the PATCH /meetup/:id endpoint
 func (i *Implementation) PatchMeetupID(params operations.PatchMeetupIDParams, _ interface{}) middleware.Responder {
 	ctx := params.HTTPRequest.Context()
 	logger := log.WithContext(ctx)
@@ -250,6 +254,7 @@ func (i *Implementation) PatchMeetupID(params operations.PatchMeetupIDParams, _ 
 	return operations.NewPatchMeetupIDOK().WithPayload(dbMeetupToModelMeetup(&dbMeetup, userID))
 }
 
+// DeleteMeetupID implements the DELETE /meetup/:id endpoint
 func (i *Implementation) DeleteMeetupID(params operations.DeleteMeetupIDParams, _ interface{}) middleware.Responder {
 	ctx := params.HTTPRequest.Context()
 	logger := log.WithContext(ctx)
@@ -298,6 +303,7 @@ func (i *Implementation) DeleteMeetupID(params operations.DeleteMeetupIDParams, 
 	return operations.NewDeleteMeetupIDNoContent()
 }
 
+// GetMeetupIdAttendee implements the GET /meetup/:id/attendee endpoint
 func (i *Implementation) GetMeetupIdAttendee(params operations.GetMeetupIDAttendeeParams, _ interface{}) middleware.Responder {
 	ctx := params.HTTPRequest.Context()
 	logger := log.WithContext(ctx)
@@ -345,6 +351,7 @@ func (i *Implementation) GetMeetupIdAttendee(params operations.GetMeetupIDAttend
 	return operations.NewGetMeetupIDAttendeeOK().WithPayload(&attendeeList)
 }
 
+// PostMeetupIdAttendee implements the POST /meetup/:id/attendee endpoint
 func (i *Implementation) PostMeetupIdAttendee(params operations.PostMeetupIDAttendeeParams, _ interface{}) middleware.Responder {
 	ctx := params.HTTPRequest.Context()
 	logger := log.WithContext(ctx)
@@ -446,6 +453,7 @@ func (i *Implementation) PostMeetupIdAttendee(params operations.PostMeetupIDAtte
 	return operations.NewPostMeetupIDAttendeeOK().WithPayload(attendeeStatus)
 }
 
+// PatchMeetupIdAttendee implements the PATCH /meetup/:id/attendee endpoint
 func (i *Implementation) PatchMeetupIdAttendee(params operations.PatchMeetupIDAttendeeParams, _ interface{}) middleware.Responder {
 	ctx := params.HTTPRequest.Context()
 	logger := log.WithContext(ctx)

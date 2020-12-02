@@ -51,6 +51,7 @@ func (i *Implementation) NewOAuthState() OAuthState {
 	}
 }
 
+// GetUserFacebookAuth implements the GET /user/facebook/auth endpoint
 func (i *Implementation) GetUserFacebookAuth(param operations.GetUserFacebookAuthParams) middleware.Responder {
 	ctx := param.HTTPRequest.Context()
 	session := SessionFromContext(ctx)
@@ -63,6 +64,7 @@ func (i *Implementation) GetUserFacebookAuth(param operations.GetUserFacebookAut
 		WithLocation(config.AuthCodeURL(oauthState.State))
 }
 
+// GetUserFacebookRedirect implements the GET /user/facebook/redirect endpoint
 func (i *Implementation) GetUserFacebookRedirect(param operations.GetUserFacebookRedirectParams) middleware.Responder {
 	ctx := param.HTTPRequest.Context()
 	logger := log.WithContext(ctx)
