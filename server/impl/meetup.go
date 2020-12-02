@@ -47,17 +47,20 @@ func (i *Implementation) GetMeetup(params operations.GetMeetupParams) middleware
 
 	var meetups []*db.Meetup
 	err := tx.Raw(`
-	SELECT id FROM (
-		SELECT *,
-			earth_distance(ll_to_earth(?, ?),
-			ll_to_earth(location_lat, location_lon)) AS distance_from_me
-		FROM meetups
-	) AS m
-	JOIN meetup_tag AS mt ON m.id = mt.meetup_id
-	WHERE m.distance_from_me < ? AND mt.tag_id IN ?
-	GROUP BY m.id, m.distance_from_me
-	ORDER BY m.distance_from_me
-	LIMIT 100
+		SELECT * FROM (
+			SELECT DISTINCT ON (m.id) *
+			FROM (
+				SELECT *,
+					earth_distance(ll_to_earth(?, ?),
+					ll_to_earth(location_lat, location_lon)) AS distance_from_me
+				FROM meetups
+			) AS m
+			JOIN meetup_tag AS mt ON m.id = mt.meetup_id
+			WHERE m.distance_from_me < ? AND mt.tag_id IN ?
+			ORDER BY m.id
+			LIMIT 100
+		) AS m
+		ORDER BY m.distance_from_me
 	`, params.Lat, params.Lon, params.Radius*1000, tagIds).Scan(&meetups).Error
 
 	if err != nil {
@@ -273,7 +276,7 @@ func (i *Implementation) DeleteMeetupID(params operations.DeleteMeetupIDParams, 
 	}
 	if id.(string) != fmt.Sprint(dbMeetup.Owner) {
 		logger.Warn("User tried to DELETE a meetup they do not own")
-		return operations.NewPatchMeetupIDForbidden().WithPayload(&models.Error{
+		return operations.NewDeleteMeetupIDForbidden().WithPayload(&models.Error{
 			Code:    http.StatusForbidden,
 			Message: "Forbidden",
 		})
