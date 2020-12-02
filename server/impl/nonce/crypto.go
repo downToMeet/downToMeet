@@ -25,6 +25,12 @@ var (
 
 var testCryptoRandAvailability sync.Once
 
+// NewCryptoRandSource returns a rand.Source64 backed by the
+// cryptographically-secure random number generator in crypto/rand. If
+// crypto/rand is unavailable, NewCryptoRandSource panics.
+//
+// The returned rand.Source64 does not support seeding, and the Seed method is
+// a no-op.
 func NewCryptoRandSource() mathrand.Source64 {
 	testCryptoRandAvailability.Do(func() {
 		buf := make([]byte, 1)

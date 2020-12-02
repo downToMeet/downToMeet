@@ -8,6 +8,8 @@ import (
 	"testing"
 	"time"
 
+	"go.timothygu.me/downtomeet/server/impl/responders"
+
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/stretchr/testify/assert"
@@ -197,7 +199,7 @@ func TestPostMeetupBadUser(t *testing.T) {
 
 	raw := testImpl.PostMeetup(params, nil)
 
-	assert.IsType(t, impl.InternalServerError{}, raw)
+	assert.IsType(t, responders.InternalServerError{}, raw)
 }
 
 func TestPatchMeetup(t *testing.T) {

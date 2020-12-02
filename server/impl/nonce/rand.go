@@ -8,6 +8,9 @@ import (
 
 var base64Encoding = base64.RawURLEncoding
 
+// RandomBase64 returns a string of length n, consisting of random characters
+// drawn from the provided rand.Rand. The output string will solely consist of
+// base64url characters; that is, all alphanumerics with - and _ added.
 func RandomBase64(r *rand.Rand, n int) string {
 	// Extra bytes to allocate for base64 overhead.
 	const (

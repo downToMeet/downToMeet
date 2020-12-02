@@ -13,6 +13,7 @@ import (
 	"gorm.io/gorm"
 
 	"go.timothygu.me/downtomeet/server/db"
+	"go.timothygu.me/downtomeet/server/impl/responders"
 	"go.timothygu.me/downtomeet/server/restapi/operations"
 )
 
@@ -56,7 +57,7 @@ func (i *Implementation) GetUserGoogleRedirect(param operations.GetUserGoogleRed
 				State:      param.State,
 				Trampoline: swag.String("1"),
 			}
-			return SoftRedirect{i.buildURL(param.HTTPRequest, &u)}
+			return responders.SoftRedirect{URL: i.buildURL(param.HTTPRequest, &u)}
 		}
 		logger.Warn("no cookie found, but already tried trampoline")
 	}

@@ -14,6 +14,7 @@ import (
 	"gorm.io/gorm"
 
 	"go.timothygu.me/downtomeet/server/db"
+	"go.timothygu.me/downtomeet/server/impl/responders"
 	"go.timothygu.me/downtomeet/server/models"
 	"go.timothygu.me/downtomeet/server/restapi/operations"
 )
@@ -27,13 +28,13 @@ func (i *Implementation) GetUserMe(params operations.GetUserMeParams, _ interfac
 	idStr := session.Values[UserID]
 	if idStr == nil {
 		logger.Error("Session has no user ID")
-		return InternalServerError{}
+		return responders.InternalServerError{}
 	}
 
 	id, err := db.UserIDFromString(idStr.(string))
 	if err != nil {
 		logger.Error("Session has invalid user ID")
-		return InternalServerError{}
+		return responders.InternalServerError{}
 	}
 
 	tx := i.DB().WithContext(ctx)
@@ -41,12 +42,12 @@ func (i *Implementation) GetUserMe(params operations.GetUserMeParams, _ interfac
 	var dbUser db.User
 	if err := tx.First(&dbUser, id).Error; err != nil {
 		logger.WithError(err).Error("Unable to find session's ID in DB")
-		return InternalServerError{}
+		return responders.InternalServerError{}
 	}
 
 	if err := tx.Model(&dbUser).Association("Tags").Find(&dbUser.Tags); err != nil {
 		logger.WithError(err).Error("Unable to find user tags")
-		return InternalServerError{}
+		return responders.InternalServerError{}
 	}
 
 	return operations.NewGetUserMeOK().WithPayload(dbUserToModelUser(&dbUser))
@@ -76,7 +77,7 @@ func (i *Implementation) GetUserID(params operations.GetUserIDParams) middleware
 		})
 	} else if err != nil {
 		logger.WithError(err).Error("Could not access user DB")
-		return InternalServerError{}
+		return responders.InternalServerError{}
 	}
 
 	session := SessionFromContext(params.HTTPRequest.Context())
@@ -91,7 +92,7 @@ func (i *Implementation) GetUserID(params operations.GetUserIDParams) middleware
 
 	if err := tx.Model(&dbUser).Association("Tags").Find(&dbUser.Tags); err != nil {
 		logger.WithError(err).Error("Unable to find user tags")
-		return InternalServerError{}
+		return responders.InternalServerError{}
 	}
 
 	return operations.NewGetUserIDOK().WithPayload(dbUserToModelUser(&dbUser))
@@ -121,12 +122,12 @@ func (i *Implementation) PatchUserID(params operations.PatchUserIDParams, _ inte
 		})
 	} else if err != nil {
 		logger.WithError(err).Error("Failed to find user in DB")
-		return InternalServerError{}
+		return responders.InternalServerError{}
 	}
 
 	if err := i.updateDBUser(ctx, &dbUser, params.UpdatedUser); err != nil {
 		logger.WithError(err).Error("Failed to update user")
-		return InternalServerError{}
+		return responders.InternalServerError{}
 	}
 
 	return operations.NewPatchUserIDOK().WithPayload(dbUserToModelUser(&dbUser))

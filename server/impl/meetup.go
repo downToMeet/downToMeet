@@ -9,14 +9,14 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-openapi/runtime/middleware"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
-
-	"github.com/go-openapi/runtime/middleware"
 	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 
 	"go.timothygu.me/downtomeet/server/db"
+	"go.timothygu.me/downtomeet/server/impl/responders"
 	"go.timothygu.me/downtomeet/server/models"
 	"go.timothygu.me/downtomeet/server/restapi/operations"
 )
@@ -40,7 +40,7 @@ func (i *Implementation) GetMeetup(params operations.GetMeetupParams) middleware
 	var dbTags []db.Tag
 	if err := tx.Where("name IN ?", params.Tags).Find(&dbTags).Error; err != nil {
 		logger.WithError(err).Error("Unable to fetch tags")
-		return InternalServerError{}
+		return responders.InternalServerError{}
 	}
 	for _, tag := range dbTags {
 		tagIds = append(tagIds, int(tag.ID))
@@ -66,14 +66,14 @@ func (i *Implementation) GetMeetup(params operations.GetMeetupParams) middleware
 
 	if err != nil {
 		logger.WithError(err).Error("Unable to find meetups that fit the given parameters")
-		return InternalServerError{}
+		return responders.InternalServerError{}
 	}
 
 	var idStr string
 	if id := SessionFromContext(ctx).Values[UserID]; id != nil {
 		if _, err := db.UserIDFromString(id.(string)); err != nil {
 			logger.Error("Session has invalid user ID")
-			return InternalServerError{}
+			return responders.InternalServerError{}
 		}
 		idStr = id.(string)
 	}
@@ -83,22 +83,22 @@ func (i *Implementation) GetMeetup(params operations.GetMeetupParams) middleware
 	for _, meetup := range meetups {
 		if err = tx.Model(&meetup).Association("Attendees").Find(&meetup.Attendees); err != nil {
 			logger.WithError(err).Error("Unable to find meetup attendee information")
-			return InternalServerError{}
+			return responders.InternalServerError{}
 		}
 
 		if err = tx.Model(&meetup).Association("PendingAttendees").Find(&meetup.PendingAttendees); err != nil {
 			logger.WithError(err).Error("Unable to find meetup pending attendee information")
-			return InternalServerError{}
+			return responders.InternalServerError{}
 		}
 
 		if err = tx.Model(&meetup).Association("RejectedAttendees").Find(&meetup.RejectedAttendees); err != nil {
 			logger.WithError(err).Error("Unable to find meetup rejected attendee information")
-			return InternalServerError{}
+			return responders.InternalServerError{}
 		}
 
 		if err = tx.Model(&meetup).Association("Tags").Find(&meetup.Tags); err != nil {
 			logger.WithError(err).Error("Unable to find user tags")
-			return InternalServerError{}
+			return responders.InternalServerError{}
 		}
 		modelMeetups = append(modelMeetups, dbMeetupToModelMeetup(meetup, idStr))
 	}
@@ -121,7 +121,7 @@ func (i *Implementation) GetMeetupID(params operations.GetMeetupIDParams) middle
 		})
 	} else if err != nil {
 		logger.WithError(err).Error("Could not access meetup DB")
-		return InternalServerError{}
+		return responders.InternalServerError{}
 	}
 
 	if dbMeetup.Cancelled == true {
@@ -133,22 +133,22 @@ func (i *Implementation) GetMeetupID(params operations.GetMeetupIDParams) middle
 
 	if err = tx.Model(&dbMeetup).Association("Tags").Find(&dbMeetup.Tags); err != nil {
 		logger.WithError(err).Error("Unable to find user tags")
-		return InternalServerError{}
+		return responders.InternalServerError{}
 	}
 
 	if err = tx.Model(&dbMeetup).Association("Attendees").Find(&dbMeetup.Attendees); err != nil {
 		logger.WithError(err).Error("Unable to find meetup attendee information")
-		return InternalServerError{}
+		return responders.InternalServerError{}
 	}
 
 	if err = tx.Model(&dbMeetup).Association("PendingAttendees").Find(&dbMeetup.PendingAttendees); err != nil {
 		logger.WithError(err).Error("Unable to find meetup pending attendee information")
-		return InternalServerError{}
+		return responders.InternalServerError{}
 	}
 
 	if err = tx.Model(&dbMeetup).Association("RejectedAttendees").Find(&dbMeetup.RejectedAttendees); err != nil {
 		logger.WithError(err).Error("Unable to find meetup rejected attendee information")
-		return InternalServerError{}
+		return responders.InternalServerError{}
 	}
 
 	var idStr string
@@ -157,7 +157,7 @@ func (i *Implementation) GetMeetupID(params operations.GetMeetupIDParams) middle
 	} else {
 		if _, err := db.UserIDFromString(id.(string)); err != nil {
 			logger.Error("Session has invalid user ID")
-			return InternalServerError{}
+			return responders.InternalServerError{}
 		}
 		idStr = id.(string)
 	}
@@ -174,24 +174,24 @@ func (i *Implementation) PostMeetup(params operations.PostMeetupParams, _ interf
 	id := SessionFromContext(ctx).Values[UserID]
 	if _, err := db.UserIDFromString(id.(string)); err != nil {
 		logger.Error("Session has invalid user ID")
-		return InternalServerError{}
+		return responders.InternalServerError{}
 	}
 
 	modelMeetup := modelMeetupRequestBodyToModelMeetup(params.Meetup, id.(string))
 	if err := i.modelMeetupToDBMeetup(&dbMeetup, &modelMeetup); err != nil {
 		logger.WithError(err).Error("Failed to create db meetup object")
-		return InternalServerError{}
+		return responders.InternalServerError{}
 	}
 
 	tx := i.DB().WithContext(ctx)
 	if err := tx.Create(&dbMeetup).Error; err != nil {
 		logger.WithError(err).Error("Failed to create meetup")
-		return InternalServerError{}
+		return responders.InternalServerError{}
 	}
 
 	if err := i.insertMeetupTagsIntoDB(ctx, &dbMeetup, &modelMeetup); err != nil {
 		logger.WithError(err).Error("Failed to insert meetup tags")
-		return InternalServerError{}
+		return responders.InternalServerError{}
 	}
 
 	return operations.NewPostMeetupCreated().WithPayload(dbMeetupToModelMeetup(&dbMeetup, id.(string)))
@@ -212,14 +212,14 @@ func (i *Implementation) PatchMeetupID(params operations.PatchMeetupIDParams, _ 
 		})
 	} else if err != nil {
 		logger.WithError(err).Error("Failed to find meetup in DB")
-		return InternalServerError{}
+		return responders.InternalServerError{}
 	}
 
 	session := SessionFromContext(ctx)
 	userID := session.Values[UserID].(string)
 	if _, err := db.UserIDFromString(userID); err != nil {
 		logger.Error("Session has invalid user ID")
-		return InternalServerError{}
+		return responders.InternalServerError{}
 	}
 	if userID != fmt.Sprint(dbMeetup.Owner) {
 		logger.Warn("User tried to PATCH a meetup they do not own")
@@ -239,17 +239,17 @@ func (i *Implementation) PatchMeetupID(params operations.PatchMeetupIDParams, _ 
 	modelMeetup := modelMeetupRequestBodyToModelMeetup(params.Meetup, userID)
 	if err := i.modelMeetupToDBMeetup(&dbMeetup, &modelMeetup); err != nil {
 		logger.WithError(err).Error("Failed to create db meetup object")
-		return InternalServerError{}
+		return responders.InternalServerError{}
 	}
 
 	if err := i.insertMeetupTagsIntoDB(ctx, &dbMeetup, &modelMeetup); err != nil {
 		logger.WithError(err).Error("Failed to insert meetup tags")
-		return InternalServerError{}
+		return responders.InternalServerError{}
 	}
 
 	if err := i.updateDBMeetup(ctx, &dbMeetup); err != nil {
 		logger.WithError(err).Error("Failed to update meetup")
-		return InternalServerError{}
+		return responders.InternalServerError{}
 	}
 	return operations.NewPatchMeetupIDOK().WithPayload(dbMeetupToModelMeetup(&dbMeetup, userID))
 }
@@ -270,14 +270,14 @@ func (i *Implementation) DeleteMeetupID(params operations.DeleteMeetupIDParams, 
 		})
 	} else if err != nil {
 		logger.WithError(err).Error("Failed to find meetup in DB")
-		return InternalServerError{}
+		return responders.InternalServerError{}
 	}
 
 	session := SessionFromContext(ctx)
 	id := session.Values[UserID]
 	if _, err := db.UserIDFromString(id.(string)); err != nil {
 		logger.Error("Session has invalid user ID")
-		return InternalServerError{}
+		return responders.InternalServerError{}
 	}
 	if id.(string) != fmt.Sprint(dbMeetup.Owner) {
 		logger.Warn("User tried to DELETE a meetup they do not own")
@@ -298,7 +298,7 @@ func (i *Implementation) DeleteMeetupID(params operations.DeleteMeetupIDParams, 
 
 	if err := i.updateDBMeetup(ctx, &dbMeetup); err != nil {
 		logger.WithError(err).Error("Failed to update meetup")
-		return InternalServerError{}
+		return responders.InternalServerError{}
 	}
 	return operations.NewDeleteMeetupIDNoContent()
 }
@@ -318,7 +318,7 @@ func (i *Implementation) GetMeetupIdAttendee(params operations.GetMeetupIDAttend
 		})
 	} else if err != nil {
 		logger.WithError(err).Error("Failed to find meetup in DB")
-		return InternalServerError{}
+		return responders.InternalServerError{}
 	}
 
 	if dbMeetup.Cancelled {
@@ -330,7 +330,7 @@ func (i *Implementation) GetMeetupIdAttendee(params operations.GetMeetupIDAttend
 
 	if err = i.fetchAllAttendeeInformationLists(ctx, &dbMeetup); err != nil {
 		logger.WithError(err).Error("Failed to fetch attendee information lists")
-		return InternalServerError{}
+		return responders.InternalServerError{}
 	}
 
 	var attendeeList models.AttendeeList
@@ -366,14 +366,14 @@ func (i *Implementation) PostMeetupIdAttendee(params operations.PostMeetupIDAtte
 		})
 	} else if err != nil {
 		logger.WithError(err).Error("Failed to find meetup in DB")
-		return InternalServerError{}
+		return responders.InternalServerError{}
 	}
 
 	session := SessionFromContext(ctx)
 	id := session.Values[UserID]
 	if _, err := db.UserIDFromString(id.(string)); err != nil {
 		logger.Error("Session has invalid user ID")
-		return InternalServerError{}
+		return responders.InternalServerError{}
 	}
 
 	if id.(string) == fmt.Sprint(dbMeetup.Owner) {
@@ -392,7 +392,7 @@ func (i *Implementation) PostMeetupIdAttendee(params operations.PostMeetupIDAtte
 
 	if err = i.fetchAllAttendeeInformationLists(ctx, &dbMeetup); err != nil {
 		logger.WithError(err).Error("Failed to fetch attendee information lists")
-		return InternalServerError{}
+		return responders.InternalServerError{}
 	}
 
 	// Make sure that the user is not already in one of the lists
@@ -435,18 +435,18 @@ func (i *Implementation) PostMeetupIdAttendee(params operations.PostMeetupIDAtte
 	userID, _ := db.UserIDFromString(idStr)
 	if err = tx.First(&dbUser, userID).Error; err != nil {
 		logger.WithError(err).Error("Unable to find current user in DB")
-		return InternalServerError{}
+		return responders.InternalServerError{}
 	}
 	if err := tx.Model(&dbUser).Association("Tags").Find(&dbUser.Tags); err != nil {
 		logger.WithError(err).Error("Unable to find user tags")
-		return InternalServerError{}
+		return responders.InternalServerError{}
 	}
 	dbMeetup.PendingAttendees = append(dbMeetup.PendingAttendees, &dbUser)
 
 	// Update the db meetup
 	if err = tx.Model(&dbMeetup).Updates(&dbMeetup).Error; err != nil {
 		logger.WithError(err).Error("Unable to update DB meetup")
-		return InternalServerError{}
+		return responders.InternalServerError{}
 	}
 
 	var attendeeStatus models.AttendeeStatus = "pending"
@@ -468,7 +468,7 @@ func (i *Implementation) PatchMeetupIdAttendee(params operations.PatchMeetupIDAt
 		})
 	} else if err != nil {
 		logger.WithError(err).Error("Failed to find meetup in DB")
-		return InternalServerError{}
+		return responders.InternalServerError{}
 	}
 
 	session := SessionFromContext(ctx)
@@ -477,12 +477,12 @@ func (i *Implementation) PatchMeetupIdAttendee(params operations.PatchMeetupIDAt
 	status := params.PatchMeetupAttendeeBody.AttendeeStatus
 	if attendeeId != 0 && err != nil {
 		logger.Error("Trying to patch an invalid user ID")
-		return InternalServerError{}
+		return responders.InternalServerError{}
 	}
 
 	if _, err = db.UserIDFromString(id.(string)); err != nil {
 		logger.Error("Session has invalid user ID")
-		return InternalServerError{}
+		return responders.InternalServerError{}
 	}
 
 	if params.PatchMeetupAttendeeBody.Attendee == id.(string) {
@@ -522,7 +522,7 @@ func (i *Implementation) PatchMeetupIdAttendee(params operations.PatchMeetupIDAt
 
 	if err = i.fetchAllAttendeeInformationLists(ctx, &dbMeetup); err != nil {
 		logger.WithError(err).Error("Failed to fetch attendee information lists")
-		return InternalServerError{}
+		return responders.InternalServerError{}
 	}
 
 	// Remove the user from whichever list they are currently in
@@ -539,11 +539,11 @@ func (i *Implementation) PatchMeetupIdAttendee(params operations.PatchMeetupIDAt
 	userID, _ := db.UserIDFromString(idStr)
 	if err = tx.First(&dbUser, userID).Error; err != nil {
 		logger.WithError(err).Error("Unable to find current user in DB")
-		return InternalServerError{}
+		return responders.InternalServerError{}
 	}
 	if err := tx.Model(&dbUser).Association("Tags").Find(&dbUser.Tags); err != nil {
 		logger.WithError(err).Error("Unable to find user tags")
-		return InternalServerError{}
+		return responders.InternalServerError{}
 	}
 
 	if dbMeetup.Attendees != nil {
@@ -554,7 +554,7 @@ func (i *Implementation) PatchMeetupIdAttendee(params operations.PatchMeetupIDAt
 				err := tx.Model(&dbMeetup).Association("Attendees").Delete(&dbUser)
 				if err != nil {
 					logger.Error("Unable to remove attendee from attendee list")
-					return InternalServerError{}
+					return responders.InternalServerError{}
 				}
 				break
 			}
@@ -568,7 +568,7 @@ func (i *Implementation) PatchMeetupIdAttendee(params operations.PatchMeetupIDAt
 				err := tx.Model(&dbMeetup).Association("PendingAttendees").Delete(&dbUser)
 				if err != nil {
 					logger.Error("Unable to remove attendee from pending attendee list")
-					return InternalServerError{}
+					return responders.InternalServerError{}
 				}
 				break
 			}
@@ -582,7 +582,7 @@ func (i *Implementation) PatchMeetupIdAttendee(params operations.PatchMeetupIDAt
 				err := tx.Model(&dbMeetup).Association("RejectedAttendees").Delete(&dbUser)
 				if err != nil {
 					logger.Error("Unable to remove attendee from rejected attendee list")
-					return InternalServerError{}
+					return responders.InternalServerError{}
 				}
 				break
 			}
@@ -602,7 +602,7 @@ func (i *Implementation) PatchMeetupIdAttendee(params operations.PatchMeetupIDAt
 	// Update the db meetup
 	if err = tx.Model(&dbMeetup).Select("Attendees", "PendingAttendees", "RejectedAttendees").Updates(&dbMeetup).Error; err != nil {
 		logger.WithError(err).Error("Unable to update DB meetup")
-		return InternalServerError{}
+		return responders.InternalServerError{}
 	}
 
 	return operations.NewPatchMeetupIDAttendeeOK().WithPayload(status)
@@ -766,13 +766,13 @@ func dbMeetupToModelMeetup(dbMeetup *db.Meetup, userID string) *models.Meetup {
 		MinCapacity:      &dbMeetup.MinCapacity,
 		MaxCapacity:      &dbMeetup.MaxCapacity,
 		Owner:            models.UserID(fmt.Sprint(dbMeetup.Owner)),
-		Attendees:        UsersToIDs(dbMeetup.Attendees),
-		PendingAttendees: UsersToIDs(dbMeetup.PendingAttendees),
+		Attendees:        usersToIDs(dbMeetup.Attendees),
+		PendingAttendees: usersToIDs(dbMeetup.PendingAttendees),
 		Rejected:         rejected,
 	}
 }
 
-func UsersToIDs(dbUsers []*db.User) (ids []models.UserID) {
+func usersToIDs(dbUsers []*db.User) (ids []models.UserID) {
 	for _, dbUser := range dbUsers {
 		ids = append(ids, models.UserID(dbUser.IDString()))
 	}
