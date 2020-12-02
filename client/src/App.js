@@ -8,17 +8,14 @@ import Search from "./components/Search/Search";
 import Navbar from "./components/Navbar/Navbar";
 
 function App() {
-  // use paper for entire thing
-
-  // use card for meetup organizer info
-  // use avatarbuttons for attendees, in a dynamic grid
+  // TODO: use Paper/Cards for interface
   return (
     <Router>
       <Navbar />
       <div>
         <Link to="/search">Search</Link>
         <br />
-        <Link to="/meetup/2">Test meetup</Link>
+        <Link to="/meetup/1">Test meetup</Link>
       </div>
       <Switch>
         <Route path="/create">
