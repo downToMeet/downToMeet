@@ -27,11 +27,11 @@ var (
 	mockAuthenticationKey = bytes.Repeat([]byte{'n'}, 32)
 	mockEncryptionKey     = bytes.Repeat([]byte{'e'}, 16)
 	TestUser              *db.User
-	TestUserFriend		  *db.User
-	TestUserFriend2		  *db.User
+	TestUserFriend        *db.User
+	TestUserFriend2       *db.User
 	FakeUser              *db.User
 	TestMeetup            *db.Meetup
-	TestMeetupCanceled	  *db.Meetup
+	TestMeetupCanceled    *db.Meetup
 	TestTag               *db.Tag
 )
 

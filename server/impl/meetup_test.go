@@ -21,7 +21,7 @@ import (
 
 const (
 	nonexistentMeetupID = "100000"
-	nonexistentUserID = "100000"
+	nonexistentUserID   = "100000"
 )
 
 func TestGetMeetup(t *testing.T) {
@@ -566,8 +566,8 @@ func TestPatchMeetupIdAttendeeAddPending(t *testing.T) {
 	req = req.WithContext(impl.WithSession(req.Context(), session))
 
 	params := operations.PatchMeetupIDAttendeeParams{
-		HTTPRequest:             req,
-		ID:                      targetMeetup.IDString(),
+		HTTPRequest: req,
+		ID:          targetMeetup.IDString(),
 		PatchMeetupAttendeeBody: &models.PatchMeetupAttendeeBody{
 			Attendee:       "",
 			AttendeeStatus: "pending",
@@ -597,8 +597,8 @@ func TestPatchMeetupIdAttendeeApproveUser(t *testing.T) {
 	req = req.WithContext(impl.WithSession(req.Context(), session))
 
 	params := operations.PatchMeetupIDAttendeeParams{
-		HTTPRequest:             req,
-		ID:                      targetMeetup.IDString(),
+		HTTPRequest: req,
+		ID:          targetMeetup.IDString(),
 		PatchMeetupAttendeeBody: &models.PatchMeetupAttendeeBody{
 			Attendee:       TestUser.IDString(),
 			AttendeeStatus: "attending",
@@ -628,8 +628,8 @@ func TestPatchMeetupIdAttendeeRejectUser(t *testing.T) {
 	req = req.WithContext(impl.WithSession(req.Context(), session))
 
 	params := operations.PatchMeetupIDAttendeeParams{
-		HTTPRequest:             req,
-		ID:                      targetMeetup.IDString(),
+		HTTPRequest: req,
+		ID:          targetMeetup.IDString(),
 		PatchMeetupAttendeeBody: &models.PatchMeetupAttendeeBody{
 			Attendee:       TestUser.IDString(),
 			AttendeeStatus: "rejected",
@@ -653,8 +653,8 @@ func TestPatchMeetupIdAttendeeNotFound(t *testing.T) {
 	req = req.WithContext(impl.WithSession(req.Context(), session))
 
 	params := operations.PatchMeetupIDAttendeeParams{
-		HTTPRequest:             req,
-		ID:                      nonexistentMeetupID,
+		HTTPRequest: req,
+		ID:          nonexistentMeetupID,
 		PatchMeetupAttendeeBody: &models.PatchMeetupAttendeeBody{
 			Attendee:       "",
 			AttendeeStatus: "pending",
@@ -682,8 +682,8 @@ func TestPatchMeetupIdAttendeeNoPatchOwner(t *testing.T) {
 	req = req.WithContext(impl.WithSession(req.Context(), session))
 
 	params := operations.PatchMeetupIDAttendeeParams{
-		HTTPRequest:             req,
-		ID:                      targetMeetup.IDString(),
+		HTTPRequest: req,
+		ID:          targetMeetup.IDString(),
 		PatchMeetupAttendeeBody: &models.PatchMeetupAttendeeBody{
 			AttendeeStatus: "attending",
 		},
@@ -710,8 +710,8 @@ func TestPatchMeetupIdOnlyOwnerApprove(t *testing.T) {
 	req = req.WithContext(impl.WithSession(req.Context(), session))
 
 	params := operations.PatchMeetupIDAttendeeParams{
-		HTTPRequest:             req,
-		ID:                      targetMeetup.IDString(),
+		HTTPRequest: req,
+		ID:          targetMeetup.IDString(),
 		PatchMeetupAttendeeBody: &models.PatchMeetupAttendeeBody{
 			AttendeeStatus: "attending",
 		},
@@ -734,8 +734,8 @@ func TestPatchMeetupIdCancel(t *testing.T) {
 	req = req.WithContext(impl.WithSession(req.Context(), session))
 
 	params := operations.PatchMeetupIDAttendeeParams{
-		HTTPRequest:             req,
-		ID:                      targetMeetup.IDString(),
+		HTTPRequest: req,
+		ID:          targetMeetup.IDString(),
 		PatchMeetupAttendeeBody: &models.PatchMeetupAttendeeBody{
 			Attendee:       "",
 			AttendeeStatus: "pending",
