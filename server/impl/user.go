@@ -80,10 +80,14 @@ func (i *Implementation) GetUserID(params operations.GetUserIDParams) middleware
 
 	session := SessionFromContext(params.HTTPRequest.Context())
 	if session.Values[UserID] != dbUser.IDString() {
+		interests := tagsToNames(dbUser.Tags)
 		modelUser := &models.User{
-			ID:         models.UserID(dbUser.IDString()),
-			Name:       dbUser.Name,
-			ProfilePic: swag.StringValue(dbUser.ProfilePic),
+			ID:          models.UserID(dbUser.IDString()),
+			Name:        dbUser.Name,
+			ProfilePic:  swag.StringValue(dbUser.ProfilePic),
+			JoinDate:    strfmt.DateTime(dbUser.CreatedAt),
+			ContactInfo: dbUser.ContactInfo,
+			Interests:   interests,
 		}
 		return operations.NewGetUserIDOK().WithPayload(modelUser)
 	}
