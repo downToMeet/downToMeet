@@ -457,7 +457,7 @@ func TestGetMeetupIdAttendeesCanceled(t *testing.T) {
 }
 
 func TestPostMeetupIdAttendee(t *testing.T) {
-	newUser := createUser("wakkoWarner@email.com")
+	newUser := createUser()
 	targetMeetup := createMeetup("Eat", newUser.ID, []*db.Tag{TestTag}, false)
 	const sessionName = "session"
 	url := new(operations.PostMeetupIDAttendeeURL)
@@ -502,9 +502,9 @@ func TestPostMeetupIdAttendeeNotFound(t *testing.T) {
 // TestPostMeetupIdAttendeeAlreadyInvolved checks that a BadRequest response is returned if the user is already
 // involved in a meetup
 func TestPostMeetupIdAttendeeAlreadyInvolved(t *testing.T) {
-	rejectedUser := createUser("Wakko Warner")
-	acceptedUser := createUser("Yakko Warner")
-	pendingUser := createUser("Dot Warner")
+	rejectedUser := createUser()
+	acceptedUser := createUser()
+	pendingUser := createUser()
 	targetMeetup := createMeetup("Harass Random People", TestUser.ID, []*db.Tag{TestTag}, false)
 	targetMeetup.PendingAttendees = append(targetMeetup.PendingAttendees, pendingUser)
 	targetMeetup.Attendees = append(targetMeetup.Attendees, acceptedUser)
@@ -554,33 +554,194 @@ func TestPostMeetupIdAttendeeCanceled(t *testing.T) {
 }
 
 func TestPatchMeetupIdAttendeeAddPending(t *testing.T) {
+	ownerUser := createUser()
+	targetMeetup := createMeetup("Eat", ownerUser.ID, []*db.Tag{TestTag}, false)
+	const sessionName = "session"
+	url := new(operations.PatchMeetupIDAttendeeURL)
+	url.ID = targetMeetup.IDString()
+	req := httptest.NewRequest(http.MethodPatch, url.String(), nil)
+	session, err := testImpl.SessionStore().New(req, sessionName)
+	require.NoError(t, err)
+	session.Values[impl.UserID] = TestUser.IDString()
+	req = req.WithContext(impl.WithSession(req.Context(), session))
 
+	params := operations.PatchMeetupIDAttendeeParams{
+		HTTPRequest:             req,
+		ID:                      targetMeetup.IDString(),
+		PatchMeetupAttendeeBody: &models.PatchMeetupAttendeeBody{
+			Attendee:       "",
+			AttendeeStatus: "pending",
+		},
+	}
+	raw := testImpl.PatchMeetupIdAttendee(params, nil)
+
+	require.IsType(t, (*operations.PatchMeetupIDAttendeeOK)(nil), raw)
+	res := raw.(*operations.PatchMeetupIDAttendeeOK)
+	assert.Equal(t, models.AttendeeStatus("pending"), res.Payload)
 }
 
 func TestPatchMeetupIdAttendeeApproveUser(t *testing.T) {
+	ownerUser := createUser()
+	targetMeetup := createMeetup("Eat", ownerUser.ID, []*db.Tag{TestTag}, false)
+	targetMeetup.PendingAttendees = append(targetMeetup.PendingAttendees, TestUser)
+	if err := testImpl.DB().Model(&targetMeetup).Updates(&targetMeetup).Error; err != nil {
+		t.Fatal("I Couldn't update the test db")
+	}
+	const sessionName = "session"
+	url := new(operations.PatchMeetupIDAttendeeURL)
+	url.ID = targetMeetup.IDString()
+	req := httptest.NewRequest(http.MethodPatch, url.String(), nil)
+	session, err := testImpl.SessionStore().New(req, sessionName)
+	require.NoError(t, err)
+	session.Values[impl.UserID] = ownerUser.IDString()
+	req = req.WithContext(impl.WithSession(req.Context(), session))
 
+	params := operations.PatchMeetupIDAttendeeParams{
+		HTTPRequest:             req,
+		ID:                      targetMeetup.IDString(),
+		PatchMeetupAttendeeBody: &models.PatchMeetupAttendeeBody{
+			Attendee:       TestUser.IDString(),
+			AttendeeStatus: "attending",
+		},
+	}
+	raw := testImpl.PatchMeetupIdAttendee(params, nil)
+
+	require.IsType(t, (*operations.PatchMeetupIDAttendeeOK)(nil), raw)
+	res := raw.(*operations.PatchMeetupIDAttendeeOK)
+	assert.Equal(t, models.AttendeeStatus("attending"), res.Payload)
 }
 
 func TestPatchMeetupIdAttendeeRejectUser(t *testing.T) {
+	ownerUser := createUser()
+	targetMeetup := createMeetup("Eat", ownerUser.ID, []*db.Tag{TestTag}, false)
+	targetMeetup.PendingAttendees = append(targetMeetup.PendingAttendees, TestUser)
+	if err := testImpl.DB().Model(&targetMeetup).Updates(&targetMeetup).Error; err != nil {
+		t.Fatal("I Couldn't update the test db")
+	}
+	const sessionName = "session"
+	url := new(operations.PatchMeetupIDAttendeeURL)
+	url.ID = targetMeetup.IDString()
+	req := httptest.NewRequest(http.MethodPatch, url.String(), nil)
+	session, err := testImpl.SessionStore().New(req, sessionName)
+	require.NoError(t, err)
+	session.Values[impl.UserID] = ownerUser.IDString()
+	req = req.WithContext(impl.WithSession(req.Context(), session))
 
+	params := operations.PatchMeetupIDAttendeeParams{
+		HTTPRequest:             req,
+		ID:                      targetMeetup.IDString(),
+		PatchMeetupAttendeeBody: &models.PatchMeetupAttendeeBody{
+			Attendee:       TestUser.IDString(),
+			AttendeeStatus: "rejected",
+		},
+	}
+	raw := testImpl.PatchMeetupIdAttendee(params, nil)
+
+	require.IsType(t, (*operations.PatchMeetupIDAttendeeOK)(nil), raw)
+	res := raw.(*operations.PatchMeetupIDAttendeeOK)
+	assert.Equal(t, models.AttendeeStatus("rejected"), res.Payload)
 }
 
 func TestPatchMeetupIdAttendeeNotFound(t *testing.T) {
+	const sessionName = "session"
+	url := new(operations.PatchMeetupIDAttendeeURL)
+	url.ID = nonexistentMeetupID
+	req := httptest.NewRequest(http.MethodPatch, url.String(), nil)
+	session, err := testImpl.SessionStore().New(req, sessionName)
+	require.NoError(t, err)
+	session.Values[impl.UserID] = TestUser.IDString()
+	req = req.WithContext(impl.WithSession(req.Context(), session))
 
-}
+	params := operations.PatchMeetupIDAttendeeParams{
+		HTTPRequest:             req,
+		ID:                      nonexistentMeetupID,
+		PatchMeetupAttendeeBody: &models.PatchMeetupAttendeeBody{
+			Attendee:       "",
+			AttendeeStatus: "pending",
+		},
+	}
+	raw := testImpl.PatchMeetupIdAttendee(params, nil)
 
-func TestPatchMeetupIdAttendeeUserFromContext(t *testing.T) {
-
+	require.IsType(t, (*operations.PatchMeetupIDAttendeeNotFound)(nil), raw)
 }
 
 func TestPatchMeetupIdAttendeeNoPatchOwner(t *testing.T) {
+	ownerUser := createUser()
+	targetMeetup := createMeetup("Eat", ownerUser.ID, []*db.Tag{TestTag}, false)
+	targetMeetup.PendingAttendees = append(targetMeetup.PendingAttendees, TestUser)
+	if err := testImpl.DB().Model(&targetMeetup).Updates(&targetMeetup).Error; err != nil {
+		t.Fatal("I Couldn't update the test db")
+	}
+	const sessionName = "session"
+	url := new(operations.PatchMeetupIDAttendeeURL)
+	url.ID = targetMeetup.IDString()
+	req := httptest.NewRequest(http.MethodPatch, url.String(), nil)
+	session, err := testImpl.SessionStore().New(req, sessionName)
+	require.NoError(t, err)
+	session.Values[impl.UserID] = ownerUser.IDString()
+	req = req.WithContext(impl.WithSession(req.Context(), session))
 
+	params := operations.PatchMeetupIDAttendeeParams{
+		HTTPRequest:             req,
+		ID:                      targetMeetup.IDString(),
+		PatchMeetupAttendeeBody: &models.PatchMeetupAttendeeBody{
+			AttendeeStatus: "attending",
+		},
+	}
+	raw := testImpl.PatchMeetupIdAttendee(params, nil)
+
+	require.IsType(t, (*operations.PatchMeetupIDAttendeeBadRequest)(nil), raw)
 }
 
 func TestPatchMeetupIdOnlyOwnerApprove(t *testing.T) {
+	ownerUser := createUser()
+	targetMeetup := createMeetup("Eat", ownerUser.ID, []*db.Tag{TestTag}, false)
+	targetMeetup.PendingAttendees = append(targetMeetup.PendingAttendees, TestUser)
+	if err := testImpl.DB().Model(&targetMeetup).Updates(&targetMeetup).Error; err != nil {
+		t.Fatal("I Couldn't update the test db")
+	}
+	const sessionName = "session"
+	url := new(operations.PatchMeetupIDAttendeeURL)
+	url.ID = targetMeetup.IDString()
+	req := httptest.NewRequest(http.MethodPatch, url.String(), nil)
+	session, err := testImpl.SessionStore().New(req, sessionName)
+	require.NoError(t, err)
+	session.Values[impl.UserID] = TestUser.IDString()
+	req = req.WithContext(impl.WithSession(req.Context(), session))
 
+	params := operations.PatchMeetupIDAttendeeParams{
+		HTTPRequest:             req,
+		ID:                      targetMeetup.IDString(),
+		PatchMeetupAttendeeBody: &models.PatchMeetupAttendeeBody{
+			AttendeeStatus: "attending",
+		},
+	}
+	raw := testImpl.PatchMeetupIdAttendee(params, nil)
+
+	require.IsType(t, (*operations.PatchMeetupIDAttendeeBadRequest)(nil), raw)
 }
 
 func TestPatchMeetupIdCancel(t *testing.T) {
+	ownerUser := createUser()
+	targetMeetup := createMeetup("Eat", ownerUser.ID, []*db.Tag{TestTag}, true)
+	const sessionName = "session"
+	url := new(operations.PatchMeetupIDAttendeeURL)
+	url.ID = targetMeetup.IDString()
+	req := httptest.NewRequest(http.MethodPatch, url.String(), nil)
+	session, err := testImpl.SessionStore().New(req, sessionName)
+	require.NoError(t, err)
+	session.Values[impl.UserID] = TestUser.IDString()
+	req = req.WithContext(impl.WithSession(req.Context(), session))
 
+	params := operations.PatchMeetupIDAttendeeParams{
+		HTTPRequest:             req,
+		ID:                      targetMeetup.IDString(),
+		PatchMeetupAttendeeBody: &models.PatchMeetupAttendeeBody{
+			Attendee:       "",
+			AttendeeStatus: "pending",
+		},
+	}
+	raw := testImpl.PatchMeetupIdAttendee(params, nil)
+
+	require.IsType(t, (*operations.PatchMeetupIDAttendeeBadRequest)(nil), raw)
 }

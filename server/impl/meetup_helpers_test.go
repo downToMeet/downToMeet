@@ -14,6 +14,8 @@ func createMeetup(title string, ownerID uint, tags []*db.Tag, canceled bool) *db
 		Tags:			  tags,
 		Title:            title,
 	}
-	testImpl.DB().Create(&newMeetup)
+	if err := testImpl.DB().Create(&newMeetup).Error; err != nil {
+		panic(err)
+	}
 	return &newMeetup
 }

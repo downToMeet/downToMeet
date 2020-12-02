@@ -1,18 +1,28 @@
 package impl_test
 
 import (
+	"fmt"
 	"go.timothygu.me/downtomeet/server/db"
 	"gorm.io/gorm"
+	"sync/atomic"
 )
 
-func createUser(email string) *db.User {
+var emailNumber int64 = 0
+func newEmail() string {
+	num := atomic.AddInt64(&emailNumber, 1)
+	return fmt.Sprintf("%v@email.com", num)
+}
+
+func createUser() *db.User {
 	newUser := db.User{
 		Model:           gorm.Model{},
-		Email:           email,
-		Name:            email,
+		Email:           newEmail(),
+		Name:            newEmail(),
 		ContactInfo:     "",
 		Location:        db.Coordinates{},
 	}
-	testImpl.DB().Create(&newUser)
+	if err := testImpl.DB().Create(&newUser).Error; err != nil {
+		panic(err)
+	}
 	return &newUser
 }
