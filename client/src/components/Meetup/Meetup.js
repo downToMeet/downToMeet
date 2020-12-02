@@ -1,5 +1,3 @@
-/* eslint-disable no-console */
-/* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import {
@@ -8,7 +6,6 @@ import {
   Button,
   ButtonGroup,
   Card,
-  CardActions,
   CardContent,
   CardHeader,
   Chip,
@@ -126,8 +123,6 @@ function Meetup({ id }) {
   const [eventDetails, setEventDetails] = useState(null);
   const [attendees, setAttendees] = useState([]);
   const [pendingAttendees, setPendingAttendees] = useState([]);
-  const profilePic =
-    "http://web.cs.ucla.edu/~miryung/MiryungKimPhotoAugust2018.jpg";
 
   const locale = "en-US";
   const meetupTimeOptions = {
@@ -280,7 +275,7 @@ function Meetup({ id }) {
         </Typography>
       );
     } else {
-      const googleMapsLink = `https://www.google.com/maps/search/?api=1&query=${eventDetails.coordinates.lat},${eventDetails.coordinates.lon}`;
+      const googleMapsLink = `https://www.google.com/maps/search/?api=1&query=${eventDetails.location.coordinates.lat},${eventDetails.location.coordinates.lon}`;
       locationLink = (
         <Typography variant="body2">
           Location:{" "}
@@ -372,8 +367,6 @@ function Meetup({ id }) {
   };
 
   const handleJoinMeetup = async () => {
-    // TODO: get user ID and submit join meetup to backend
-    // eslint-disable-next-line no-console
     if (user) {
       setIsUpdating(true);
       await fetcher.joinMeetup(id);
