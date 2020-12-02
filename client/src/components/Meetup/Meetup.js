@@ -386,9 +386,9 @@ function Meetup({ id }) {
     // TODO: convert to modal expandable list when too many attendees
 
     let attendeeDisplay;
-    if (attendees) {
+    if (attendees.length > 0) {
       attendeeDisplay = (
-        <>
+        <Grid item container justify="flex-start">
           {attendees.map((attendee) => (
             <Grid
               key={attendee.id}
@@ -420,12 +420,6 @@ function Meetup({ id }) {
               </Grid>
             </Grid>
           ))}
-        </>
-      );
-    } else {
-      attendeeDisplay = (
-        <Grid item>
-          <Typography>There are currently no attendees.</Typography>
         </Grid>
       );
     }
@@ -439,9 +433,12 @@ function Meetup({ id }) {
         className={classes.attendeeList}
       >
         <Grid item>
-          <Typography variant="body2">Attendees: </Typography>
+          <Typography variant="body2">
+            Attendees:{" "}
+            {attendees.length === 0 && "there are currently no attendees."}
+          </Typography>
         </Grid>
-        <Grid item>{attendeeDisplay}</Grid>
+        {attendeeDisplay}
       </Grid>
     );
   };
@@ -451,7 +448,7 @@ function Meetup({ id }) {
     // TODO: convert to modal expandable list when too many attendees
 
     let pendingDisplay;
-    if (pendingAttendees) {
+    if (pendingAttendees.length > 0) {
       pendingDisplay = (
         <Grid item container justify="flex-start">
           {pendingAttendees.map((attendee) => (
@@ -507,12 +504,6 @@ function Meetup({ id }) {
           ))}
         </Grid>
       );
-    } else {
-      pendingDisplay = (
-        <Grid item>
-          <Typography>No pending attendees.</Typography>
-        </Grid>
-      );
     }
 
     return (
@@ -524,9 +515,12 @@ function Meetup({ id }) {
         className={classes.attendeeList}
       >
         <Grid item>
-          <Typography variant="body2">Pending Attendees: </Typography>
+          <Typography variant="body2">
+            Pending Attendees:{" "}
+            {pendingAttendees.length === 0 && "there are no pending attendees."}
+          </Typography>
         </Grid>
-        <Grid item>{pendingDisplay}</Grid>
+        {pendingDisplay}
       </Grid>
     );
   };
