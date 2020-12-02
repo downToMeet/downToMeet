@@ -194,45 +194,6 @@ securityDefinitions:
     in: query
 
 paths:
-  /hello:
-    parameters:
-      - name: id
-        in: query
-        type: string
-        description: A sample parameter.
-    get:
-      summary: Get a hello world message
-      description: |
-        If id is "error", an error response is returned.
-
-        This is a dummy endpoint for testing purposes. It should be removed soon.
-      deprecated: true
-      responses:
-        200:
-          description: successful hello world response
-          schema:
-            type: object
-            properties:
-              hello:
-                type: string
-        default:
-          description: generic error response
-          schema:
-            $ref: "#/definitions/error"
-  /user:
-    post:
-      summary: Create a test user
-      deprecated: true
-      parameters:
-        - name: name
-          in: body
-          schema:
-            type: string
-      responses:
-        200:
-          description: OK
-          schema:
-            $ref: "#/definitions/user"
   /user/me:
     get:
       summary: Get the current user's information
@@ -594,53 +555,5 @@ paths:
             $ref: "#/definitions/error"
         404:
           description: Not found
-          schema:
-            $ref: "#/definitions/error"
-
-  /set-cookie:
-    get:
-      summary: Set cookie session
-      description: |
-        This is a sample endpoint that simulates the action of logging in. After
-        a successful call to this endpoint, one should then be able to go to
-        /restricted and receive a message about who they are logged in as.
-
-        This is a dummy endpoint for testing purposes. It should be removed soon.
-      deprecated: true
-      parameters:
-        - name: user_id
-          in: query
-          type: string
-          description: User ID to set
-      produces:
-        - text/plain
-      responses:
-        200:
-          description: OK
-          headers:
-            Set-Cookie:
-              type: string
-          schema:
-            type: string
-  /restricted:
-    get:
-      summary: Restricted endpoint
-      description: |
-        This is a sample endpoint that is restricted only to users who are
-        "logged in".
-
-        This is a dummy endpoint for testing purposes. It should be removed soon.
-      deprecated: true
-      security:
-        - cookieSession: []
-      produces:
-        - text/plain
-      responses:
-        200:
-          description: OK
-          schema:
-            type: string
-        401:
-          description: Not authenticated
           schema:
             $ref: "#/definitions/error"
