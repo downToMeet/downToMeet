@@ -13,6 +13,9 @@ import {
 import { AddCircle } from "@material-ui/icons";
 import makeStyles from "@material-ui/styles/makeStyles";
 import { Link } from "react-router-dom";
+import store from "../../app/store";
+import { clearUserData, updateUserData } from "../../stores/user/actions";
+import { getUserData } from "../../lib/fetch";
 
 const useStyles = makeStyles(() => ({
   // TODO: mobile scaling
@@ -60,8 +63,8 @@ function Navbar() {
   const [authenticated, setAuthenticated] = useState(true);
   const [profileMenuAnchor, setProfileMenuAnchor] = useState(null);
   // TODO: get profileID and avatar from user
-  // const profileID = 1234;
-  const profileName = "Test User";
+  //   const profileID = store.getState().id;
+  const profileName = store.getState().name;
   const profilePic =
     "http://web.cs.ucla.edu/~miryung/MiryungKimPhotoAugust2018.jpg";
   const handleProfileMenuClick = (event) => {
@@ -134,6 +137,19 @@ function Navbar() {
       variant="outlined"
       color="secondary"
       onClick={() => {
+        if (authenticated) {
+          store.dispatch(clearUserData());
+        } else {
+          (async () => {
+            const { res, resJSON } = await getUserData();
+            if (!res.ok) {
+              return;
+            }
+            store.dispatch(
+              updateUserData({ id: resJSON.id, name: resJSON.name })
+            );
+          })();
+        }
         setAuthenticated(!authenticated);
       }}
       className={classes.button}

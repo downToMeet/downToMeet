@@ -1,10 +1,18 @@
 import { IN_PERSON, REMOTE, SERVER_URL } from "../constants";
 
-export async function getUserData(id) {
-  const getUserDataEndpoint = `${SERVER_URL}/user/${id}`;
-  const res = await fetch(getUserDataEndpoint, {
-    credentials: "include",
-  });
+export async function getUserData(id = null) {
+  let res;
+  if (id) {
+    const getUserDataEndpoint = `${SERVER_URL}/user/${id}`;
+    res = await fetch(getUserDataEndpoint, {
+      credentials: "include",
+    });
+  } else {
+    const getUserMeDataEndpoint = `${SERVER_URL}/user/me`;
+    res = await fetch(getUserMeDataEndpoint, {
+      credentials: "include",
+    });
+  }
 
   return { res, resJSON: await res.json() };
 }
