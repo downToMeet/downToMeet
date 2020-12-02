@@ -19,6 +19,11 @@ import (
 	"go.timothygu.me/downtomeet/server/restapi/operations"
 )
 
+const (
+	nonexistentMeetupID = "100000"
+	nonexistentUserID = "100000"
+)
+
 func TestGetMeetup(t *testing.T) {
 	const sessionName = "session"
 
@@ -68,7 +73,6 @@ func TestGetMeetupID(t *testing.T) {
 func TestGetMeetupIDNotFound(t *testing.T) {
 	const sessionName = "session"
 	url := new(operations.GetMeetupIDURL)
-	nonexistentUserID := TestUser.IDString() + "00000"
 	url.ID = nonexistentUserID
 	req := httptest.NewRequest(http.MethodGet, url.String(), nil)
 	session, err := testImpl.SessionStore().New(req, sessionName)
@@ -92,8 +96,8 @@ func TestPostMeetup(t *testing.T) {
 	url := new(operations.PostMeetupURL)
 	req := httptest.NewRequest(http.MethodPost, url.String(), nil)
 	session, err := testImpl.SessionStore().New(req, sessionName)
-	session.Values[impl.UserID] = TestUser.IDString()
 	require.NoError(t, err)
+	session.Values[impl.UserID] = TestUser.IDString()
 	req = req.WithContext(impl.WithSession(req.Context(), session))
 
 	eventTitle := "Pet Jacob's Dog Ryder"
@@ -129,8 +133,8 @@ func TestPostMeetupTags(t *testing.T) {
 	url := new(operations.PostMeetupURL)
 	req := httptest.NewRequest(http.MethodPost, url.String(), nil)
 	session, err := testImpl.SessionStore().New(req, sessionName)
-	session.Values[impl.UserID] = TestUser.IDString()
 	require.NoError(t, err)
+	session.Values[impl.UserID] = TestUser.IDString()
 	req = req.WithContext(impl.WithSession(req.Context(), session))
 
 	eventTitle := "Pet Jacob's Dog Ryder"
@@ -159,19 +163,16 @@ func TestPostMeetupTags(t *testing.T) {
 	require.IsType(t, (*operations.PostMeetupCreated)(nil), raw)
 	res := raw.(*operations.PostMeetupCreated)
 	assert.Equal(t, res.Payload.Title, eventTitle)
-	meetup := db.Meetup{}
-	testImpl.DB().Preload("Tags").First(&meetup, fmt.Sprint(res.Payload.ID))
-	assert.Equalf(t, 2, len(meetup.Tags), "This meetup was created with two tags.")
+	assert.Equalf(t, 2, len(res.Payload.Tags), "This meetup was created with two tags.")
 }
 
 func TestPostMeetupBadUser(t *testing.T) {
 	const sessionName = "session"
-	const nonexistentUserId = "10000000"
 	url := new(operations.PostMeetupURL)
 	req := httptest.NewRequest(http.MethodPost, url.String(), nil)
 	session, err := testImpl.SessionStore().New(req, sessionName)
-	session.Values[impl.UserID] = nonexistentUserId
 	require.NoError(t, err)
+	session.Values[impl.UserID] = nonexistentUserID
 	req = req.WithContext(impl.WithSession(req.Context(), session))
 
 	eventTitle := "Pet Jacob's Dog Ryder"
@@ -207,8 +208,8 @@ func TestPatchMeetup(t *testing.T) {
 	url.ID = TestMeetup.IDString()
 	req := httptest.NewRequest(http.MethodPatch, url.String(), nil)
 	session, err := testImpl.SessionStore().New(req, sessionName)
-	session.Values[impl.UserID] = TestUser.IDString()
 	require.NoError(t, err)
+	session.Values[impl.UserID] = TestUser.IDString()
 	req = req.WithContext(impl.WithSession(req.Context(), session))
 
 	params := operations.PatchMeetupIDParams{
@@ -240,13 +241,12 @@ func TestPatchMeetup(t *testing.T) {
 func TestPatchMeetupNotFound(t *testing.T) {
 	const sessionName = "session"
 	const newDescription = "UWU"
-	const nonexistentMeetupID = "101202"
 	url := new(operations.PatchMeetupIDURL)
 	url.ID = nonexistentMeetupID
 	req := httptest.NewRequest(http.MethodPatch, url.String(), nil)
 	session, err := testImpl.SessionStore().New(req, sessionName)
-	session.Values[impl.UserID] = TestUser.IDString()
 	require.NoError(t, err)
+	session.Values[impl.UserID] = TestUser.IDString()
 	req = req.WithContext(impl.WithSession(req.Context(), session))
 
 	params := operations.PatchMeetupIDParams{
@@ -280,8 +280,8 @@ func TestPatchMeetupForbidden(t *testing.T) {
 	url.ID = TestMeetup.IDString()
 	req := httptest.NewRequest(http.MethodPatch, url.String(), nil)
 	session, err := testImpl.SessionStore().New(req, sessionName)
-	session.Values[impl.UserID] = FakeUser.IDString()
 	require.NoError(t, err)
+	session.Values[impl.UserID] = FakeUser.IDString()
 	req = req.WithContext(impl.WithSession(req.Context(), session))
 
 	params := operations.PatchMeetupIDParams{
@@ -327,8 +327,8 @@ func TestDeleteMeetup(t *testing.T) {
 	url.ID = TestMeetup.IDString()
 	req := httptest.NewRequest(http.MethodDelete, url.String(), nil)
 	session, err := testImpl.SessionStore().New(req, sessionName)
-	session.Values[impl.UserID] = TestUser.IDString()
 	require.NoError(t, err)
+	session.Values[impl.UserID] = TestUser.IDString()
 	req = req.WithContext(impl.WithSession(req.Context(), session))
 
 	params := operations.DeleteMeetupIDParams{
@@ -342,19 +342,18 @@ func TestDeleteMeetup(t *testing.T) {
 }
 
 func TestDeleteMeetupNotFound(t *testing.T) {
-	const nonExistentMeetupID = "1000000"
 	const sessionName = "session"
 	url := new(operations.DeleteMeetupIDURL)
-	url.ID = nonExistentMeetupID
+	url.ID = nonexistentMeetupID
 	req := httptest.NewRequest(http.MethodDelete, url.String(), nil)
 	session, err := testImpl.SessionStore().New(req, sessionName)
-	session.Values[impl.UserID] = TestUser.IDString()
 	require.NoError(t, err)
+	session.Values[impl.UserID] = TestUser.IDString()
 	req = req.WithContext(impl.WithSession(req.Context(), session))
 
 	params := operations.DeleteMeetupIDParams{
 		HTTPRequest: req,
-		ID:          nonExistentMeetupID,
+		ID:          nonexistentMeetupID,
 	}
 
 	raw := testImpl.DeleteMeetupID(params, nil)
@@ -380,8 +379,8 @@ func TestDeleteMeetupForbidden(t *testing.T) {
 	url.ID = TestMeetup.IDString()
 	req := httptest.NewRequest(http.MethodDelete, url.String(), nil)
 	session, err := testImpl.SessionStore().New(req, sessionName)
-	session.Values[impl.UserID] = FakeUser.IDString()
 	require.NoError(t, err)
+	session.Values[impl.UserID] = FakeUser.IDString()
 	req = req.WithContext(impl.WithSession(req.Context(), session))
 
 	params := operations.DeleteMeetupIDParams{
@@ -392,4 +391,196 @@ func TestDeleteMeetupForbidden(t *testing.T) {
 	raw := testImpl.DeleteMeetupID(params, nil)
 
 	assert.IsType(t, (*operations.DeleteMeetupIDForbidden)(nil), raw)
+}
+
+func TestGetMeetupIdAttendee(t *testing.T) {
+	const sessionName = "session"
+	url := new(operations.GetMeetupIDAttendeeURL)
+	url.ID = TestMeetup.IDString()
+	req := httptest.NewRequest(http.MethodGet, url.String(), nil)
+	session, err := testImpl.SessionStore().New(req, sessionName)
+	require.NoError(t, err)
+	session.Values[impl.UserID] = TestUser.IDString()
+	req = req.WithContext(impl.WithSession(req.Context(), session))
+
+	params := operations.GetMeetupIDAttendeeParams{
+		HTTPRequest: req,
+		ID:          TestMeetup.IDString(),
+	}
+	var numExpectedAttendees int64
+	testImpl.DB().Table("meetup_user_attend").Where("meetup_id = ?", TestMeetup.ID).Count(&numExpectedAttendees)
+
+	raw := testImpl.GetMeetupIdAttendee(params, nil)
+
+	require.IsType(t, (*operations.GetMeetupIDAttendeeOK)(nil), raw)
+	res := raw.(*operations.GetMeetupIDAttendeeOK)
+	assert.Equal(t, numExpectedAttendees, int64(len(res.Payload.Attending)))
+}
+
+func TestGetMeetupIdAttendeesNotFound(t *testing.T) {
+	const sessionName = "session"
+	url := new(operations.GetMeetupIDAttendeeURL)
+	url.ID = nonexistentMeetupID
+	req := httptest.NewRequest(http.MethodGet, url.String(), nil)
+	session, err := testImpl.SessionStore().New(req, sessionName)
+	require.NoError(t, err)
+	session.Values[impl.UserID] = TestUser.IDString()
+	req = req.WithContext(impl.WithSession(req.Context(), session))
+
+	params := operations.GetMeetupIDAttendeeParams{
+		HTTPRequest: req,
+		ID:          nonexistentMeetupID,
+	}
+	raw := testImpl.GetMeetupIdAttendee(params, nil)
+
+	require.IsType(t, (*operations.GetMeetupIDAttendeeNotFound)(nil), raw)
+}
+
+func TestGetMeetupIdAttendeesCanceled(t *testing.T) {
+	const sessionName = "session"
+	url := new(operations.GetMeetupIDAttendeeURL)
+	url.ID = TestMeetupCanceled.IDString()
+	req := httptest.NewRequest(http.MethodGet, url.String(), nil)
+	session, err := testImpl.SessionStore().New(req, sessionName)
+	require.NoError(t, err)
+	session.Values[impl.UserID] = TestUserFriend.IDString()
+	req = req.WithContext(impl.WithSession(req.Context(), session))
+
+	params := operations.GetMeetupIDAttendeeParams{
+		HTTPRequest: req,
+		ID:          TestMeetupCanceled.IDString(),
+	}
+	raw := testImpl.GetMeetupIdAttendee(params, nil)
+
+	require.IsType(t, (*operations.GetMeetupIDAttendeeBadRequest)(nil), raw)
+
+}
+
+func TestPostMeetupIdAttendee(t *testing.T) {
+	newUser := createUser("wakkoWarner@email.com")
+	targetMeetup := createMeetup("Eat", newUser.ID, []*db.Tag{TestTag}, false)
+	const sessionName = "session"
+	url := new(operations.PostMeetupIDAttendeeURL)
+	url.ID = targetMeetup.IDString()
+	req := httptest.NewRequest(http.MethodPost, url.String(), nil)
+	session, err := testImpl.SessionStore().New(req, sessionName)
+	require.NoError(t, err)
+	session.Values[impl.UserID] = TestUser.IDString()
+	req = req.WithContext(impl.WithSession(req.Context(), session))
+
+	params := operations.PostMeetupIDAttendeeParams{
+		HTTPRequest: req,
+		ID:          targetMeetup.IDString(),
+	}
+	raw := testImpl.PostMeetupIdAttendee(params, nil)
+
+	require.IsType(t, (*operations.PostMeetupIDAttendeeOK)(nil), raw)
+	var count int64
+	testImpl.DB().Table("meetup_user_pending").Where("meetup_id = ? AND user_id = ?", targetMeetup.ID, TestUser.ID).Count(&count)
+	assert.Equal(t, int64(1), count)
+}
+
+func TestPostMeetupIdAttendeeNotFound(t *testing.T) {
+	const sessionName = "session"
+	url := new(operations.PostMeetupIDAttendeeURL)
+	url.ID = nonexistentMeetupID
+	req := httptest.NewRequest(http.MethodPost, url.String(), nil)
+	session, err := testImpl.SessionStore().New(req, sessionName)
+	require.NoError(t, err)
+	session.Values[impl.UserID] = TestUser.IDString()
+	req = req.WithContext(impl.WithSession(req.Context(), session))
+
+	params := operations.PostMeetupIDAttendeeParams{
+		HTTPRequest: req,
+		ID:          nonexistentMeetupID,
+	}
+	raw := testImpl.PostMeetupIdAttendee(params, nil)
+
+	require.IsType(t, (*operations.PostMeetupIDAttendeeNotFound)(nil), raw)
+}
+
+// TestPostMeetupIdAttendeeAlreadyInvolved checks that a BadRequest response is returned if the user is already
+// involved in a meetup
+func TestPostMeetupIdAttendeeAlreadyInvolved(t *testing.T) {
+	rejectedUser := createUser("Wakko Warner")
+	acceptedUser := createUser("Yakko Warner")
+	pendingUser := createUser("Dot Warner")
+	targetMeetup := createMeetup("Harass Random People", TestUser.ID, []*db.Tag{TestTag}, false)
+	targetMeetup.PendingAttendees = append(targetMeetup.PendingAttendees, pendingUser)
+	targetMeetup.Attendees = append(targetMeetup.Attendees, acceptedUser)
+	targetMeetup.RejectedAttendees = append(targetMeetup.RejectedAttendees, rejectedUser)
+	if err := testImpl.DB().Model(&targetMeetup).Updates(&targetMeetup).Error; err != nil {
+		t.Fatal("I Couldn't update the test db")
+	}
+	const sessionName = "session"
+	url := new(operations.PostMeetupIDAttendeeURL)
+	url.ID = TestMeetup.IDString()
+	req := httptest.NewRequest(http.MethodPost, url.String(), nil)
+	session, err := testImpl.SessionStore().New(req, sessionName)
+	require.NoError(t, err)
+
+	for _, user := range []*db.User{pendingUser, rejectedUser, acceptedUser} {
+		session.Values[impl.UserID] = fmt.Sprint(user.ID)
+		req = req.WithContext(impl.WithSession(req.Context(), session))
+
+		params := operations.PostMeetupIDAttendeeParams{
+			HTTPRequest: req,
+			ID:          fmt.Sprint(targetMeetup.ID),
+		}
+		raw := testImpl.PostMeetupIdAttendee(params, nil)
+
+		assert.IsType(t, (*operations.PostMeetupIDAttendeeBadRequest)(nil), raw)
+	}
+}
+
+func TestPostMeetupIdAttendeeCanceled(t *testing.T) {
+	canceledMeetup := createMeetup("Eat", TestUser.ID, []*db.Tag{TestTag}, true)
+	const sessionName = "session"
+	url := new(operations.PostMeetupIDAttendeeURL)
+	url.ID = canceledMeetup.IDString()
+	req := httptest.NewRequest(http.MethodPost, url.String(), nil)
+	session, err := testImpl.SessionStore().New(req, sessionName)
+	require.NoError(t, err)
+	session.Values[impl.UserID] = TestUserFriend.IDString()
+	req = req.WithContext(impl.WithSession(req.Context(), session))
+
+	params := operations.PostMeetupIDAttendeeParams{
+		HTTPRequest: req,
+		ID:          canceledMeetup.IDString(),
+	}
+	raw := testImpl.PostMeetupIdAttendee(params, nil)
+
+	require.IsType(t, (*operations.PostMeetupIDAttendeeBadRequest)(nil), raw)
+}
+
+func TestPatchMeetupIdAttendeeAddPending(t *testing.T) {
+
+}
+
+func TestPatchMeetupIdAttendeeApproveUser(t *testing.T) {
+
+}
+
+func TestPatchMeetupIdAttendeeRejectUser(t *testing.T) {
+
+}
+
+func TestPatchMeetupIdAttendeeNotFound(t *testing.T) {
+
+}
+
+func TestPatchMeetupIdAttendeeUserFromContext(t *testing.T) {
+
+}
+
+func TestPatchMeetupIdAttendeeNoPatchOwner(t *testing.T) {
+
+}
+
+func TestPatchMeetupIdOnlyOwnerApprove(t *testing.T) {
+
+}
+
+func TestPatchMeetupIdCancel(t *testing.T) {
+
 }
