@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"os"
-	"time"
 
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/go-openapi/swag"
@@ -13,6 +12,7 @@ import (
 	"gorm.io/gorm"
 
 	"go.timothygu.me/downtomeet/server/db"
+	"go.timothygu.me/downtomeet/server/impl/responders"
 	"go.timothygu.me/downtomeet/server/restapi/operations"
 )
 
@@ -28,29 +28,9 @@ var (
 	}
 )
 
-const (
-	stateNonceLen = 30
-	stateExpiry   = 30 * time.Minute // login must be complete within 30 min
+const facebookInfoURL = "https://graph.facebook.com/v9.0/me?fields=id%2Cname%2Cemail%2Cpicture.type(large)&format=json"
 
-	facebookInfoURL = "https://graph.facebook.com/v9.0/me?fields=id%2Cname%2Cemail%2Cpicture.type(large)&format=json"
-)
-
-type OAuthState struct {
-	State     string
-	ExpiresAt time.Time
-}
-
-func (s OAuthState) Validate(state string) bool {
-	return s.State == state && s.ExpiresAt.After(time.Now())
-}
-
-func (i *Implementation) NewOAuthState() OAuthState {
-	return OAuthState{
-		State:     i.nonceGen.NewState(stateNonceLen),
-		ExpiresAt: time.Now().UTC().Add(stateExpiry),
-	}
-}
-
+// GetUserFacebookAuth implements the GET /user/facebook/auth endpoint
 func (i *Implementation) GetUserFacebookAuth(param operations.GetUserFacebookAuthParams) middleware.Responder {
 	ctx := param.HTTPRequest.Context()
 	session := SessionFromContext(ctx)
@@ -63,6 +43,7 @@ func (i *Implementation) GetUserFacebookAuth(param operations.GetUserFacebookAut
 		WithLocation(config.AuthCodeURL(oauthState.State))
 }
 
+// GetUserFacebookRedirect implements the GET /user/facebook/redirect endpoint
 func (i *Implementation) GetUserFacebookRedirect(param operations.GetUserFacebookRedirectParams) middleware.Responder {
 	ctx := param.HTTPRequest.Context()
 	logger := log.WithContext(ctx)
@@ -79,7 +60,7 @@ func (i *Implementation) GetUserFacebookRedirect(param operations.GetUserFaceboo
 				State:      param.State,
 				Trampoline: swag.String("1"),
 			}
-			return SoftRedirect{i.buildURL(param.HTTPRequest, &u)}
+			return responders.SoftRedirect{URL: i.buildURL(param.HTTPRequest, &u)}
 		}
 		logger.Warn("no cookie found, but already tried trampoline")
 	}

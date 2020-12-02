@@ -1,3 +1,5 @@
+// Package nonce implements a simple ASCII nonce generator, as well as some
+// randomization utilities.
 package nonce
 
 import (
@@ -6,7 +8,8 @@ import (
 )
 
 // Generator creates randomly generated ASCII nonces. The set of possible
-// characters in generated nonces consists of alphanumerics plus _ -.
+// characters in generated nonces is the same as RandomBase64. A Generator
+// instance is safe for concurrent use.
 type Generator struct {
 	rand *rand.Rand
 	mu   sync.Mutex
@@ -19,8 +22,8 @@ func NewGenerator(src rand.Source) *Generator {
 	}
 }
 
-// NewState creates a new nonce and remembers it for later retrieval.
-func (g *Generator) NewState(stateLen int) string {
+// NewBase64 creates a new nonce with the given length.
+func (g *Generator) NewBase64(stateLen int) string {
 	g.mu.Lock()
 	defer g.mu.Unlock()
 

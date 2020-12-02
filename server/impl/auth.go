@@ -1,14 +1,9 @@
 package impl
 
 import (
-	"fmt"
 	"net/http"
 
-	"github.com/go-openapi/runtime/middleware"
-	"github.com/go-openapi/swag"
 	log "github.com/sirupsen/logrus"
-
-	"go.timothygu.me/downtomeet/server/restapi/operations"
 )
 
 // SessionMiddleware augments the request's context with a session that can be
@@ -41,22 +36,6 @@ func (i *Implementation) SessionMiddleware(handler http.Handler) http.Handler {
 		}
 		functorMiddleware{h: handler, fn: fn}.ServeHTTP(w, r)
 	})
-}
-
-// Deprecated: This is a dummy endpoint that should be removed.
-func (i *Implementation) GetSetCookie(params operations.GetSetCookieParams) middleware.Responder {
-	session := SessionFromContext(params.HTTPRequest.Context())
-	session.Values[UserID] = swag.StringValue(params.UserID)
-
-	return operations.NewGetSetCookieOK().
-		WithPayload(fmt.Sprintf("setting user ID to %s", swag.StringValue(params.UserID)))
-}
-
-// Deprecated: This is a dummy endpoint that should be removed.
-func (i *Implementation) GetRestricted(params operations.GetRestrictedParams, _ interface{}) middleware.Responder {
-	session := SessionFromContext(params.HTTPRequest.Context())
-	return operations.NewGetRestrictedOK().
-		WithPayload(fmt.Sprintf("user ID is %s", session.Values[UserID]))
 }
 
 // https://kevin.burke.dev/kevin/how-to-write-go-middleware/

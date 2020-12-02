@@ -1,4 +1,6 @@
-package impl
+// Package responders contains implementations of middleware.Responder that can
+// be useful for any endpoint.
+package responders
 
 import (
 	"html/template"
@@ -26,7 +28,11 @@ func (i InternalServerError) WriteResponse(w http.ResponseWriter, p runtime.Prod
 }
 
 // SoftRedirect is a middleware.Responder that writes an HTML page to the
-// response that would redirect the user to the provided URL.
+// response that would redirect the user to the provided URL. This can be used
+// instead of a normal HTTP 3XX redirect, as a way to make the browser think the
+// navigation is "same-site" and send SameSite=strict cookies to the server. In
+// particular, SoftRedirect implements this Stack Overflow answer:
+// https://stackoverflow.com/a/42220786/1937836.
 type SoftRedirect struct{ URL string }
 
 // WriteResponse implements middleware.Responder.

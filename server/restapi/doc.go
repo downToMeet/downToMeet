@@ -14,7 +14,6 @@
 //  Produces:
 //    - text/html
 //    - application/json
-//    - text/plain
 //
 // swagger:meta
 package restapi
