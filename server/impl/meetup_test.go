@@ -38,7 +38,7 @@ func TestGetMeetup(t *testing.T) {
 
 	require.IsType(t, (*operations.GetMeetupOK)(nil), raw)
 	res := raw.(*operations.GetMeetupOK)
-	assert.Greaterf(t, len(res.Payload), 0, "I can't test anything if I there are no meetups in range")
+	require.Greaterf(t, len(res.Payload), 0, "I can't test anything if I there are no meetups in range")
 	for _, meetup := range res.Payload {
 		assert.LessOrEqual(t, math.Abs(*meetup.Location.Coordinates.Lat-params.Lat), params.Radius)
 		assert.LessOrEqual(t, math.Abs(*meetup.Location.Coordinates.Lon-params.Lon), params.Radius)
