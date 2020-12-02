@@ -929,6 +929,10 @@ func init() {
           },
           "x-omitempty": true
         },
+        "joinDate": {
+          "type": "string",
+          "format": "date-time"
+        },
         "location": {
           "x-omitempty": true,
           "$ref": "#/definitions/coordinates"
@@ -1884,6 +1888,10 @@ func init() {
             "type": "string"
           },
           "x-omitempty": true
+        },
+        "joinDate": {
+          "type": "string",
+          "format": "date-time"
         },
         "location": {
           "x-omitempty": true,

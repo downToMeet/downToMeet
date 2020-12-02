@@ -291,10 +291,9 @@ function Meetup({ id }) {
               />
             }
             title={eventDetails.owner.name}
-            subheader={`member since ${eventDetails.time.toLocaleString(
-              locale,
-              userDateOptions
-            )}`}
+            subheader={`member since ${new Date(
+              eventDetails.owner.joinDate
+            ).toLocaleString(locale, userDateOptions)}`}
           />
           <CardContent>
             {/* TODO: add bio (reach goal) or convert to list of user interests (tags) */}

@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/go-openapi/runtime/middleware"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
@@ -246,6 +247,7 @@ func dbUserToModelUser(dbUser *db.User) *models.User {
 		Name:            dbUser.Name,
 		Email:           dbUser.Email,
 		ProfilePic:      swag.StringValue(dbUser.ProfilePic),
+		JoinDate:        strfmt.DateTime(dbUser.CreatedAt),
 		Connections:     connections,
 		ContactInfo:     dbUser.ContactInfo,
 		Location:        location,
