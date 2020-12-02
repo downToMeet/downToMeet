@@ -105,23 +105,17 @@ function Meetup({ id }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
   const [user, setUser] = useState(null);
-  const [loginDialog, setLoginDialog] = useState(false);
+  const [showLogin, setShowLogin] = useState(false);
   const [fetchMeetupError, setFetchMeetupError] = useState(null);
   const [userMeetupStatus, setUserMeetupStatus] = useState("");
-  const [title, setTitle] = useState("");
-  const [time, setTime] = useState(null);
-  const [meetupLocation, setMeetupLocation] = useState(null);
-  const [groupCount, setGroupCount] = useState([]);
-  const [description, setDescription] = useState("");
-  const [tags, setTags] = useState([]);
-  const [organizer, setOrganizer] = useState("");
+  const [eventDetails, setEventDetails] = useState(null);
   const [attendees, setAttendees] = useState([]);
   const [pendingAttendees, setPendingAttendees] = useState([]);
   const profilePic =
     "http://web.cs.ucla.edu/~miryung/MiryungKimPhotoAugust2018.jpg";
 
   const locale = "en-US";
-  const eventTimeOptions = {
+  const meetupTimeOptions = {
     hour: "numeric",
     minute: "numeric",
     day: "numeric",
@@ -140,15 +134,7 @@ function Meetup({ id }) {
     setPendingAttendees(await fetcher.getDataForUsers(pendingAttendeesList));
   }
 
-  const setData = async (userData, meetupData) => {
-    setTitle(meetupData.title);
-    setTime(new Date(meetupData.time));
-    setMeetupLocation(meetupData.location);
-    setGroupCount([meetupData.minCapacity, meetupData.maxCapacity]);
-    setDescription(meetupData.description);
-    setTags(meetupData.tags);
-    setOrganizer(meetupData.owner);
-    setAttendeeLists(meetupData.attendees, meetupData.pendingAttendees);
+  const setUserStatus = (userData, meetupData) => {
     if (userData && meetupData.owner === userData.id) {
       setUserMeetupStatus("owner");
     } else if (
@@ -168,15 +154,37 @@ function Meetup({ id }) {
 
   useEffect(async () => {
     const { res: userRes, resJSON: userJSON } = await fetcher.getUserData();
-    if (userRes.ok) {
-      setUser(userJSON);
+    if (!userRes.ok) {
+      setIsLoading(false);
+      return;
     }
     const { res: meetupRes, resJSON: meetupJSON } = await fetcher.getMeetup(id);
-    if (meetupRes.ok) {
-      setData(userJSON, meetupJSON);
-    } else {
+    if (!meetupRes.ok) {
       setFetchMeetupError(meetupRes.status);
+      setIsLoading(false);
+      return;
     }
+    const { res: ownerRes, resJSON: ownerJSON } = await fetcher.getUserData(
+      meetupJSON.owner
+    );
+    if (!ownerRes.ok) {
+      setIsLoading(false);
+      return;
+    }
+
+    setUser(userJSON);
+    setEventDetails({
+      description: meetupJSON.description,
+      location: meetupJSON.location,
+      maxCapacity: meetupJSON.maxCapacity,
+      minCapacity: meetupJSON.minCapacity,
+      owner: ownerJSON,
+      tags: meetupJSON.tags,
+      time: new Date(meetupJSON.time),
+      title: meetupJSON.title,
+    });
+    setAttendeeLists(meetupJSON.attendees, meetupJSON.pendingAttendees);
+    setUserStatus(userJSON, meetupJSON);
     setIsLoading(false);
   }, []);
 
@@ -202,8 +210,6 @@ function Meetup({ id }) {
       case 400:
         errorMessage = "Error: Bad request.";
         break;
-      case null:
-        break;
       default:
         errorMessage = "Error: Unspecified error occured.";
     }
@@ -215,11 +221,11 @@ function Meetup({ id }) {
     );
   };
 
-  const renderTags = (tagList) => {
+  const renderTags = () => {
     // TODO: convert to search link w/ tags
     return (
       <>
-        {tagList.map((tagText) => (
+        {eventDetails.tags.map((tagText) => (
           <li key={tagText} className={classes.tag}>
             <Chip
               clickable
@@ -234,35 +240,34 @@ function Meetup({ id }) {
     );
   };
 
-  const renderLocation = (location) => {
+  const renderLocation = () => {
     let locationLink;
-    if (location.url) {
+    if (eventDetails.location.url) {
       locationLink = (
         <Typography variant="body2">
           Location: Online (
-          <Link href={location.url} rel="noreferrer" target="_blank">
+          <Link
+            href={eventDetails.location.url}
+            rel="noreferrer"
+            target="_blank"
+          >
             link
           </Link>
           )
         </Typography>
       );
     } else {
-      const googleMapsLink = `https://www.google.com/maps/search/?api=1&query=${location.coordinates.lat},${location.coordinates.lon}`;
+      const googleMapsLink = `https://www.google.com/maps/search/?api=1&query=${eventDetails.coordinates.lat},${eventDetails.coordinates.lon}`;
       locationLink = (
         <Typography variant="body2">
           Location:{" "}
           <Link href={googleMapsLink} rel="noreferrer" target="_blank">
-            {location.name}
+            {eventDetails.location.name}
           </Link>
         </Typography>
       );
     }
-    return (
-      <Grid item>
-        {/* TODO: Link to online event if joined? */}
-        {locationLink}
-      </Grid>
-    );
+    return <Grid item>{locationLink}</Grid>;
   };
 
   const renderOrganizer = () => {
@@ -272,10 +277,13 @@ function Meetup({ id }) {
         <Card className={classes.organizer}>
           <CardHeader
             avatar={
-              <Avatar className={classes.organizerAvatar} src={profilePic} />
+              <Avatar
+                className={classes.organizerAvatar}
+                src={eventDetails.owner.profilePic}
+              />
             }
-            title={organizer}
-            subheader={`member since ${time.toLocaleString(
+            title={eventDetails.owner.name}
+            subheader={`member since ${eventDetails.time.toLocaleString(
               locale,
               userDateOptions
             )}`}
@@ -333,7 +341,7 @@ function Meetup({ id }) {
       setIsUpdating(false);
       setUserMeetupStatus("pending");
     } else {
-      setLoginDialog(true);
+      setShowLogin(true);
     }
   };
 
@@ -527,7 +535,7 @@ function Meetup({ id }) {
   };
 
   const renderMeetup = (errorStatus) => {
-    if (errorStatus) {
+    if (errorStatus || !eventDetails) {
       return renderError(errorStatus);
     }
 
@@ -535,7 +543,7 @@ function Meetup({ id }) {
       <Grid item container spacing={2}>
         <Grid item container>
           <Grid item xs>
-            <Typography variant="h3">{title}</Typography>
+            <Typography variant="h3">{eventDetails.title}</Typography>
             {/* add share/link copy icon here? */}
           </Grid>
           {renderMeetupAction()}
@@ -545,20 +553,21 @@ function Meetup({ id }) {
           container
           direction="column"
           spacing={1}
-          className={classes.eventDetails}
+          className={classes.meetupDetails}
         >
           <Grid item>
             <Typography variant="body2">
-              Time: {time.toLocaleString(locale, eventTimeOptions)}
+              Time:{" "}
+              {eventDetails.time.toLocaleString(locale, meetupTimeOptions)}
             </Typography>
           </Grid>
-          {renderLocation(meetupLocation)}
+          {renderLocation()}
           <Grid item>
             <Typography variant="body2">
               # Attendees:{" "}
               {`${attendees ? attendees.length : 0} out of ${
-                groupCount[1]
-              } (min. ${groupCount[0]})`}
+                eventDetails.maxCapacity
+              } (min. ${eventDetails.minCapacity})`}
             </Typography>
           </Grid>
           <Grid item>
@@ -567,19 +576,19 @@ function Meetup({ id }) {
               className={classes.tagList}
               variant="body2"
             >
-              Tags: {renderTags(tags)}
+              Tags: {renderTags()}
             </Typography>
           </Grid>
           <Grid item>
             <Typography className={classes.description} variant="body1">
-              {description}
+              {eventDetails.description}
             </Typography>
           </Grid>
           {renderOrganizer()}
           <Grid item container justify="center">
             {renderAttendees()}
             {user &&
-              user.id === organizer &&
+              user.id === eventDetails.owner.id &&
               renderPendingAttendees(pendingAttendees)}
           </Grid>
         </Grid>
@@ -589,11 +598,11 @@ function Meetup({ id }) {
 
   return (
     <Box className={classes.root}>
-      <Dialog open={loginDialog} onClose={() => setLoginDialog(false)}>
+      <Dialog open={showLogin} onClose={() => setShowLogin(false)}>
         <DialogContent>
           <DialogContentText>Please log in to join a meetup.</DialogContentText>
           <DialogActions>
-            <Button onClick={() => setLoginDialog(false)}>OK</Button>
+            <Button onClick={() => setShowLogin(false)}>OK</Button>
             <Button component={RouterLink} to="/login" color="primary">
               Sign in
             </Button>
