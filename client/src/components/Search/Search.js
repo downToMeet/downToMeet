@@ -231,7 +231,7 @@ function Search() {
     }
     if (meetups.length === 0) {
       return (
-        <Typography style={{ marginTop: 16 }}>
+        <Typography>
           We couldn’t find any meetups, try widening your search or{" "}
           <Link to="/create">create your own meetup!</Link>
         </Typography>
@@ -268,7 +268,7 @@ function Search() {
       <Box display="flex" flexDirection="column">
         {renderSearch()}
         {meetupType === IN_PERSON && renderLocation()}
-        <Box alignSelf="flex-end" mt={2}>
+        <Box alignSelf="flex-end" mt={2} mb={2}>
           <Button
             onClick={resetSearch}
             variant="contained"
