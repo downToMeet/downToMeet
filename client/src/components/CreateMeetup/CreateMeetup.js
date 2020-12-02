@@ -245,7 +245,7 @@ function CreateMeetup() {
     }
 
     setCreatingMeetup(true);
-    const { res } = await fetcher.createMeetup({
+    const { res, resJSON } = await fetcher.createMeetup({
       title,
       time,
       meetupType,
@@ -256,9 +256,9 @@ function CreateMeetup() {
       tags,
     });
     if (res.ok) {
-      // console.log("Created meetup with id: ", resJSON.id);
       clearForm();
-      // TODO: redirect to newly created meetup
+      // Use location.replace instead of location.href so user cannot navigate back to create screen
+      window.location.replace(`/meetup/${resJSON.id}`);
     }
   };
 
