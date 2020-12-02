@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import {
   Box,
@@ -9,16 +9,41 @@ import {
   Typography,
 } from "@material-ui/core";
 import { Link } from "react-router-dom";
+import { useGoogleMaps } from "../common/LocationPicker";
 
 function MeetupCard({ title, time, location, id, tags }) {
-  let locationString;
-  if (location.name) {
-    locationString = location.name;
-  } else if (location.url) {
-    // TODO: "Online" if not joined
-    locationString = location.url;
-  }
-  // TODO: convert location coords to an address
+  const [locationString, setLocationString] = useState(null);
+  const { isReady, geocode } = useGoogleMaps([location.coordinates]);
+
+  useEffect(() => {
+    if (location.name) {
+      setLocationString(location.name);
+    }
+    if (!location.name && !location.url && location.coordinates && isReady()) {
+      const controller = new AbortController();
+
+      geocode(
+        {
+          location: {
+            lat: location.coordinates.lat,
+            lng: location.coordinates.lon,
+          },
+        },
+        (res) => {
+          if (controller.signal.aborted) {
+            return;
+          }
+          if (res[0]) {
+            setLocationString(res[0].formatted_address);
+          }
+        }
+      );
+      return () => {
+        controller.abort();
+      };
+    }
+    return undefined;
+  }, [location.coordinates, location.name, location.url]);
 
   const tagList = tags.map((tag) => <Chip label={tag} key={tag} />);
 
@@ -44,6 +69,11 @@ function MeetupCard({ title, time, location, id, tags }) {
               when: {new Date(time).toLocaleString(locale, eventTimeOptions)}
             </Typography>
             {locationString && <Typography>where: {locationString}</Typography>}
+            {location.url && (
+              <Typography component="a" href={location.url}>
+                {location.url}
+              </Typography>
+            )}
             <Box display="flex" mt={1}>
               {tagList}
             </Box>

@@ -26,7 +26,7 @@ function Search() {
   const [meetups, setMeetups] = useState(null);
   const [meetupType, setMeetupType] = useState("");
   const [searchLocation, setSearchLocation] = useState(null);
-  const [radius, setRadius] = useState(null);
+  const [radius, setRadius] = useState("");
 
   // TODO: load options from the server instead
   const tagOptions = [
@@ -51,7 +51,7 @@ function Search() {
     if (meetupType === "") {
       return false;
     }
-    if ((meetupType === IN_PERSON && coords === null) || radius === null) {
+    if (meetupType === IN_PERSON && (coords === null || radius === "")) {
       return false;
     }
     return true;
