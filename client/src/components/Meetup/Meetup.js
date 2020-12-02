@@ -243,9 +243,9 @@ function Meetup({ id }) {
   const renderLocation = () => {
     let locationLink;
     if (eventDetails.location.url) {
-      locationLink = (
-        <Typography variant="body2">
-          Location: Online (
+      const link = (
+        <>
+          (
           <Link
             href={eventDetails.location.url}
             rel="noreferrer"
@@ -254,6 +254,14 @@ function Meetup({ id }) {
             link
           </Link>
           )
+        </>
+      );
+      // Only show link if owner or attendee (zoombombing who?)
+      locationLink = (
+        <Typography variant="body2">
+          Location: Online{" "}
+          {(userMeetupStatus === "attending" || userMeetupStatus === "owner") &&
+            link}
         </Typography>
       );
     } else {
@@ -514,6 +522,22 @@ function Meetup({ id }) {
           >
             Cancel Join Request
           </Button>
+        );
+        break;
+      case "rejected":
+        button = (
+          <Grid container spacing={1} direction="column" align="center">
+            <Grid item>
+              <Button startIcon={<PersonAddIcon />} disabled variant="outlined">
+                Join Meetup
+              </Button>
+            </Grid>
+            <Grid item>
+              <Typography variant="body2" className={classes.error}>
+                you were rejected from the meetup.
+              </Typography>
+            </Grid>
+          </Grid>
         );
         break;
       default:
