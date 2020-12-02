@@ -98,6 +98,16 @@ const useStyles = makeStyles((theme) => ({
   error: {
     color: theme.palette.error.main,
   },
+  ownerInterests: {
+    display: "inline-block",
+    paddingLeft: 0,
+    paddingRight: theme.spacing(1),
+    listStyle: "none",
+  },
+  noInterests: {
+    padding: 0,
+    color: theme.palette.warning.main,
+  },
 }));
 function Meetup({ id }) {
   const classes = useStyles();
@@ -221,11 +231,11 @@ function Meetup({ id }) {
     );
   };
 
-  const renderTags = () => {
+  const renderTags = (tags) => {
     // TODO: convert to search link w/ tags
     return (
       <>
-        {eventDetails.tags.map((tagText) => (
+        {tags.map((tagText) => (
           <li key={tagText} className={classes.tag}>
             <Chip
               clickable
@@ -296,21 +306,24 @@ function Meetup({ id }) {
             ).toLocaleString(locale, userDateOptions)}`}
           />
           <CardContent>
-            {/* TODO: add bio (reach goal) or convert to list of user interests (tags) */}
-            <Typography className={classes.organizerBio}>
-              About Me: Lorem ipsum dolor sit amet, consectetur adipiscing elit,
-              sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-              Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris
-              nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in
-              reprehenderit in voluptate velit esse cillum dolore eu fugiat
-              nulla pariatur. Excepteur sint occaecat cupidatat non proident,
-              sunt in culpa qui officia deserunt mollit anim id est laborum.
-            </Typography>
+            <Grid container direction="column" spacing={3}>
+              <Grid item>
+                <Typography variant="body2" className={classes.ownerInterests}>
+                  {eventDetails.owner.interests
+                    ? "Interests: "
+                    : "Interests: none specified"}
+                </Typography>
+                {eventDetails.owner.interests && renderTags(eventDetails.tags)}
+              </Grid>
+              <Grid item>
+                <Typography variant="body2" className={classes.ownerInterests}>
+                  {`Contact info: ${
+                    eventDetails.owner.contactInfo || "none specified"
+                  }`}
+                </Typography>
+              </Grid>
+            </Grid>
           </CardContent>
-          <CardActions disableSpacing>
-            {/* TODO: link to user profile, or create popup with contact info */}
-            <Button>Contact</Button>
-          </CardActions>
         </Card>
       </Grid>
     );
@@ -599,7 +612,7 @@ function Meetup({ id }) {
               className={classes.tagList}
               variant="body2"
             >
-              Tags: {renderTags()}
+              Tags: {eventDetails.tags ? renderTags(eventDetails.tags) : "none"}
             </Typography>
           </Grid>
           <Grid item>
