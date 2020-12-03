@@ -1,22 +1,22 @@
-import { LOAD_USER_DATA, UPDATE_USER_DATA } from "./actions";
+import { UPDATE_USER_DATA, CLEAR_USER_DATA } from "./actions";
 
-const initialState = {
-  attending: [],
-  contactInfo: "",
-  coordinates: null,
-  userID: "",
-  interests: [],
-  name: "",
-  ownedMeetups: [],
-  pendingApproval: [],
-};
+const initialState = Object.freeze({
+  id: null,
+  name: null,
+  profilePic: null,
+});
 
 const userReducer = (state = initialState, action) => {
   switch (action.type) {
-    case LOAD_USER_DATA:
-      return state;
     case UPDATE_USER_DATA:
-      return state;
+      return {
+        ...state,
+        id: action.payload.id,
+        name: action.payload.name,
+        profilePic: action.payload.profilePic,
+      };
+    case CLEAR_USER_DATA:
+      return initialState;
     default:
       return state;
   }

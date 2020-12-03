@@ -1,13 +1,30 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 import CreateMeetup from "./components/CreateMeetup/CreateMeetup";
 import Login from "./components/Login/Login";
 import Meetup from "./components/Meetup/Meetup";
 import Profile from "./components/Profile/Profile";
 import Search from "./components/Search/Search";
 import Navbar from "./components/Navbar/Navbar";
+import { getUserData } from "./lib/fetch";
+import { clearUserData, updateUserData } from "./stores/user/actions";
 
 function App() {
+  const dispatch = useDispatch();
+  const userID = useSelector((state) => state.id);
+
+  useEffect(() => {
+    (async () => {
+      const { res, resJSON } = await getUserData();
+      if (!res.ok) {
+        dispatch(clearUserData());
+        return;
+      }
+      dispatch(updateUserData(resJSON));
+    })();
+  }, [userID]);
+
   // TODO: use Paper/Cards for interface
   return (
     <Router>

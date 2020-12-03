@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import {
   AppBar,
   Avatar,
@@ -13,6 +14,8 @@ import {
 import { AddCircle } from "@material-ui/icons";
 import makeStyles from "@material-ui/styles/makeStyles";
 import { Link } from "react-router-dom";
+import { clearUserData } from "../../stores/user/actions";
+import * as fetcher from "../../lib/fetch";
 
 const useStyles = makeStyles(() => ({
   // TODO: mobile scaling
@@ -56,14 +59,10 @@ const LOGIN_PATH = "/login";
 
 function Navbar() {
   const classes = useStyles();
-  // TODO: connect authentication
-  const [authenticated, setAuthenticated] = useState(true);
   const [profileMenuAnchor, setProfileMenuAnchor] = useState(null);
-  // TODO: get profileID and avatar from user
-  // const profileID = 1234;
-  const profileName = "Test User";
-  const profilePic =
-    "http://web.cs.ucla.edu/~miryung/MiryungKimPhotoAugust2018.jpg";
+
+  const dispatch = useDispatch();
+  const user = useSelector((state) => state);
   const handleProfileMenuClick = (event) => {
     setProfileMenuAnchor(event.currentTarget);
   };
@@ -72,14 +71,23 @@ function Navbar() {
     setProfileMenuAnchor(null);
   };
 
+  const handleLogout = async () => {
+    const res = await fetcher.logout();
+    if (!res.ok) {
+      return;
+    }
+    dispatch(clearUserData());
+    handleProfileMenuClose();
+  };
+
   const ProfileMenu = (
     <>
       <Button
-        startIcon={<Avatar src={profilePic} className={classes.avatar} />}
+        startIcon={<Avatar src={user.profilePic} className={classes.avatar} />}
         className={`${classes.button} ${classes.profileButton}`}
         onClick={handleProfileMenuClick}
       >
-        {profileName}
+        {user.name}
       </Button>
       <Menu
         anchorEl={profileMenuAnchor}
@@ -103,14 +111,7 @@ function Navbar() {
         >
           Profile
         </MenuItem>
-        <MenuItem
-          onClick={() => {
-            handleProfileMenuClose();
-            setAuthenticated(false);
-          }}
-          component={Link}
-          to="/"
-        >
+        <MenuItem onClick={handleLogout} component={Link} to="/login">
           Logout
         </MenuItem>
       </Menu>
@@ -128,21 +129,7 @@ function Navbar() {
     </Button>
   );
 
-  const authToggle = (
-    <Button
-      size="small"
-      variant="outlined"
-      color="secondary"
-      onClick={() => {
-        setAuthenticated(!authenticated);
-      }}
-      className={classes.button}
-      component={Link}
-      to="/"
-    >
-      [DEBUG: toggle auth]
-    </Button>
-  );
+  const authenticated = Boolean(user.id);
 
   return (
     <Box className={classes.root}>
@@ -158,7 +145,6 @@ function Navbar() {
           >
             DownToMeet
           </Typography>
-          {authToggle}
           <Button
             startIcon={<AddCircle />}
             className={`${classes.button} ${classes.createButton}`}
