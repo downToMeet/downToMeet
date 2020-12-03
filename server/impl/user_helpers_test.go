@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"sync/atomic"
 
-	"gorm.io/gorm"
-
 	"go.timothygu.me/downtomeet/server/db"
 )
 
