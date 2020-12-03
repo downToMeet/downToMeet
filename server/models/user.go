@@ -11,6 +11,7 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
+	"github.com/go-openapi/validate"
 )
 
 // User user
@@ -37,6 +38,10 @@ type User struct {
 	// interests
 	Interests []string `json:"interests,omitempty"`
 
+	// join date
+	// Format: date-time
+	JoinDate strfmt.DateTime `json:"joinDate,omitempty"`
+
 	// location
 	Location *Coordinates `json:"location,omitempty"`
 
@@ -62,6 +67,10 @@ func (m *User) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateID(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateJoinDate(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -109,6 +118,19 @@ func (m *User) validateID(formats strfmt.Registry) error {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("id")
 		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *User) validateJoinDate(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.JoinDate) { // not required
+		return nil
+	}
+
+	if err := validate.FormatOf("joinDate", "body", "date-time", m.JoinDate.String(), formats); err != nil {
 		return err
 	}
 

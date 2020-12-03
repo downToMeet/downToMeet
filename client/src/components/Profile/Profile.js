@@ -119,7 +119,6 @@ function Profile({
         <AppBar position="static">
           <StyledTabList
             onChange={(_, newValue) => setTabValue(newValue)}
-            indicatorColor="primary"
             variant="scrollable"
             scrollButtons="auto"
           >

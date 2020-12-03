@@ -69,7 +69,7 @@ func populateDatabase(i *Implementation) {
 	testImpl.DB().Create(&FakeUser)
 	TestMeetup = &db.Meetup{
 		Title:       "Group Painting",
-		Time:        time.Unix(0, 0),
+		Time:        time.Now().Add(24 * time.Hour),
 		Description: "",
 		Tags:        nil,
 		MaxCapacity: 10,

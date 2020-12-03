@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter as Router, Switch, Route, Link } from "react-router-dom";
+import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 import CreateMeetup from "./components/CreateMeetup/CreateMeetup";
 import Login from "./components/Login/Login";
 import Meetup from "./components/Meetup/Meetup";
@@ -8,12 +8,10 @@ import Search from "./components/Search/Search";
 import Navbar from "./components/Navbar/Navbar";
 
 function App() {
+  // TODO: use Paper/Cards for interface
   return (
     <Router>
       <Navbar />
-      <div>
-        <Link to="/search">Search</Link>
-      </div>
       <Switch>
         <Route path="/create">
           <CreateMeetup />
@@ -22,6 +20,10 @@ function App() {
           <Login />
         </Route>
         <Route
+          path="/meetup/:id/edit"
+          render={(input) => <CreateMeetup id={input.match.params.id} />}
+        />
+        <Route
           path="/meetup/:id"
           render={(input) => <Meetup id={input.match.params.id} />}
         />
@@ -29,7 +31,7 @@ function App() {
           path="/user/:id"
           render={(input) => <ProfilePage id={input.match.params.id} />}
         />
-        <Route path="/search">
+        <Route path="/">
           <Search />
         </Route>
       </Switch>

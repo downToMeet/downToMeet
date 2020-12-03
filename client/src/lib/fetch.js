@@ -1,8 +1,36 @@
 import { IN_PERSON, REMOTE, SERVER_URL } from "../constants";
 
-export async function getUserData(id) {
+export async function getUserData(id = "me") {
   const getUserDataEndpoint = `${SERVER_URL}/user/${id}`;
   const res = await fetch(getUserDataEndpoint, {
+    credentials: "include",
+  });
+
+  return { res, resJSON: await res.json() };
+}
+
+export async function getDataForUsers(users) {
+  if (!users) return [];
+
+  return Promise.all(
+    users.map((user) =>
+      fetch(`${SERVER_URL}/user/${user}`, { credentials: "include" })
+    )
+  ).then((responses) => Promise.all(responses.map((res) => res.json())));
+}
+
+export async function searchForMeetups({ lat, lon, radius, tags }) {
+  const getMeetupsEndpoint = `${SERVER_URL}/meetup?lat=${lat}&lon=${lon}&radius=${radius}&tags=${tags}`;
+  const res = await fetch(getMeetupsEndpoint, {
+    credentials: "include",
+  });
+
+  return { res, resJSON: await res.json() };
+}
+
+export async function searchForRemoteMeetups(tags) {
+  const getMeetupsEndpoint = `${SERVER_URL}/meetup/remote?tags=${tags}`;
+  const res = await fetch(getMeetupsEndpoint, {
     credentials: "include",
   });
 
@@ -54,6 +82,55 @@ export async function createMeetup({
       "Content-Type": "application/json",
     },
     body: JSON.stringify(meetup),
+  });
+
+  return { res, resJSON: await res.json() };
+}
+
+export async function getMeetup(id) {
+  const getMeetupEndpoint = `${SERVER_URL}/meetup/${id}`;
+
+  const res = await fetch(getMeetupEndpoint, {
+    credentials: "include",
+  });
+
+  return { res, resJSON: await res.json() };
+}
+
+export async function joinMeetup(id) {
+  const addAttendeeEndpoint = `${SERVER_URL}/meetup/${id}/attendee`;
+
+  const res = await fetch(addAttendeeEndpoint, {
+    method: "POST",
+    credentials: "include",
+  });
+
+  return { res, resJSON: await res.json() };
+}
+export async function getMeetupAttendees(id) {
+  const getMeetupEndpoint = `${SERVER_URL}/meetup/${id}/attendee`;
+
+  const res = await fetch(getMeetupEndpoint, {
+    credentials: "include",
+  });
+
+  return { res, resJSON: await res.json() };
+}
+
+export async function updateAttendeeStatus({ id, attendee, attendeeStatus }) {
+  const updateAttendeeEndpoint = `${SERVER_URL}/meetup/${id}/attendee`;
+  const attendeePatch = {
+    attendee, // If empty, patches current user
+    attendeeStatus,
+  };
+
+  const res = await fetch(updateAttendeeEndpoint, {
+    method: "PATCH",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(attendeePatch),
   });
 
   return { res, resJSON: await res.json() };
