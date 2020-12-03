@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
-import { BrowserRouter as Router, Switch, Route, Link } from "react-router-dom";
+import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 import CreateMeetup from "./components/CreateMeetup/CreateMeetup";
 import Login from "./components/Login/Login";
 import Meetup from "./components/Meetup/Meetup";
@@ -7,27 +8,27 @@ import Profile from "./components/Profile/Profile";
 import Search from "./components/Search/Search";
 import Navbar from "./components/Navbar/Navbar";
 import { getUserData } from "./lib/fetch";
-import store from "./app/store";
-import { updateUserData } from "./stores/user/actions";
+import { clearUserData, updateUserData } from "./stores/user/actions";
 
 function App() {
+  const dispatch = useDispatch();
+  const userID = useSelector((state) => state.id);
+
   useEffect(() => {
-    if (store.getState().id === "" || store.getState().name === "") {
-      (async () => {
-        const { res, resJSON } = await getUserData();
-        if (!res.ok) {
-          return;
-        }
-        store.dispatch(updateUserData({ id: resJSON.id, name: resJSON.name }));
-      })();
-    }
-  }, [store]);
+    (async () => {
+      const { res, resJSON } = await getUserData();
+      if (!res.ok) {
+        dispatch(clearUserData());
+        return;
+      }
+      dispatch(updateUserData(resJSON));
+    })();
+  }, [userID]);
+
+  // TODO: use Paper/Cards for interface
   return (
     <Router>
       <Navbar />
-      <div>
-        <Link to="/search">Search</Link>
-      </div>
       <Switch>
         <Route path="/create">
           <CreateMeetup />
@@ -36,6 +37,10 @@ function App() {
           <Login />
         </Route>
         <Route
+          path="/meetup/:id/edit"
+          render={(input) => <CreateMeetup id={input.match.params.id} />}
+        />
+        <Route
           path="/meetup/:id"
           render={(input) => <Meetup id={input.match.params.id} />}
         />
@@ -43,7 +48,7 @@ function App() {
           path="/user/:id"
           render={(input) => <Profile id={input.match.params.id} />}
         />
-        <Route path="/search">
+        <Route path="/">
           <Search />
         </Route>
       </Switch>

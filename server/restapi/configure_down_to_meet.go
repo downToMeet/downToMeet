@@ -47,13 +47,6 @@ func configureAPI(api *operations.DownToMeetAPI) http.Handler {
 
 	_ = Impl.DB() // ensure we are connected to the database
 
-	if !Impl.Options.Production {
-		api.GetHelloHandler = operations.GetHelloHandlerFunc(Impl.GetHello)
-		api.GetSetCookieHandler = operations.GetSetCookieHandlerFunc(Impl.GetSetCookie)
-		api.GetRestrictedHandler = operations.GetRestrictedHandlerFunc(Impl.GetRestricted)
-		api.PostUserHandler = operations.PostUserHandlerFunc(Impl.PostUser)
-	}
-
 	api.GetUserIDHandler = operations.GetUserIDHandlerFunc(Impl.GetUserID)
 	api.PatchUserIDHandler = operations.PatchUserIDHandlerFunc(Impl.PatchUserID)
 	api.GetUserMeHandler = operations.GetUserMeHandlerFunc(Impl.GetUserMe)
@@ -64,6 +57,7 @@ func configureAPI(api *operations.DownToMeetAPI) http.Handler {
 	api.GetUserGoogleRedirectHandler = operations.GetUserGoogleRedirectHandlerFunc(Impl.GetUserGoogleRedirect)
 
 	api.GetMeetupIDHandler = operations.GetMeetupIDHandlerFunc(Impl.GetMeetupID)
+	api.GetMeetupRemoteHandler = operations.GetMeetupRemoteHandlerFunc(Impl.GetMeetupRemote)
 	api.PostMeetupHandler = operations.PostMeetupHandlerFunc(Impl.PostMeetup)
 	api.PatchMeetupIDHandler = operations.PatchMeetupIDHandlerFunc(Impl.PatchMeetupID)
 	api.DeleteMeetupIDHandler = operations.DeleteMeetupIDHandlerFunc(Impl.DeleteMeetupID)
@@ -111,6 +105,7 @@ func setupMiddlewares(handler http.Handler) http.Handler {
 func setupGlobalMiddleware(handler http.Handler) http.Handler {
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:3000"}, // TODO: update for deployment
+		AllowedMethods:   []string{http.MethodGet, http.MethodHead, http.MethodPost, http.MethodPatch, http.MethodDelete},
 		AllowCredentials: true,
 		Debug:            !Impl.Options.Production,
 	})

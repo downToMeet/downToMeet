@@ -45,13 +45,9 @@ func NewDownToMeetAPI(spec *loads.Document) *DownToMeetAPI {
 			return errors.NotImplemented("html producer has not yet been implemented")
 		}),
 		JSONProducer: runtime.JSONProducer(),
-		TxtProducer:  runtime.TextProducer(),
 
 		DeleteMeetupIDHandler: DeleteMeetupIDHandlerFunc(func(params DeleteMeetupIDParams, principal interface{}) middleware.Responder {
 			return middleware.NotImplemented("operation DeleteMeetupID has not yet been implemented")
-		}),
-		GetHelloHandler: GetHelloHandlerFunc(func(params GetHelloParams) middleware.Responder {
-			return middleware.NotImplemented("operation GetHello has not yet been implemented")
 		}),
 		GetMeetupHandler: GetMeetupHandlerFunc(func(params GetMeetupParams) middleware.Responder {
 			return middleware.NotImplemented("operation GetMeetup has not yet been implemented")
@@ -62,11 +58,8 @@ func NewDownToMeetAPI(spec *loads.Document) *DownToMeetAPI {
 		GetMeetupIDAttendeeHandler: GetMeetupIDAttendeeHandlerFunc(func(params GetMeetupIDAttendeeParams, principal interface{}) middleware.Responder {
 			return middleware.NotImplemented("operation GetMeetupIDAttendee has not yet been implemented")
 		}),
-		GetRestrictedHandler: GetRestrictedHandlerFunc(func(params GetRestrictedParams, principal interface{}) middleware.Responder {
-			return middleware.NotImplemented("operation GetRestricted has not yet been implemented")
-		}),
-		GetSetCookieHandler: GetSetCookieHandlerFunc(func(params GetSetCookieParams) middleware.Responder {
-			return middleware.NotImplemented("operation GetSetCookie has not yet been implemented")
+		GetMeetupRemoteHandler: GetMeetupRemoteHandlerFunc(func(params GetMeetupRemoteParams) middleware.Responder {
+			return middleware.NotImplemented("operation GetMeetupRemote has not yet been implemented")
 		}),
 		GetUserFacebookAuthHandler: GetUserFacebookAuthHandlerFunc(func(params GetUserFacebookAuthParams) middleware.Responder {
 			return middleware.NotImplemented("operation GetUserFacebookAuth has not yet been implemented")
@@ -103,9 +96,6 @@ func NewDownToMeetAPI(spec *loads.Document) *DownToMeetAPI {
 		}),
 		PostMeetupIDAttendeeHandler: PostMeetupIDAttendeeHandlerFunc(func(params PostMeetupIDAttendeeParams, principal interface{}) middleware.Responder {
 			return middleware.NotImplemented("operation PostMeetupIDAttendee has not yet been implemented")
-		}),
-		PostUserHandler: PostUserHandlerFunc(func(params PostUserParams) middleware.Responder {
-			return middleware.NotImplemented("operation PostUser has not yet been implemented")
 		}),
 
 		// Applies when the "COOKIE" query is set
@@ -150,9 +140,6 @@ type DownToMeetAPI struct {
 	// JSONProducer registers a producer for the following mime types:
 	//   - application/json
 	JSONProducer runtime.Producer
-	// TxtProducer registers a producer for the following mime types:
-	//   - text/plain
-	TxtProducer runtime.Producer
 
 	// CookieSessionAuth registers a function that takes a token and returns a principal
 	// it performs authentication based on an api key COOKIE provided in the query
@@ -163,18 +150,14 @@ type DownToMeetAPI struct {
 
 	// DeleteMeetupIDHandler sets the operation handler for the delete meetup ID operation
 	DeleteMeetupIDHandler DeleteMeetupIDHandler
-	// GetHelloHandler sets the operation handler for the get hello operation
-	GetHelloHandler GetHelloHandler
 	// GetMeetupHandler sets the operation handler for the get meetup operation
 	GetMeetupHandler GetMeetupHandler
 	// GetMeetupIDHandler sets the operation handler for the get meetup ID operation
 	GetMeetupIDHandler GetMeetupIDHandler
 	// GetMeetupIDAttendeeHandler sets the operation handler for the get meetup ID attendee operation
 	GetMeetupIDAttendeeHandler GetMeetupIDAttendeeHandler
-	// GetRestrictedHandler sets the operation handler for the get restricted operation
-	GetRestrictedHandler GetRestrictedHandler
-	// GetSetCookieHandler sets the operation handler for the get set cookie operation
-	GetSetCookieHandler GetSetCookieHandler
+	// GetMeetupRemoteHandler sets the operation handler for the get meetup remote operation
+	GetMeetupRemoteHandler GetMeetupRemoteHandler
 	// GetUserFacebookAuthHandler sets the operation handler for the get user facebook auth operation
 	GetUserFacebookAuthHandler GetUserFacebookAuthHandler
 	// GetUserFacebookRedirectHandler sets the operation handler for the get user facebook redirect operation
@@ -199,8 +182,6 @@ type DownToMeetAPI struct {
 	PostMeetupHandler PostMeetupHandler
 	// PostMeetupIDAttendeeHandler sets the operation handler for the post meetup ID attendee operation
 	PostMeetupIDAttendeeHandler PostMeetupIDAttendeeHandler
-	// PostUserHandler sets the operation handler for the post user operation
-	PostUserHandler PostUserHandler
 	// ServeError is called when an error is received, there is a default handler
 	// but you can set your own with this
 	ServeError func(http.ResponseWriter, *http.Request, error)
@@ -279,9 +260,6 @@ func (o *DownToMeetAPI) Validate() error {
 	if o.JSONProducer == nil {
 		unregistered = append(unregistered, "JSONProducer")
 	}
-	if o.TxtProducer == nil {
-		unregistered = append(unregistered, "TxtProducer")
-	}
 
 	if o.CookieSessionAuth == nil {
 		unregistered = append(unregistered, "COOKIEAuth")
@@ -289,9 +267,6 @@ func (o *DownToMeetAPI) Validate() error {
 
 	if o.DeleteMeetupIDHandler == nil {
 		unregistered = append(unregistered, "DeleteMeetupIDHandler")
-	}
-	if o.GetHelloHandler == nil {
-		unregistered = append(unregistered, "GetHelloHandler")
 	}
 	if o.GetMeetupHandler == nil {
 		unregistered = append(unregistered, "GetMeetupHandler")
@@ -302,11 +277,8 @@ func (o *DownToMeetAPI) Validate() error {
 	if o.GetMeetupIDAttendeeHandler == nil {
 		unregistered = append(unregistered, "GetMeetupIDAttendeeHandler")
 	}
-	if o.GetRestrictedHandler == nil {
-		unregistered = append(unregistered, "GetRestrictedHandler")
-	}
-	if o.GetSetCookieHandler == nil {
-		unregistered = append(unregistered, "GetSetCookieHandler")
+	if o.GetMeetupRemoteHandler == nil {
+		unregistered = append(unregistered, "GetMeetupRemoteHandler")
 	}
 	if o.GetUserFacebookAuthHandler == nil {
 		unregistered = append(unregistered, "GetUserFacebookAuthHandler")
@@ -343,9 +315,6 @@ func (o *DownToMeetAPI) Validate() error {
 	}
 	if o.PostMeetupIDAttendeeHandler == nil {
 		unregistered = append(unregistered, "PostMeetupIDAttendeeHandler")
-	}
-	if o.PostUserHandler == nil {
-		unregistered = append(unregistered, "PostUserHandler")
 	}
 
 	if len(unregistered) > 0 {
@@ -406,8 +375,6 @@ func (o *DownToMeetAPI) ProducersFor(mediaTypes []string) map[string]runtime.Pro
 			result["text/html"] = o.HTMLProducer
 		case "application/json":
 			result["application/json"] = o.JSONProducer
-		case "text/plain":
-			result["text/plain"] = o.TxtProducer
 		}
 
 		if p, ok := o.customProducers[mt]; ok {
@@ -455,10 +422,6 @@ func (o *DownToMeetAPI) initHandlerCache() {
 	if o.handlers["GET"] == nil {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}
-	o.handlers["GET"]["/hello"] = NewGetHello(o.context, o.GetHelloHandler)
-	if o.handlers["GET"] == nil {
-		o.handlers["GET"] = make(map[string]http.Handler)
-	}
 	o.handlers["GET"]["/meetup"] = NewGetMeetup(o.context, o.GetMeetupHandler)
 	if o.handlers["GET"] == nil {
 		o.handlers["GET"] = make(map[string]http.Handler)
@@ -471,11 +434,7 @@ func (o *DownToMeetAPI) initHandlerCache() {
 	if o.handlers["GET"] == nil {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}
-	o.handlers["GET"]["/restricted"] = NewGetRestricted(o.context, o.GetRestrictedHandler)
-	if o.handlers["GET"] == nil {
-		o.handlers["GET"] = make(map[string]http.Handler)
-	}
-	o.handlers["GET"]["/set-cookie"] = NewGetSetCookie(o.context, o.GetSetCookieHandler)
+	o.handlers["GET"]["/meetup/remote"] = NewGetMeetupRemote(o.context, o.GetMeetupRemoteHandler)
 	if o.handlers["GET"] == nil {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}
@@ -524,10 +483,6 @@ func (o *DownToMeetAPI) initHandlerCache() {
 		o.handlers["POST"] = make(map[string]http.Handler)
 	}
 	o.handlers["POST"]["/meetup/{id}/attendee"] = NewPostMeetupIDAttendee(o.context, o.PostMeetupIDAttendeeHandler)
-	if o.handlers["POST"] == nil {
-		o.handlers["POST"] = make(map[string]http.Handler)
-	}
-	o.handlers["POST"]["/user"] = NewPostUser(o.context, o.PostUserHandler)
 }
 
 // Serve creates a http handler to serve the API over HTTP

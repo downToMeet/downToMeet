@@ -13,6 +13,7 @@ import (
 	"gorm.io/gorm"
 
 	"go.timothygu.me/downtomeet/server/db"
+	"go.timothygu.me/downtomeet/server/impl/responders"
 	"go.timothygu.me/downtomeet/server/restapi/operations"
 )
 
@@ -26,6 +27,7 @@ var (
 	}
 )
 
+// GetUserGoogleAuth implements the GET /user/google/auth endpoint
 func (i *Implementation) GetUserGoogleAuth(param operations.GetUserGoogleAuthParams) middleware.Responder {
 	ctx := param.HTTPRequest.Context()
 	session := SessionFromContext(ctx)
@@ -38,6 +40,7 @@ func (i *Implementation) GetUserGoogleAuth(param operations.GetUserGoogleAuthPar
 		WithLocation(config.AuthCodeURL(oauthState.State))
 }
 
+// GetUserGoogleRedirect implements the GET /user/google/redirect endpoint
 func (i *Implementation) GetUserGoogleRedirect(param operations.GetUserGoogleRedirectParams) middleware.Responder {
 	ctx := param.HTTPRequest.Context()
 	logger := log.WithContext(ctx)
@@ -54,7 +57,7 @@ func (i *Implementation) GetUserGoogleRedirect(param operations.GetUserGoogleRed
 				State:      param.State,
 				Trampoline: swag.String("1"),
 			}
-			return SoftRedirect{i.buildURL(param.HTTPRequest, &u)}
+			return responders.SoftRedirect{URL: i.buildURL(param.HTTPRequest, &u)}
 		}
 		logger.Warn("no cookie found, but already tried trampoline")
 	}

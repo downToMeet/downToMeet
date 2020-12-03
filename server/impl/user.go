@@ -9,15 +9,18 @@ import (
 	"strings"
 
 	"github.com/go-openapi/runtime/middleware"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 
 	"go.timothygu.me/downtomeet/server/db"
+	"go.timothygu.me/downtomeet/server/impl/responders"
 	"go.timothygu.me/downtomeet/server/models"
 	"go.timothygu.me/downtomeet/server/restapi/operations"
 )
 
+// GetUserMe implements the GET /user/me endpoint.
 func (i *Implementation) GetUserMe(params operations.GetUserMeParams, _ interface{}) middleware.Responder {
 	ctx := params.HTTPRequest.Context()
 	logger := log.WithContext(ctx)
@@ -26,13 +29,13 @@ func (i *Implementation) GetUserMe(params operations.GetUserMeParams, _ interfac
 	idStr := session.Values[UserID]
 	if idStr == nil {
 		logger.Error("Session has no user ID")
-		return InternalServerError{}
+		return responders.InternalServerError{}
 	}
 
 	id, err := db.UserIDFromString(idStr.(string))
 	if err != nil {
 		logger.Error("Session has invalid user ID")
-		return InternalServerError{}
+		return responders.InternalServerError{}
 	}
 
 	tx := i.DB().WithContext(ctx)
@@ -40,17 +43,18 @@ func (i *Implementation) GetUserMe(params operations.GetUserMeParams, _ interfac
 	var dbUser db.User
 	if err := tx.First(&dbUser, id).Error; err != nil {
 		logger.WithError(err).Error("Unable to find session's ID in DB")
-		return InternalServerError{}
+		return responders.InternalServerError{}
 	}
 
 	if err := tx.Model(&dbUser).Association("Tags").Find(&dbUser.Tags); err != nil {
 		logger.WithError(err).Error("Unable to find user tags")
-		return InternalServerError{}
+		return responders.InternalServerError{}
 	}
 
 	return operations.NewGetUserMeOK().WithPayload(dbUserToModelUser(&dbUser))
 }
 
+// GetUserID implements the GET /user/:id endpoint.
 func (i *Implementation) GetUserID(params operations.GetUserIDParams) middleware.Responder {
 	ctx := params.HTTPRequest.Context()
 	logger := log.WithContext(ctx)
@@ -74,27 +78,32 @@ func (i *Implementation) GetUserID(params operations.GetUserIDParams) middleware
 		})
 	} else if err != nil {
 		logger.WithError(err).Error("Could not access user DB")
-		return InternalServerError{}
+		return responders.InternalServerError{}
 	}
 
 	session := SessionFromContext(params.HTTPRequest.Context())
 	if session.Values[UserID] != dbUser.IDString() {
+		interests := tagsToNames(dbUser.Tags)
 		modelUser := &models.User{
-			ID:         models.UserID(dbUser.IDString()),
-			Name:       dbUser.Name,
-			ProfilePic: swag.StringValue(dbUser.ProfilePic),
+			ID:          models.UserID(dbUser.IDString()),
+			Name:        dbUser.Name,
+			ProfilePic:  swag.StringValue(dbUser.ProfilePic),
+			JoinDate:    strfmt.DateTime(dbUser.CreatedAt),
+			ContactInfo: dbUser.ContactInfo,
+			Interests:   interests,
 		}
 		return operations.NewGetUserIDOK().WithPayload(modelUser)
 	}
 
 	if err := tx.Model(&dbUser).Association("Tags").Find(&dbUser.Tags); err != nil {
 		logger.WithError(err).Error("Unable to find user tags")
-		return InternalServerError{}
+		return responders.InternalServerError{}
 	}
 
 	return operations.NewGetUserIDOK().WithPayload(dbUserToModelUser(&dbUser))
 }
 
+// PatchUserID implements the PATCH /user/:id endpoint.
 func (i *Implementation) PatchUserID(params operations.PatchUserIDParams, _ interface{}) middleware.Responder {
 	ctx := params.HTTPRequest.Context()
 	logger := log.WithContext(ctx)
@@ -118,33 +127,18 @@ func (i *Implementation) PatchUserID(params operations.PatchUserIDParams, _ inte
 		})
 	} else if err != nil {
 		logger.WithError(err).Error("Failed to find user in DB")
-		return InternalServerError{}
+		return responders.InternalServerError{}
 	}
 
 	if err := i.updateDBUser(ctx, &dbUser, params.UpdatedUser); err != nil {
 		logger.WithError(err).Error("Failed to update user")
-		return InternalServerError{}
+		return responders.InternalServerError{}
 	}
 
 	return operations.NewPatchUserIDOK().WithPayload(dbUserToModelUser(&dbUser))
 }
 
-func (i *Implementation) PostUser(params operations.PostUserParams) middleware.Responder {
-	ctx := params.HTTPRequest.Context()
-	logger := log.WithContext(ctx)
-
-	tx := i.DB().WithContext(ctx)
-	dbUser := &db.User{
-		Name: params.Name,
-	}
-	if err := tx.Create(dbUser).Error; err != nil {
-		logger.WithError(err).Error("Can't create item in DB")
-		return InternalServerError{}
-	}
-
-	return operations.NewPostUserOK().WithPayload(dbUserToModelUser(dbUser))
-}
-
+// GetUserLogout implements the GET /user/logout endpoint.
 func (i *Implementation) GetUserLogout(params operations.GetUserLogoutParams) middleware.Responder {
 	session := SessionFromContext(params.HTTPRequest.Context())
 	session.Options.MaxAge = -1
@@ -246,6 +240,7 @@ func dbUserToModelUser(dbUser *db.User) *models.User {
 		Name:            dbUser.Name,
 		Email:           dbUser.Email,
 		ProfilePic:      swag.StringValue(dbUser.ProfilePic),
+		JoinDate:        strfmt.DateTime(dbUser.CreatedAt),
 		Connections:     connections,
 		ContactInfo:     dbUser.ContactInfo,
 		Location:        location,

@@ -1,11 +1,10 @@
 export const UPDATE_USER_DATA = "UPDATE_USER_DATA";
 export const CLEAR_USER_DATA = "CLEAR_USER_DATA";
 
-export const updateUserData = ({ id, name }) => {
-  const loadObj = { id, name };
+export const updateUserData = (user) => {
   return {
     type: UPDATE_USER_DATA,
-    payload: loadObj,
+    payload: user,
   };
 };
 
