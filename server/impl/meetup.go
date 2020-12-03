@@ -606,7 +606,7 @@ func (i *Implementation) PatchMeetupIdAttendee(params operations.PatchMeetupIDAt
 	}
 
 	if params.PatchMeetupAttendeeBody.Attendee == id.(string) {
-		return operations.NewPatchMeetupIDAttendeeNotFound().WithPayload(&models.Error{
+		return operations.NewPatchMeetupIDAttendeeBadRequest().WithPayload(&models.Error{
 			Code:    http.StatusBadRequest,
 			Message: "To patch current user, omit attendee field",
 		})
