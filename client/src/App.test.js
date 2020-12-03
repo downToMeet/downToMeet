@@ -13,5 +13,6 @@ test("renders learn react link", () => {
     </Provider>
   );
 
-  expect(getByRole("link", { name: /search/i })).toBeInTheDocument();
+  expect(getByRole("link", { name: /DownToMeet/i })).toBeInTheDocument();
+  expect(getByRole("link", { name: /New Meetup/i })).toBeInTheDocument();
 });

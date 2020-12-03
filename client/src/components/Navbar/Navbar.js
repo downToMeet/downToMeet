@@ -162,6 +162,7 @@ function Navbar() {
           <Button
             startIcon={<AddCircle />}
             className={`${classes.button} ${classes.createButton}`}
+            role="link"
             component={Link}
             // TODO: add redirect to current path
             to={authenticated ? CREATE_PATH : LOGIN_PATH}
