@@ -33,40 +33,6 @@ func init() {
     "version": "1.0.0"
   },
   "paths": {
-    "/hello": {
-      "get": {
-        "description": "If id is \"error\", an error response is returned.\n\nThis is a dummy endpoint for testing purposes. It should be removed soon.\n",
-        "summary": "Get a hello world message",
-        "deprecated": true,
-        "responses": {
-          "200": {
-            "description": "successful hello world response",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "hello": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "generic error response",
-            "schema": {
-              "$ref": "#/definitions/error"
-            }
-          }
-        }
-      },
-      "parameters": [
-        {
-          "type": "string",
-          "description": "A sample parameter.",
-          "name": "id",
-          "in": "query"
-        }
-      ]
-    },
     "/meetup": {
       "get": {
         "description": "If the required parameters were not specified correctly, an error is returned",
@@ -430,89 +396,6 @@ func init() {
           "required": true
         }
       ]
-    },
-    "/restricted": {
-      "get": {
-        "security": [
-          {
-            "cookieSession": []
-          }
-        ],
-        "description": "This is a sample endpoint that is restricted only to users who are\n\"logged in\".\n\nThis is a dummy endpoint for testing purposes. It should be removed soon.\n",
-        "produces": [
-          "text/plain"
-        ],
-        "summary": "Restricted endpoint",
-        "deprecated": true,
-        "responses": {
-          "200": {
-            "description": "OK",
-            "schema": {
-              "type": "string"
-            }
-          },
-          "401": {
-            "description": "Not authenticated",
-            "schema": {
-              "$ref": "#/definitions/error"
-            }
-          }
-        }
-      }
-    },
-    "/set-cookie": {
-      "get": {
-        "description": "This is a sample endpoint that simulates the action of logging in. After\na successful call to this endpoint, one should then be able to go to\n/restricted and receive a message about who they are logged in as.\n\nThis is a dummy endpoint for testing purposes. It should be removed soon.\n",
-        "produces": [
-          "text/plain"
-        ],
-        "summary": "Set cookie session",
-        "deprecated": true,
-        "parameters": [
-          {
-            "type": "string",
-            "description": "User ID to set",
-            "name": "user_id",
-            "in": "query"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "schema": {
-              "type": "string"
-            },
-            "headers": {
-              "Set-Cookie": {
-                "type": "string"
-              }
-            }
-          }
-        }
-      }
-    },
-    "/user": {
-      "post": {
-        "summary": "Create a test user",
-        "deprecated": true,
-        "parameters": [
-          {
-            "name": "name",
-            "in": "body",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "schema": {
-              "$ref": "#/definitions/user"
-            }
-          }
-        }
-      }
     },
     "/user/facebook/auth": {
       "get": {
@@ -1019,40 +902,6 @@ func init() {
     "version": "1.0.0"
   },
   "paths": {
-    "/hello": {
-      "get": {
-        "description": "If id is \"error\", an error response is returned.\n\nThis is a dummy endpoint for testing purposes. It should be removed soon.\n",
-        "summary": "Get a hello world message",
-        "deprecated": true,
-        "responses": {
-          "200": {
-            "description": "successful hello world response",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "hello": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "generic error response",
-            "schema": {
-              "$ref": "#/definitions/error"
-            }
-          }
-        }
-      },
-      "parameters": [
-        {
-          "type": "string",
-          "description": "A sample parameter.",
-          "name": "id",
-          "in": "query"
-        }
-      ]
-    },
     "/meetup": {
       "get": {
         "description": "If the required parameters were not specified correctly, an error is returned",
@@ -1417,89 +1266,6 @@ func init() {
           "required": true
         }
       ]
-    },
-    "/restricted": {
-      "get": {
-        "security": [
-          {
-            "cookieSession": []
-          }
-        ],
-        "description": "This is a sample endpoint that is restricted only to users who are\n\"logged in\".\n\nThis is a dummy endpoint for testing purposes. It should be removed soon.\n",
-        "produces": [
-          "text/plain"
-        ],
-        "summary": "Restricted endpoint",
-        "deprecated": true,
-        "responses": {
-          "200": {
-            "description": "OK",
-            "schema": {
-              "type": "string"
-            }
-          },
-          "401": {
-            "description": "Not authenticated",
-            "schema": {
-              "$ref": "#/definitions/error"
-            }
-          }
-        }
-      }
-    },
-    "/set-cookie": {
-      "get": {
-        "description": "This is a sample endpoint that simulates the action of logging in. After\na successful call to this endpoint, one should then be able to go to\n/restricted and receive a message about who they are logged in as.\n\nThis is a dummy endpoint for testing purposes. It should be removed soon.\n",
-        "produces": [
-          "text/plain"
-        ],
-        "summary": "Set cookie session",
-        "deprecated": true,
-        "parameters": [
-          {
-            "type": "string",
-            "description": "User ID to set",
-            "name": "user_id",
-            "in": "query"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "schema": {
-              "type": "string"
-            },
-            "headers": {
-              "Set-Cookie": {
-                "type": "string"
-              }
-            }
-          }
-        }
-      }
-    },
-    "/user": {
-      "post": {
-        "summary": "Create a test user",
-        "deprecated": true,
-        "parameters": [
-          {
-            "name": "name",
-            "in": "body",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "schema": {
-              "$ref": "#/definitions/user"
-            }
-          }
-        }
-      }
     },
     "/user/facebook/auth": {
       "get": {
