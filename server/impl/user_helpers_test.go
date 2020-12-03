@@ -18,11 +18,8 @@ func newEmail() string {
 
 func createUser() *db.User {
 	newUser := db.User{
-		Model:       gorm.Model{},
 		Email:       newEmail(),
 		Name:        newEmail(),
-		ContactInfo: "",
-		Location:    db.Coordinates{},
 	}
 	if err := testImpl.DB().Create(&newUser).Error; err != nil {
 		panic(err)
