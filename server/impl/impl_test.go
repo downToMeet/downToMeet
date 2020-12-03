@@ -27,8 +27,11 @@ var (
 	mockAuthenticationKey = bytes.Repeat([]byte{'n'}, 32)
 	mockEncryptionKey     = bytes.Repeat([]byte{'e'}, 16)
 	TestUser              *db.User
+	TestUserFriend        *db.User
+	TestUserFriend2       *db.User
 	FakeUser              *db.User
 	TestMeetup            *db.Meetup
+	TestMeetupCanceled    *db.Meetup
 	TestTag               *db.Tag
 )
 
@@ -59,6 +62,42 @@ func populateDatabase(i *Implementation) {
 	}
 	TestUser.Tags = append(TestUser.Tags, TestTag)
 	database.Create(TestUser)
+	TestUserFriend = &db.User{
+		Email:       "timothygu99@gmail.com",
+		Name:        "Tim Gu",
+		ContactInfo: "timothygu99@gmail.com",
+		ProfilePic:  nil,
+		FacebookID:  nil,
+		GoogleID:    nil,
+		Location: db.Coordinates{
+			Lat: swag.Float64(0),
+			Lon: swag.Float64(0),
+		},
+		OwnedMeetups:    nil,
+		Attending:       nil,
+		Tags:            nil,
+		PendingApproval: nil,
+	}
+	TestUserFriend.Tags = append(TestUserFriend.Tags, TestTag)
+	database.Create(TestUserFriend)
+	TestUserFriend2 = &db.User{
+		Email:       "person@human.human",
+		Name:        "Person Personson",
+		ContactInfo: "person@human.human",
+		ProfilePic:  nil,
+		FacebookID:  nil,
+		GoogleID:    nil,
+		Location: db.Coordinates{
+			Lat: swag.Float64(0),
+			Lon: swag.Float64(0),
+		},
+		OwnedMeetups:    nil,
+		Attending:       nil,
+		Tags:            nil,
+		PendingApproval: nil,
+	}
+	TestUserFriend2.Tags = append(TestUserFriend2.Tags, TestTag)
+	database.Create(TestUserFriend2)
 	FakeUser = &db.User{
 		Model:       gorm.Model{},
 		Email:       "",
@@ -85,9 +124,30 @@ func populateDatabase(i *Implementation) {
 		},
 		Cancelled: false,
 	}
+	TestMeetupCanceled = &db.Meetup{
+		Title:       "Basketball",
+		Time:        time.Unix(0, 0),
+		Description: "",
+		Tags:        nil,
+		MaxCapacity: 10,
+		MinCapacity: 1,
+		Owner:       TestUserFriend.ID,
+		Location: db.MeetupLocation{
+			Coordinates: db.Coordinates{
+				Lat: swag.Float64(0),
+				Lon: swag.Float64(0),
+			},
+			URL:  "",
+			Name: "Null Island",
+		},
+		Cancelled: true,
+	}
 	TestMeetup.Tags = append(TestMeetup.Tags, TestTag)
-	TestMeetup.Attendees = append(TestMeetup.Attendees, TestUser)
+	TestMeetupCanceled.Tags = append(TestMeetupCanceled.Tags, TestTag)
+	TestMeetup.Attendees = append(TestMeetup.Attendees, TestUser, TestUserFriend)
+	TestMeetup.PendingAttendees = append(TestMeetup.PendingAttendees, TestUserFriend2)
 	database.Create(TestMeetup)
+	database.Create(TestMeetupCanceled)
 }
 
 func TestMain(m *testing.M) {
