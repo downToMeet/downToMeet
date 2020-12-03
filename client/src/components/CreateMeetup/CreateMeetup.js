@@ -19,8 +19,8 @@ import {
 } from "@material-ui/pickers";
 import DayUtils from "@date-io/dayjs";
 
+import LocationPicker from "../common/LocationPicker";
 import { IN_PERSON, REMOTE } from "../../constants";
-import LocationPicker from "./LocationPicker";
 import * as fetcher from "../../lib/fetch";
 
 const useStyles = makeStyles(() => ({
@@ -264,11 +264,11 @@ function CreateMeetup() {
 
   return (
     <Container maxWidth="sm">
-      <Typography variant="h2" component="h1">
+      <Typography variant="h2" component="h1" style={{ textAlign: "center" }}>
         Create your meetup
       </Typography>
       {error && (
-        <Typography style={{ color: "red" }}>
+        <Typography variant="body1" color="error">
           Please ensure all required fields (marked with *) are filled out.
         </Typography>
       )}

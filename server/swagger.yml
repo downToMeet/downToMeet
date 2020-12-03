@@ -376,7 +376,7 @@ paths:
           items:
             type: string
           description: Interests to search for
-      summary: Get the list of meetups
+      summary: Get the list of in-person meetups
       description: If the required parameters were not specified correctly, an error is returned
       responses:
         200:
@@ -404,6 +404,29 @@ paths:
           description: Created
           schema:
             $ref: "#/definitions/meetup"
+        400:
+          description: Bad Request
+          schema:
+            $ref: "#/definitions/error"
+  /meetup/remote:
+    get:
+      parameters:
+        - name: tags
+          in: query
+          required: true
+          type: array
+          items:
+            type: string
+          description: Interests to search for
+      summary: Get the list of remote meetups
+      description: If the required parameters were not specified correctly, an error is returned
+      responses:
+        200:
+          description: OK
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/meetup"
         400:
           description: Bad Request
           schema:

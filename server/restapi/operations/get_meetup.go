@@ -31,7 +31,7 @@ func NewGetMeetup(ctx *middleware.Context, handler GetMeetupHandler) *GetMeetup 
 
 /*GetMeetup swagger:route GET /meetup getMeetup
 
-Get the list of meetups
+Get the list of in-person meetups
 
 If the required parameters were not specified correctly, an error is returned
 
