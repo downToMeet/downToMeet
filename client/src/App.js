@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Switch, Route, Link } from "react-router-dom";
 import CreateMeetup from "./components/CreateMeetup/CreateMeetup";
 import Login from "./components/Login/Login";
 import Meetup from "./components/Meetup/Meetup";
-import Profile from "./components/Profile/Profile";
+import ProfilePage from "./components/Profile/ProfilePage";
 import Search from "./components/Search/Search";
 import Navbar from "./components/Navbar/Navbar";
 
@@ -27,7 +27,7 @@ function App() {
         />
         <Route
           path="/user/:id"
-          render={(input) => <Profile id={input.match.params.id} />}
+          render={(input) => <ProfilePage id={input.match.params.id} />}
         />
         <Route path="/search">
           <Search />

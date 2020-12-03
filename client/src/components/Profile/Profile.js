@@ -1,12 +1,11 @@
 /* eslint-disable react/jsx-props-no-spreading */
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import PropTypes from "prop-types";
 import { AppBar, Box, Container, Tab, Typography } from "@material-ui/core";
 import AccountCircleIcon from "@material-ui/icons/AccountCircle";
 import { TabList, TabContext, TabPanel } from "@material-ui/lab";
 import { makeStyles, withStyles } from "@material-ui/styles";
 import { Link } from "react-router-dom";
-import * as fetcher from "../../lib/fetch";
 
 const useStyles = makeStyles(() => ({
   profilePic: {
@@ -45,43 +44,6 @@ const StyledTabPanel = withStyles({
     width: "100%",
   },
 })((props) => <TabPanel {...props} />);
-
-function ProfilePage({ id }) {
-  const [loaded, setLoaded] = useState(false);
-  const [user, setUser] = useState(null);
-  const [isMe, setIsMe] = useState(false);
-
-  useEffect(() => {
-    (async () => {
-      const { res, resJSON } = await fetcher.getUserData(id);
-      if (!res.ok) {
-        setLoaded(true);
-        return;
-      }
-      setUser(resJSON);
-      setIsMe(id === "me"); // TODO: this check should compare with the redux user state id instead
-      setLoaded(true);
-    })();
-  }, [id]);
-
-  if (!loaded) {
-    return <Typography>Loading...</Typography>; // TODO: replace with nice loading screen
-  }
-
-  return (
-    <Profile
-      user={user}
-      isMe={isMe}
-      ownedMeetups={[]}
-      attendingMeetups={[]}
-      pendingMeetups={[]}
-    />
-  );
-}
-
-ProfilePage.propTypes = {
-  id: PropTypes.string.isRequired,
-};
 
 function Profile({
   user,
@@ -179,7 +141,7 @@ function Profile({
         {user.profilePic && (
           <img
             src={user.profilePic}
-            alt="profile pic"
+            alt="profile"
             className={classes.profilePic}
           />
         )}
@@ -233,4 +195,4 @@ Profile.defaultProps = {
   user: null,
 };
 
-export default ProfilePage;
+export default Profile;
