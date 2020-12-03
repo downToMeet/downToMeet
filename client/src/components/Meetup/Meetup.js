@@ -275,7 +275,7 @@ function Meetup({ id }) {
         <Typography variant="body2">
           Location:{" "}
           <Link href={googleMapsLink} rel="noreferrer" target="_blank">
-            {eventDetails.location.name}
+            {eventDetails.location.name || "Map"}
           </Link>
         </Typography>
       );
