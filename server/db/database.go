@@ -1,3 +1,5 @@
+// Package db implements DownToMeet server's connection to the PostgreSQL
+// database. It also contains the database model definitions as GORM models.
 package db
 
 import (
@@ -6,6 +8,8 @@ import (
 	gormlogger "gorm.io/gorm/logger"
 )
 
+// Get returns a new gorm.DB from the given Data Source Name (DSN) connection
+// string.
 func Get(logger FieldLogger, dsn string) (*gorm.DB, error) {
 	var gormLogger gormlogger.Interface
 	if logger != nil {

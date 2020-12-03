@@ -6,7 +6,7 @@ import parse from "autosuggest-highlight/parse";
 import throttle from "lodash/throttle";
 import PropTypes from "prop-types";
 
-const googleMapsKey = ""; // fill this in with your own key
+const googleMapsKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY; // fill this in with your own key
 
 function loadScript(src, position, id) {
   if (!position) {
@@ -20,13 +20,20 @@ function loadScript(src, position, id) {
   position.appendChild(script);
 }
 
+const geocoderService = { current: null };
 const autocompleteService = { current: null };
 const placesService = { current: null };
 
-function useGoogleMaps(dependencies) {
+if (!googleMapsKey) {
+  // eslint-disable-next-line no-console
+  console.warn(`No Google API key specified.
+Run \`REACT_APP_GOOGLE_MAPS_API_KEY=<api key> yarn start\` to have location-based features work.`);
+}
+
+export function useGoogleMaps(dependencies) {
   const loaded = useRef(false);
 
-  if (typeof window !== "undefined" && !loaded.current) {
+  if (typeof window !== "undefined" && googleMapsKey && !loaded.current) {
     if (!document.querySelector("#google-maps")) {
       loadScript(
         `https://maps.googleapis.com/maps/api/js?key=${googleMapsKey}&libraries=places`,
@@ -40,6 +47,9 @@ function useGoogleMaps(dependencies) {
 
   useEffect(() => {
     if (typeof window !== "undefined" && window.google) {
+      if (!geocoderService.current) {
+        geocoderService.current = new window.google.maps.Geocoder();
+      }
       if (!autocompleteService.current) {
         autocompleteService.current = new window.google.maps.places.AutocompleteService();
       }
@@ -52,6 +62,13 @@ function useGoogleMaps(dependencies) {
 
   return useMemo(
     () => ({
+      isReady: () =>
+        Boolean(
+          geocoderService.current &&
+            autocompleteService.current &&
+            placesService.current
+        ),
+      geocode: (req, cb) => geocoderService.current.geocode(req, cb),
       getPlacePredictions: throttle(
         (req, cb) => autocompleteService.current.getPlacePredictions(req, cb),
         200

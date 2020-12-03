@@ -9,17 +9,23 @@ import (
 	"errors"
 	"net/url"
 	golangswaggerpaths "path"
+
+	"github.com/go-openapi/swag"
 )
 
-// GetRestrictedURL generates an URL for the get restricted operation
-type GetRestrictedURL struct {
+// GetMeetupRemoteURL generates an URL for the get meetup remote operation
+type GetMeetupRemoteURL struct {
+	Tags []string
+
 	_basePath string
+	// avoid unkeyed usage
+	_ struct{}
 }
 
 // WithBasePath sets the base path for this url builder, only required when it's different from the
 // base path specified in the swagger spec.
 // When the value of the base path is an empty string
-func (o *GetRestrictedURL) WithBasePath(bp string) *GetRestrictedURL {
+func (o *GetMeetupRemoteURL) WithBasePath(bp string) *GetMeetupRemoteURL {
 	o.SetBasePath(bp)
 	return o
 }
@@ -27,24 +33,45 @@ func (o *GetRestrictedURL) WithBasePath(bp string) *GetRestrictedURL {
 // SetBasePath sets the base path for this url builder, only required when it's different from the
 // base path specified in the swagger spec.
 // When the value of the base path is an empty string
-func (o *GetRestrictedURL) SetBasePath(bp string) {
+func (o *GetMeetupRemoteURL) SetBasePath(bp string) {
 	o._basePath = bp
 }
 
 // Build a url path and query string
-func (o *GetRestrictedURL) Build() (*url.URL, error) {
+func (o *GetMeetupRemoteURL) Build() (*url.URL, error) {
 	var _result url.URL
 
-	var _path = "/restricted"
+	var _path = "/meetup/remote"
 
 	_basePath := o._basePath
 	_result.Path = golangswaggerpaths.Join(_basePath, _path)
+
+	qs := make(url.Values)
+
+	var tagsIR []string
+	for _, tagsI := range o.Tags {
+		tagsIS := tagsI
+		if tagsIS != "" {
+			tagsIR = append(tagsIR, tagsIS)
+		}
+	}
+
+	tags := swag.JoinByFormat(tagsIR, "")
+
+	if len(tags) > 0 {
+		qsv := tags[0]
+		if qsv != "" {
+			qs.Set("tags", qsv)
+		}
+	}
+
+	_result.RawQuery = qs.Encode()
 
 	return &_result, nil
 }
 
 // Must is a helper function to panic when the url builder returns an error
-func (o *GetRestrictedURL) Must(u *url.URL, err error) *url.URL {
+func (o *GetMeetupRemoteURL) Must(u *url.URL, err error) *url.URL {
 	if err != nil {
 		panic(err)
 	}
@@ -55,17 +82,17 @@ func (o *GetRestrictedURL) Must(u *url.URL, err error) *url.URL {
 }
 
 // String returns the string representation of the path with query string
-func (o *GetRestrictedURL) String() string {
+func (o *GetMeetupRemoteURL) String() string {
 	return o.Must(o.Build()).String()
 }
 
 // BuildFull builds a full url with scheme, host, path and query string
-func (o *GetRestrictedURL) BuildFull(scheme, host string) (*url.URL, error) {
+func (o *GetMeetupRemoteURL) BuildFull(scheme, host string) (*url.URL, error) {
 	if scheme == "" {
-		return nil, errors.New("scheme is required for a full url on GetRestrictedURL")
+		return nil, errors.New("scheme is required for a full url on GetMeetupRemoteURL")
 	}
 	if host == "" {
-		return nil, errors.New("host is required for a full url on GetRestrictedURL")
+		return nil, errors.New("host is required for a full url on GetMeetupRemoteURL")
 	}
 
 	base, err := o.Build()
@@ -79,6 +106,6 @@ func (o *GetRestrictedURL) BuildFull(scheme, host string) (*url.URL, error) {
 }
 
 // StringFull returns the string representation of a complete url
-func (o *GetRestrictedURL) StringFull(scheme, host string) string {
+func (o *GetMeetupRemoteURL) StringFull(scheme, host string) string {
 	return o.Must(o.BuildFull(scheme, host)).String()
 }

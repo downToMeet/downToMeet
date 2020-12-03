@@ -1,3 +1,8 @@
+// Package impl contains the business logic of the DownToMeet server. It is
+// separated from the restapi package as a way to better delineate between
+// handwritten files and automatically generated ones: this package contains
+// all handwritten code, while the majority of restapi is generated from the
+// Swagger API definitions.
 package impl
 
 import (
@@ -70,7 +75,8 @@ func (i *Implementation) SessionStore() sessions.Store {
 	return i.sessionStore
 }
 
-// DB returns the database associated with the Implementation.
+// DB returns the database associated with the Implementation. If an error
+// occurred when connecting to the database, DB panics.
 func (i *Implementation) DB() *gorm.DB {
 	i.dbInit.Do(func() {
 		var err error
@@ -86,6 +92,7 @@ func (i *Implementation) DB() *gorm.DB {
 // SessionKey is the type used to key session.Values.
 type SessionKey int
 
+// Pre-defined session value keys:
 const (
 	UserID        SessionKey = 0 // session.Values[UserID] is a string
 	FacebookState SessionKey = 1 // session.Values[FacebookState] is an OAuthState

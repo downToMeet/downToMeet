@@ -31,7 +31,7 @@ function App() {
           path="/user/:id"
           render={(input) => <Profile id={input.match.params.id} />}
         />
-        <Route path="/search">
+        <Route path="/">
           <Search />
         </Route>
       </Switch>
