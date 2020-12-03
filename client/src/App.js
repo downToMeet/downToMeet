@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter as Router, Switch, Route, Link } from "react-router-dom";
+import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 import CreateMeetup from "./components/CreateMeetup/CreateMeetup";
 import Login from "./components/Login/Login";
 import Meetup from "./components/Meetup/Meetup";

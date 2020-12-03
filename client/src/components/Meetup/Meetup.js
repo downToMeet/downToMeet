@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import {
   Avatar,
-  Box,
   Button,
   ButtonGroup,
   Card,
@@ -10,30 +9,32 @@ import {
   CardHeader,
   Chip,
   CircularProgress,
+  Container,
   Dialog,
   DialogActions,
   DialogContent,
   DialogContentText,
   Grid,
   IconButton,
+  Link,
+  Paper,
   Tooltip,
   Typography,
 } from "@material-ui/core";
-import Link from "@material-ui/core/Link";
-import Paper from "@material-ui/core/Paper";
-import CheckIcon from "@material-ui/icons/Check";
-import ClearIcon from "@material-ui/icons/Clear";
-import EditIcon from "@material-ui/icons/Edit";
-import PersonAddDisabledIcon from "@material-ui/icons/PersonAddDisabled";
-import PersonAddIcon from "@material-ui/icons/PersonAdd";
+import {
+  Check,
+  Clear,
+  Edit,
+  PersonAdd,
+  PersonAddDisabled,
+} from "@material-ui/icons";
 import { makeStyles } from "@material-ui/core/styles";
 import { Link as RouterLink } from "react-router-dom";
 import * as fetcher from "../../lib/fetch";
+import { OWNER, ATTENDING, PENDING, REJECTED, NONE } from "../../constants";
 
 const useStyles = makeStyles((theme) => ({
-  // TODO: reorganize styles, possibly refactor into separate file
-  // TODO: mobile scaling
-  // TODO: finalize styles (font, color)
+  // TODO: finalize styles, possibly refactor into separate file
   root: {
     display: "flex",
     flexGrow: 1,
@@ -97,9 +98,6 @@ const useStyles = makeStyles((theme) => ({
     marginTop: theme.spacing(1),
     marginBottom: theme.spacing(5),
   },
-  error: {
-    color: theme.palette.error.main,
-  },
   ownerInterests: {
     display: "inline-block",
     paddingLeft: 0,
@@ -146,19 +144,19 @@ function Meetup({ id }) {
 
   const setUserStatus = (userData, meetupData) => {
     if (userData && meetupData.owner === userData.id) {
-      setUserMeetupStatus("owner");
+      setUserMeetupStatus(OWNER);
     } else if (
       meetupData.pendingAttendees &&
       meetupData.pendingAttendees.includes(userData.id)
     ) {
-      setUserMeetupStatus("pending");
+      setUserMeetupStatus(PENDING);
     } else if (
       meetupData.attendees &&
       meetupData.attendees.includes(userData.id)
     ) {
-      setUserMeetupStatus("attending");
+      setUserMeetupStatus(ATTENDING);
     } else if (meetupData.rejected) {
-      setUserMeetupStatus("rejected");
+      setUserMeetupStatus(REJECTED);
     }
   };
 
@@ -226,13 +224,13 @@ function Meetup({ id }) {
 
     return (
       <Grid container spacing={1}>
-        <Typography className={classes.error}>{errorMessage}</Typography>
+        <Typography color="error">{errorMessage}</Typography>
       </Grid>
     );
   };
 
   const renderTags = (tags) => {
-    // TODO: convert to search link w/ tags
+    // Reach goal: convert to search link w/ tags
     return (
       <>
         {tags.map((tagText) => (
@@ -270,7 +268,7 @@ function Meetup({ id }) {
       locationLink = (
         <Typography variant="body2">
           Location: Online{" "}
-          {(userMeetupStatus === "attending" || userMeetupStatus === "owner") &&
+          {(userMeetupStatus === ATTENDING || userMeetupStatus === OWNER) &&
             link}
         </Typography>
       );
@@ -350,7 +348,7 @@ function Meetup({ id }) {
   const handleUpdateAttendee = async ({ attendee, status }) => {
     // If status is "none", remove attendee
     // If attendee is null, update self
-    if (!attendee && status === "none") {
+    if (!attendee && status === NONE) {
       setUserMeetupStatus("");
     }
     setIsUpdating(true);
@@ -375,16 +373,13 @@ function Meetup({ id }) {
         setAttendeeLists(resJSON.attending, resJSON.pending);
       }
       setIsUpdating(false);
-      setUserMeetupStatus("pending");
+      setUserMeetupStatus(PENDING);
     } else {
       setShowLogin(true);
     }
   };
 
   const renderAttendees = () => {
-    // https://github.com/mui-org/material-ui/blob/master/packages/material-ui-lab/src/AvatarGroup/AvatarGroup.js
-    // TODO: convert to modal expandable list when too many attendees
-
     let attendeeDisplay;
     if (attendees.length > 0) {
       attendeeDisplay = (
@@ -444,9 +439,6 @@ function Meetup({ id }) {
   };
 
   const renderPendingAttendees = () => {
-    // https://github.com/mui-org/material-ui/blob/master/packages/material-ui-lab/src/AvatarGroup/AvatarGroup.js
-    // TODO: convert to modal expandable list when too many attendees
-
     let pendingDisplay;
     if (pendingAttendees.length > 0) {
       pendingDisplay = (
@@ -476,12 +468,12 @@ function Meetup({ id }) {
                       onClick={() =>
                         handleUpdateAttendee({
                           attendee: attendee.id,
-                          status: "attending",
+                          status: ATTENDING,
                         })
                       }
                       disabled={isUpdating}
                     >
-                      <CheckIcon />
+                      <Check />
                     </IconButton>
                   </Tooltip>
                   <Tooltip title="Reject attendee">
@@ -490,12 +482,12 @@ function Meetup({ id }) {
                       onClick={() =>
                         handleUpdateAttendee({
                           attendee: attendee.id,
-                          status: "rejected",
+                          status: REJECTED,
                         })
                       }
                       disabled={isUpdating}
                     >
-                      <ClearIcon />
+                      <Clear />
                     </IconButton>
                   </Tooltip>
                 </ButtonGroup>
@@ -529,45 +521,45 @@ function Meetup({ id }) {
     let button;
     // TODO: Edit meetup redirect to pre-populated CreateMeetup page
     switch (userMeetupStatus) {
-      case "owner":
+      case OWNER:
         button = (
-          <Button startIcon={<EditIcon />} component={RouterLink}>
+          <Button startIcon={<Edit />} component={RouterLink}>
             Edit Meetup
           </Button>
         );
         break;
-      case "attending":
+      case ATTENDING:
         button = (
           <Button
-            startIcon={<ClearIcon />}
-            onClick={() => handleUpdateAttendee({ status: "none" })}
+            startIcon={<Clear />}
+            onClick={() => handleUpdateAttendee({ status: NONE })}
             disabled={isUpdating}
           >
             Leave Meetup
           </Button>
         );
         break;
-      case "pending":
+      case PENDING:
         button = (
           <Button
-            startIcon={<PersonAddDisabledIcon />}
-            onClick={() => handleUpdateAttendee({ status: "none" })}
+            startIcon={<PersonAddDisabled />}
+            onClick={() => handleUpdateAttendee({ status: NONE })}
             disabled={isUpdating}
           >
             Cancel Join Request
           </Button>
         );
         break;
-      case "rejected":
+      case REJECTED:
         button = (
           <Grid container spacing={1} direction="column" align="center">
             <Grid item>
-              <Button startIcon={<PersonAddIcon />} disabled variant="outlined">
+              <Button startIcon={<PersonAdd />} disabled variant="outlined">
                 Join Meetup
               </Button>
             </Grid>
             <Grid item>
-              <Typography variant="body2" className={classes.error}>
+              <Typography variant="body2" color="error">
                 you were rejected from the meetup.
               </Typography>
             </Grid>
@@ -577,7 +569,7 @@ function Meetup({ id }) {
       default:
         button = (
           <Button
-            startIcon={<PersonAddIcon />}
+            startIcon={<PersonAdd />}
             onClick={handleJoinMeetup}
             disabled={isUpdating}
           >
@@ -602,7 +594,7 @@ function Meetup({ id }) {
         <Grid item container>
           <Grid item xs>
             <Typography variant="h3">{eventDetails.title}</Typography>
-            {/* add share/link copy icon here? */}
+            {/* TODO: add share/link copy icon here? */}
           </Grid>
           {renderMeetupAction()}
         </Grid>
@@ -655,7 +647,7 @@ function Meetup({ id }) {
   };
 
   return (
-    <Box className={classes.root}>
+    <Container className={classes.root} maxWidth="lg">
       <Dialog open={showLogin} onClose={() => setShowLogin(false)}>
         <DialogContent>
           <DialogContentText>Please log in to join a meetup.</DialogContentText>
@@ -682,7 +674,7 @@ function Meetup({ id }) {
           {isLoading ? Spinner : renderMeetup(fetchMeetupError)}
         </Grid>
       </Paper>
-    </Box>
+    </Container>
   );
 }
 
