@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import {
   AppBar,
   Avatar,
@@ -13,8 +14,7 @@ import {
 import { AddCircle } from "@material-ui/icons";
 import makeStyles from "@material-ui/styles/makeStyles";
 import { Link } from "react-router-dom";
-import store from "../../app/store";
-import { clearUserData, updateUserData } from "../../stores/user/actions";
+import { clearUserData } from "../../stores/user/actions";
 import * as fetcher from "../../lib/fetch";
 
 const useStyles = makeStyles(() => ({
@@ -59,14 +59,10 @@ const LOGIN_PATH = "/login";
 
 function Navbar() {
   const classes = useStyles();
-  // TODO: connect authentication
-  const [authenticated, setAuthenticated] = useState(true);
   const [profileMenuAnchor, setProfileMenuAnchor] = useState(null);
-  // TODO: get profileID and avatar from user
-  //   const profileID = store.getState().id;
-  const profileName = store.getState().name;
-  const profilePic =
-    "http://web.cs.ucla.edu/~miryung/MiryungKimPhotoAugust2018.jpg";
+
+  const dispatch = useDispatch();
+  const user = useSelector((state) => state);
   const handleProfileMenuClick = (event) => {
     setProfileMenuAnchor(event.currentTarget);
   };
@@ -80,19 +76,18 @@ function Navbar() {
     if (!res.ok) {
       return;
     }
-    store.dispatch(clearUserData());
+    dispatch(clearUserData());
     handleProfileMenuClose();
-    setAuthenticated(false);
   };
 
   const ProfileMenu = (
     <>
       <Button
-        startIcon={<Avatar src={profilePic} className={classes.avatar} />}
+        startIcon={<Avatar src={user.profilePic} className={classes.avatar} />}
         className={`${classes.button} ${classes.profileButton}`}
         onClick={handleProfileMenuClick}
       >
-        {profileName}
+        {user.name}
       </Button>
       <Menu
         anchorEl={profileMenuAnchor}
@@ -134,32 +129,7 @@ function Navbar() {
     </Button>
   );
 
-  const handleAuthToggle = async () => {
-    if (authenticated) {
-      store.dispatch(clearUserData());
-    } else {
-      const { res, resJSON } = await fetcher.getUserData();
-      if (!res.ok) {
-        return;
-      }
-      store.dispatch(updateUserData({ id: resJSON.id, name: resJSON.name }));
-    }
-    setAuthenticated(!authenticated);
-  };
-
-  const authToggle = (
-    <Button
-      size="small"
-      variant="outlined"
-      color="secondary"
-      onClick={handleAuthToggle}
-      className={classes.button}
-      component={Link}
-      to="/"
-    >
-      [DEBUG: toggle auth]
-    </Button>
-  );
+  const authenticated = Boolean(user.id);
 
   return (
     <Box className={classes.root}>
@@ -175,7 +145,6 @@ function Navbar() {
           >
             DownToMeet
           </Typography>
-          {authToggle}
           <Button
             startIcon={<AddCircle />}
             className={`${classes.button} ${classes.createButton}`}
