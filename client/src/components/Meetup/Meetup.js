@@ -234,7 +234,6 @@ function Meetup({ id }) {
         {tags.map((tagText) => (
           <li key={tagText} className={classes.tag}>
             <Chip
-              clickable
               size="small"
               label={tagText}
               // component={RouterLink}
@@ -377,12 +376,49 @@ function Meetup({ id }) {
     }
   };
 
-  const renderAttendees = () => {
+  const renderAttendees = (attendeeList, attendeeType) => {
     let attendeeDisplay;
-    if (attendees.length > 0) {
+    const attendeeActions = (attendee) => {
+      return (
+        <Grid item>
+          <ButtonGroup size="small">
+            <Tooltip title="Accept attendee">
+              <IconButton
+                size="small"
+                onClick={() =>
+                  handleUpdateAttendee({
+                    attendee: attendee.id,
+                    status: ATTENDING,
+                  })
+                }
+                disabled={isUpdating}
+              >
+                <Check />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Reject attendee">
+              <IconButton
+                size="small"
+                onClick={() =>
+                  handleUpdateAttendee({
+                    attendee: attendee.id,
+                    status: REJECTED,
+                  })
+                }
+                disabled={isUpdating}
+              >
+                <Clear />
+              </IconButton>
+            </Tooltip>
+          </ButtonGroup>
+        </Grid>
+      );
+    };
+
+    if (attendeeList.length > 0) {
       attendeeDisplay = (
         <Grid item container justify="flex-start">
-          {attendees.map((attendee) => (
+          {attendeeList.map((attendee) => (
             <Grid
               key={attendee.id}
               item
@@ -399,7 +435,9 @@ function Meetup({ id }) {
                   src={attendee.profilePic}
                   component={RouterLink}
                   to={`/user/${
-                    user.id && attendee.id === user.id ? "me" : attendee.id
+                    user && user.id && attendee.id === user.id
+                      ? "me"
+                      : attendee.id
                   }`}
                 />
               </Grid>
@@ -409,12 +447,15 @@ function Meetup({ id }) {
                   className={classes.profileName}
                   component={RouterLink}
                   to={`/user/${
-                    user.id && attendee.id === user.id ? "me" : attendee.id
+                    user && user.id && attendee.id === user.id
+                      ? "me"
+                      : attendee.id
                   }`}
                 >
                   {attendee.name}
                 </Typography>
               </Grid>
+              {attendeeType === PENDING && attendeeActions(attendee)}
             </Grid>
           ))}
         </Grid>
@@ -431,106 +472,16 @@ function Meetup({ id }) {
       >
         <Grid item>
           <Typography variant="body2">
-            Attendees:{" "}
-            {attendees.length === 0 && "there are currently no attendees."}
+            {`${
+              attendeeType === ATTENDING ? "Attendees: " : "Pending attendees: "
+            }`}
+            {attendeeList.length === 0 &&
+              `there are ${
+                attendeeType === ATTENDING ? "currently no " : "no pending"
+              } attendees.`}
           </Typography>
         </Grid>
         {attendeeDisplay}
-      </Grid>
-    );
-  };
-
-  const renderPendingAttendees = () => {
-    let pendingDisplay;
-    if (pendingAttendees.length > 0) {
-      pendingDisplay = (
-        <Grid item container justify="flex-start">
-          {pendingAttendees.map((attendee) => (
-            <Grid
-              key={attendee.id}
-              item
-              container
-              direction="column"
-              xs={2}
-              alignItems="center"
-              className={classes.attendee}
-              spacing={1}
-            >
-              <Grid item>
-                <Avatar
-                  className={classes.avatar}
-                  src={attendee.profilePic}
-                  component={RouterLink}
-                  to={`/user/${
-                    user.id && attendee.id === user.id ? "me" : attendee.id
-                  }`}
-                />
-              </Grid>
-              <Grid item>
-                <Typography
-                  variant="body2"
-                  component={RouterLink}
-                  className={classes.profileName}
-                  to={`/user/${
-                    user.id && attendee.id === user.id ? "me" : attendee.id
-                  }`}
-                >
-                  {attendee.name}
-                </Typography>
-              </Grid>
-              <Grid item>
-                <ButtonGroup size="small">
-                  <Tooltip title="Accept attendee">
-                    <IconButton
-                      size="small"
-                      onClick={() =>
-                        handleUpdateAttendee({
-                          attendee: attendee.id,
-                          status: ATTENDING,
-                        })
-                      }
-                      disabled={isUpdating}
-                    >
-                      <Check />
-                    </IconButton>
-                  </Tooltip>
-                  <Tooltip title="Reject attendee">
-                    <IconButton
-                      size="small"
-                      onClick={() =>
-                        handleUpdateAttendee({
-                          attendee: attendee.id,
-                          status: REJECTED,
-                        })
-                      }
-                      disabled={isUpdating}
-                    >
-                      <Clear />
-                    </IconButton>
-                  </Tooltip>
-                </ButtonGroup>
-              </Grid>
-            </Grid>
-          ))}
-        </Grid>
-      );
-    }
-
-    return (
-      <Grid
-        item
-        container
-        direction="column"
-        spacing={3}
-        className={classes.attendeeList}
-      >
-        <Grid item>
-          <Typography variant="body2">
-            Pending Attendees:{" "}
-            {pendingAttendees.length === 0 && "there are no pending attendees."}
-          </Typography>
-        </Grid>
-        {pendingDisplay}
       </Grid>
     );
   };
@@ -654,10 +605,10 @@ function Meetup({ id }) {
           </Grid>
           {renderOrganizer()}
           <Grid item container justify="center" spacing={1}>
-            {renderAttendees()}
+            {renderAttendees(attendees, ATTENDING)}
             {user &&
               user.id === eventDetails.owner.id &&
-              renderPendingAttendees(pendingAttendees)}
+              renderAttendees(pendingAttendees, PENDING)}
           </Grid>
         </Grid>
       </Grid>
