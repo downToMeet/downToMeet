@@ -268,6 +268,38 @@ function CreateMeetup({ id }) {
     );
   };
 
+  const renderEditButtons = () => {
+    // TODO: implement event cancel (or delete?)
+    return (
+      <>
+        <Button
+          variant="contained"
+          onClick={() => {
+            window.location.replace(`/meetup/${id}`);
+          }}
+          disabled={creatingMeetup}
+          style={{
+            marginTop: 20,
+            marginRight: 10,
+          }}
+        >
+          Discard Changes
+        </Button>
+        <Button
+          variant="contained"
+          color="secondary"
+          disabled={creatingMeetup}
+          style={{
+            marginTop: 20,
+            marginRight: 10,
+          }}
+        >
+          Cancel Meetup
+        </Button>
+      </>
+    );
+  };
+
   const onSubmit = async () => {
     if (!validateForm()) {
       setCreatingMeetup(false);
@@ -312,6 +344,7 @@ function CreateMeetup({ id }) {
         {renderDescription()}
         {renderTags()}
         <Box alignSelf="flex-end">
+          {isEdit && renderEditButtons()}
           <Button
             variant="contained"
             color="primary"
