@@ -60,6 +60,9 @@ definitions:
         type: string
       profilePic:
         type: string
+      joinDate:
+        type: string
+        format: date-time
       connections:
         type: array
         x-omitempty: true

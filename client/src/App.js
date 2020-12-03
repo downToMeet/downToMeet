@@ -8,6 +8,7 @@ import Search from "./components/Search/Search";
 import Navbar from "./components/Navbar/Navbar";
 
 function App() {
+  // TODO: use Paper/Cards for interface
   return (
     <Router>
       <Navbar />
@@ -18,6 +19,10 @@ function App() {
         <Route path="/login">
           <Login />
         </Route>
+        <Route
+          path="/meetup/:id/edit"
+          render={(input) => <CreateMeetup id={input.match.params.id} />}
+        />
         <Route
           path="/meetup/:id"
           render={(input) => <Meetup id={input.match.params.id} />}

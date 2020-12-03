@@ -836,15 +836,21 @@ func modelMeetupRequestBodyToModelMeetup(modelMeetupRequestBody *models.MeetupRe
 	modelMeetup.Time = modelMeetupRequestBody.Time
 	modelMeetup.Title = modelMeetupRequestBody.Title
 	modelMeetup.Description = modelMeetupRequestBody.Description
-	if modelMeetupRequestBody.Location != nil && modelMeetupRequestBody.Location.Coordinates != nil {
-		coordinates := &models.Coordinates{
-			Lat: modelMeetupRequestBody.Location.Coordinates.Lat,
-			Lon: modelMeetupRequestBody.Location.Coordinates.Lon,
-		}
-		modelMeetup.Location = &models.Location{
-			Coordinates: coordinates,
-			Name:        modelMeetupRequestBody.Location.Name,
-			URL:         modelMeetupRequestBody.Location.URL,
+	if modelMeetupRequestBody.Location != nil {
+		if modelMeetupRequestBody.Location.Coordinates != nil {
+			coordinates := &models.Coordinates{
+				Lat: modelMeetupRequestBody.Location.Coordinates.Lat,
+				Lon: modelMeetupRequestBody.Location.Coordinates.Lon,
+			}
+			modelMeetup.Location = &models.Location{
+				Coordinates: coordinates,
+				Name:        modelMeetupRequestBody.Location.Name,
+				URL:         modelMeetupRequestBody.Location.URL,
+			}
+		} else {
+			modelMeetup.Location = &models.Location{
+				URL: modelMeetupRequestBody.Location.URL,
+			}
 		}
 	}
 	return modelMeetup
