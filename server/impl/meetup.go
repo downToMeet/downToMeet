@@ -65,7 +65,7 @@ func (i *Implementation) GetMeetup(params operations.GetMeetupParams) middleware
 		var dbTags []db.Tag
 		if err := tx.Where("name IN ?", params.Tags).Find(&dbTags).Error; err != nil {
 			logger.WithError(err).Error("Unable to fetch tags")
-			return InternalServerError{}
+			return responders.InternalServerError{}
 		}
 		for _, tag := range dbTags {
 			tagIds = append(tagIds, tag.ID)
@@ -110,7 +110,7 @@ func (i *Implementation) GetMeetup(params operations.GetMeetupParams) middleware
 		err := tx.First(&meetup, meetupID).Error
 		if err != nil {
 			logger.WithError(err).Error("Unable to get meetup from ID")
-			return InternalServerError{}
+			return responders.InternalServerError{}
 		}
 
 		if err = tx.Model(&meetup).Association("Attendees").Find(&meetup.Attendees); err != nil {
@@ -158,7 +158,7 @@ func (i *Implementation) GetMeetupRemote(params operations.GetMeetupRemoteParams
 		var dbTags []db.Tag
 		if err := tx.Where("name IN ?", params.Tags).Find(&dbTags).Error; err != nil {
 			logger.WithError(err).Error("Unable to fetch tags")
-			return InternalServerError{}
+			return responders.InternalServerError{}
 		}
 		for _, tag := range dbTags {
 			tagIds = append(tagIds, tag.ID)
@@ -186,7 +186,7 @@ func (i *Implementation) GetMeetupRemote(params operations.GetMeetupRemoteParams
 	if id := SessionFromContext(ctx).Values[UserID]; id != nil {
 		if _, err := db.UserIDFromString(id.(string)); err != nil {
 			logger.Error("Session has invalid user ID")
-			return InternalServerError{}
+			return responders.InternalServerError{}
 		}
 		idStr = id.(string)
 	}
@@ -198,27 +198,27 @@ func (i *Implementation) GetMeetupRemote(params operations.GetMeetupRemoteParams
 		err := tx.First(&meetup, meetupID).Error
 		if err != nil {
 			logger.WithError(err).Error("Unable to get meetup from ID")
-			return InternalServerError{}
+			return responders.InternalServerError{}
 		}
 
 		if err = tx.Model(&meetup).Association("Attendees").Find(&meetup.Attendees); err != nil {
 			logger.WithError(err).Error("Unable to find meetup attendee information")
-			return InternalServerError{}
+			return responders.InternalServerError{}
 		}
 
 		if err = tx.Model(&meetup).Association("PendingAttendees").Find(&meetup.PendingAttendees); err != nil {
 			logger.WithError(err).Error("Unable to find meetup pending attendee information")
-			return InternalServerError{}
+			return responders.InternalServerError{}
 		}
 
 		if err = tx.Model(&meetup).Association("RejectedAttendees").Find(&meetup.RejectedAttendees); err != nil {
 			logger.WithError(err).Error("Unable to find meetup rejected attendee information")
-			return InternalServerError{}
+			return responders.InternalServerError{}
 		}
 
 		if err = tx.Model(&meetup).Association("Tags").Find(&meetup.Tags); err != nil {
 			logger.WithError(err).Error("Unable to find user tags")
-			return InternalServerError{}
+			return responders.InternalServerError{}
 		}
 		modelMeetups = append(modelMeetups, dbMeetupToModelMeetup(&meetup, idStr))
 	}
