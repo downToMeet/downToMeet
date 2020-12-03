@@ -12,11 +12,6 @@ function App() {
   return (
     <Router>
       <Navbar />
-      <div>
-        <Link to="/search">Search</Link>
-        <br />
-        <Link to="/meetup/1">Test meetup</Link>
-      </div>
       <Switch>
         <Route path="/create">
           <CreateMeetup />

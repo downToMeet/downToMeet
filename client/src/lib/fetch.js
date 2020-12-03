@@ -73,11 +73,7 @@ export async function getMeetup(id) {
   const getMeetupEndpoint = `${SERVER_URL}/meetup/${id}`;
 
   const res = await fetch(getMeetupEndpoint, {
-    method: "GET",
-    credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    credentials: "include"
   });
 
   return { res, resJSON: await res.json() };
@@ -89,9 +85,6 @@ export async function joinMeetup(id) {
   const res = await fetch(addAttendeeEndpoint, {
     method: "POST",
     credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-    },
   });
 
   return { res, resJSON: await res.json() };
@@ -100,11 +93,7 @@ export async function getMeetupAttendees(id) {
   const getMeetupEndpoint = `${SERVER_URL}/meetup/${id}/attendee`;
 
   const res = await fetch(getMeetupEndpoint, {
-    method: "GET",
-    credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    credentials: "include"
   });
 
   return { res, resJSON: await res.json() };
