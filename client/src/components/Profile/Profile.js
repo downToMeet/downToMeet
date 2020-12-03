@@ -6,6 +6,7 @@ import AccountCircleIcon from "@material-ui/icons/AccountCircle";
 import { TabList, TabContext, TabPanel } from "@material-ui/lab";
 import { makeStyles, withStyles } from "@material-ui/styles";
 import { Link } from "react-router-dom";
+import MeetupCard from "../common/MeetupCard";
 
 const useStyles = makeStyles(() => ({
   profilePic: {
@@ -61,11 +62,17 @@ function Profile({
   const [tabValue, setTabValue] = useState("owned");
 
   // TODO: display meetups.
-  let ownedMeetupsEl = (
-    <Typography>
-      You have some meetups, but we can’t display them yet
-    </Typography>
-  );
+  let ownedMeetupsEl = ownedMeetups.map((meetup) => (
+    <MeetupCard
+      key={meetup.id}
+      title={meetup.title}
+      time={meetup.time}
+      location={meetup.location}
+      id={meetup.id}
+      owner={meetup.owner}
+      tags={meetup.tags}
+    />
+  ));
   if (ownedMeetups.length === 0) {
     ownedMeetupsEl = (
       <Typography>
@@ -74,11 +81,17 @@ function Profile({
     );
   }
 
-  let attendingMeetupsEl = (
-    <Typography>
-      You are going to some meetups, but we can’t display them yet
-    </Typography>
-  );
+  let attendingMeetupsEl = attendingMeetups.map((meetup) => (
+    <MeetupCard
+      key={meetup.id}
+      title={meetup.title}
+      time={meetup.time}
+      location={meetup.location}
+      id={meetup.id}
+      owner={meetup.owner}
+      tags={meetup.tags}
+    />
+  ));
   if (attendingMeetups.length === 0) {
     attendingMeetupsEl = (
       <Typography>
@@ -88,11 +101,17 @@ function Profile({
     );
   }
 
-  let pendingMeetupsEl = (
-    <Typography>
-      You are waiting on some meetups, but we can’t display them yet
-    </Typography>
-  );
+  let pendingMeetupsEl = attendingMeetups.map((meetup) => (
+    <MeetupCard
+      key={meetup.id}
+      title={meetup.title}
+      time={meetup.time}
+      location={meetup.location}
+      id={meetup.id}
+      owner={meetup.owner}
+      tags={meetup.tags}
+    />
+  ));
   if (pendingMeetups.length === 0) {
     pendingMeetupsEl = (
       <Typography>
@@ -178,8 +197,19 @@ const userType = PropTypes.shape({
 });
 
 const meetupType = PropTypes.shape({
-  id: PropTypes.string.isRequired,
   title: PropTypes.string.isRequired,
+  time: PropTypes.string.isRequired,
+  location: PropTypes.shape({
+    coordinates: PropTypes.shape({
+      lat: PropTypes.number,
+      lon: PropTypes.number,
+    }),
+    name: PropTypes.string,
+    url: PropTypes.string,
+  }).isRequired,
+  id: PropTypes.string.isRequired,
+  owner: PropTypes.string.isRequired,
+  tags: PropTypes.arrayOf(PropTypes.string).isRequired,
 });
 
 Profile.propTypes = {

@@ -59,9 +59,11 @@ function MeetupCard({ title, time, location, id, owner, tags }) {
     return undefined;
   }, [location.coordinates, location.name, location.url]);
 
-  const tagList = tags.map((tag) => (
-    <Chip label={tag} key={tag} style={{ marginRight: 5 }} />
-  ));
+  const tagList = tags
+    ? tags.map((tag) => (
+        <Chip label={tag} key={tag} style={{ marginRight: 5 }} />
+      ))
+    : null;
 
   const locale = "en-US";
   const eventTimeOptions = {

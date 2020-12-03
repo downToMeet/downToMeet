@@ -139,16 +139,16 @@ function Meetup({ id }) {
 
   async function setAttendeeLists(attendeeList, pendingAttendeesList) {
     return Promise.all([
-      async () => {
+      (async () => {
         const res = await Promise.all(attendeeList.map(fetcher.getUserData));
         setAttendees(res.map(({ resJSON }) => resJSON));
-      },
-      async () => {
+      })(),
+      (async () => {
         const res = await Promise.all(
           pendingAttendeesList.map(fetcher.getUserData)
         );
         setPendingAttendees(res.map(({ resJSON }) => resJSON));
-      },
+      })(),
     ]);
   }
 
@@ -199,7 +199,10 @@ function Meetup({ id }) {
       time: new Date(meetupJSON.time),
       title: meetupJSON.title,
     });
-    setAttendeeLists(meetupJSON.attendees, meetupJSON.pendingAttendees);
+    setAttendeeLists(
+      meetupJSON.attendees || [],
+      meetupJSON.pendingAttendees || []
+    );
     setUserStatus(userJSON, meetupJSON);
     setIsLoading(false);
   }, []);
