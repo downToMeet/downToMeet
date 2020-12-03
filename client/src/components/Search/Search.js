@@ -45,13 +45,17 @@ function Search() {
     setMeetups(null);
     setMeetupType("");
     setSearchLocation(null);
+    setRadius("");
   };
 
   const validateSearch = () => {
     if (meetupType === "") {
       return false;
     }
-    if (meetupType === IN_PERSON && (coords === null || radius === "")) {
+    if (
+      meetupType === IN_PERSON &&
+      (searchLocation === null || radius === "")
+    ) {
       return false;
     }
     return true;
@@ -65,8 +69,8 @@ function Search() {
     setError(false);
     if (meetupType === IN_PERSON) {
       const { res, resJSON } = await fetcher.searchForMeetups({
-        lat: coords[0],
-        lon: coords[1],
+        lat: searchLocation.coords[0],
+        lon: searchLocation.coords[1],
         radius,
         tags,
       });
