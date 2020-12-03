@@ -46,12 +46,10 @@ const StyledTabPanel = withStyles({
   },
 })((props) => <TabPanel {...props} />);
 
-function Profile({ id }) {
-  const classes = useStyles();
+function ProfilePage({ id }) {
   const [loaded, setLoaded] = useState(false);
   const [user, setUser] = useState(null);
   const [isMe, setIsMe] = useState(false);
-  const [tabValue, setTabValue] = useState("1");
 
   useEffect(() => {
     (async () => {
@@ -66,130 +64,173 @@ function Profile({ id }) {
     })();
   }, [id]);
 
-  const renderOwnedMeetups = () => {
-    // TODO: get actual meetups if they exist
-    return (
+  if (!loaded) {
+    return <Typography>Loading...</Typography>; // TODO: replace with nice loading screen
+  }
+
+  return (
+    <Profile
+      user={user}
+      isMe={isMe}
+      ownedMeetups={[]}
+      attendingMeetups={[]}
+      pendingMeetups={[]}
+    />
+  );
+}
+
+ProfilePage.propTypes = {
+  id: PropTypes.string.isRequired,
+};
+
+function Profile({
+  user,
+  isMe,
+  ownedMeetups,
+  attendingMeetups,
+  pendingMeetups,
+}) {
+  const classes = useStyles();
+
+  if (user === null) {
+    return <Typography>Specified user was not found.</Typography>;
+  }
+
+  const [tabValue, setTabValue] = useState("owned");
+
+  // TODO: display meetups.
+  let ownedMeetupsEl = (
+    <Typography>
+      You have some meetups, but we can’t display them yet
+    </Typography>
+  );
+  if (ownedMeetups.length === 0) {
+    ownedMeetupsEl = (
       <Typography>
-        You don’t own any meetups. <Link to="/create">Go create one!</Link>
+        You don’t own any meetups. <Link to="/create">Go make one!</Link>
       </Typography>
     );
-  };
+  }
 
-  const renderAttendingMeetups = () => {
-    // TODO: get actual meetups if they exist
-    return (
+  let attendingMeetupsEl = (
+    <Typography>
+      You are going to some meetups, but we can’t display them yet
+    </Typography>
+  );
+  if (attendingMeetups.length === 0) {
+    attendingMeetupsEl = (
       <Typography>
         You are not attending any meetups.{" "}
         <Link to="/">Look for one to attend!</Link>
       </Typography>
     );
-  };
+  }
 
-  const renderPendingMeetups = () => {
-    // TODO: get actual meetups if they exist
-    return (
+  let pendingMeetupsEl = (
+    <Typography>
+      You are waiting on some meetups, but we can’t display them yet
+    </Typography>
+  );
+  if (pendingMeetups.length === 0) {
+    pendingMeetupsEl = (
       <Typography>
         You don’t have any pending requests.{" "}
         <Link to="/">Look for a meetup to attend!</Link>
       </Typography>
     );
-  };
+  }
 
-  const renderPersonalInfo = () => {
-    if (!isMe) {
-      return null;
-    }
-    return (
-      <>
-        {user.contactInfo && (
-          <Typography variant="p">Contact info: {user.contactInfo}</Typography>
-        )}
-        {user.email && <Typography variant="p">Email: {user.email}</Typography>}
-        {user.location && (
-          <Typography variant="p">
-            Location: lat {user.location.lat}, lon {user.location.lon}
-          </Typography>
-          // TODO: replace with sensible representation
-        )}
-        <Typography
-          variant="h4"
-          component="h3"
-          className={classes.meetupInfoTitle}
-        >
-          Your meetups:
-        </Typography>
-        <TabContext value={tabValue}>
-          <AppBar position="static">
-            <StyledTabList
-              onChange={(_, newValue) => setTabValue(newValue)}
-              indicatorColor="black"
-              variant="scrollable"
-              scrollButtons="auto"
-            >
-              <StyledTab label="Owned Meetups" value="1" />
-              <StyledTab label="Attending Meetups" value="2" />
-              <StyledTab label="Pending Meetups" value="3" />
-            </StyledTabList>
-          </AppBar>
-          <StyledTabPanel value="1">{renderOwnedMeetups()}</StyledTabPanel>
-          <StyledTabPanel value="2">{renderAttendingMeetups()}</StyledTabPanel>
-          <StyledTabPanel value="3">{renderPendingMeetups()}</StyledTabPanel>
-        </TabContext>
-      </>
-    );
-  };
+  const personalInfo = isMe && (
+    <>
+      {user.contactInfo && (
+        <Typography>Contact info: {user.contactInfo}</Typography>
+      )}
+      {user.email && <Typography>Email: {user.email}</Typography>}
+      <Typography
+        variant="h4"
+        component="h3"
+        className={classes.meetupInfoTitle}
+      >
+        Your meetups:
+      </Typography>
+      <TabContext value={tabValue}>
+        <AppBar position="static">
+          <StyledTabList
+            onChange={(_, newValue) => setTabValue(newValue)}
+            indicatorColor="primary"
+            variant="scrollable"
+            scrollButtons="auto"
+          >
+            <StyledTab label="Owned Meetups" value="owned" />
+            <StyledTab label="Attending Meetups" value="attending" />
+            <StyledTab label="Pending Meetups" value="pending" />
+          </StyledTabList>
+        </AppBar>
+        <StyledTabPanel value="owned">{ownedMeetupsEl}</StyledTabPanel>
+        <StyledTabPanel value="attending">{attendingMeetupsEl}</StyledTabPanel>
+        <StyledTabPanel value="pending">{pendingMeetupsEl}</StyledTabPanel>
+      </TabContext>
+    </>
+  );
 
-  const renderUser = () => {
-    return (
-      <Container maxWidth="md">
-        <Box display="flex" flexDirection="column" alignItems="center">
-          {user.profilePic && (
-            <img
-              src={user.profilePic}
-              alt="profile pic"
-              className={classes.profilePic}
+  return (
+    <Container maxWidth="md">
+      <Box display="flex" flexDirection="column" alignItems="center">
+        {user.profilePic && (
+          <img
+            src={user.profilePic}
+            alt="profile pic"
+            className={classes.profilePic}
+          />
+        )}
+        {!user.profilePic && (
+          <div
+            style={{ position: "relative", width: "150px", height: "150px" }}
+          >
+            <AccountCircleIcon
+              style={{
+                position: "absolute",
+                left: 0,
+                top: 0,
+                width: "100%",
+                height: "100%",
+              }}
             />
-          )}
-          {!user.profilePic && (
-            <div
-              style={{ position: "relative", width: "150px", height: "150px" }}
-            >
-              <AccountCircleIcon
-                style={{
-                  position: "absolute",
-                  left: 0,
-                  top: 0,
-                  width: "100%",
-                  height: "100%",
-                }}
-              />
-            </div>
-          )}
-          <Typography component="h2" variant="h3">
-            {user.name}
-          </Typography>
-          {renderPersonalInfo()}
-        </Box>
-      </Container>
-    );
-  };
-
-  const renderNotFound = () => {
-    return <Typography>Specified user was not found.</Typography>;
-  };
-
-  if (!loaded) {
-    return <Typography>Loading...</Typography>; // TODO: replace with nice loading screen
-  }
-
-  if (user === null) {
-    return renderNotFound();
-  }
-  return renderUser();
+          </div>
+        )}
+        <Typography component="h2" variant="h3">
+          {user.name}
+        </Typography>
+        {personalInfo}
+      </Box>
+    </Container>
+  );
 }
 
-Profile.propTypes = {
+const userType = PropTypes.shape({
   id: PropTypes.string.isRequired,
+  name: PropTypes.string.isRequired,
+  email: PropTypes.string.isRequired,
+  connections: PropTypes.arrayOf(PropTypes.string.isRequired),
+  contactInfo: PropTypes.string,
+  profilePic: PropTypes.string,
+});
+
+const meetupType = PropTypes.shape({
+  id: PropTypes.string.isRequired,
+  title: PropTypes.string.isRequired,
+});
+
+Profile.propTypes = {
+  user: userType,
+  isMe: PropTypes.bool.isRequired,
+  ownedMeetups: PropTypes.arrayOf(meetupType).isRequired,
+  attendingMeetups: PropTypes.arrayOf(meetupType).isRequired,
+  pendingMeetups: PropTypes.arrayOf(meetupType).isRequired,
 };
 
-export default Profile;
+Profile.defaultProps = {
+  user: null,
+};
+
+export default ProfilePage;
