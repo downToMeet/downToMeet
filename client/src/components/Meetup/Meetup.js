@@ -162,9 +162,8 @@ function Meetup({ id }) {
 
   useEffect(async () => {
     const { res: userRes, resJSON: userJSON } = await fetcher.getUserData();
-    if (!userRes.ok) {
-      setIsLoading(false);
-      return;
+    if (userRes.ok) {
+      setUser(userJSON);
     }
     const { res: meetupRes, resJSON: meetupJSON } = await fetcher.getMeetup(id);
     if (!meetupRes.ok) {
@@ -180,7 +179,6 @@ function Meetup({ id }) {
       return;
     }
 
-    setUser(userJSON);
     setEventDetails({
       description: meetupJSON.description,
       location: meetupJSON.location,
@@ -298,7 +296,7 @@ function Meetup({ id }) {
                 src={eventDetails.owner.profilePic}
                 component={RouterLink}
                 to={`/user/${
-                  eventDetails.owner.id === user.id
+                  user && eventDetails.owner.id === user.id
                     ? "me"
                     : eventDetails.owner.id
                 }`}
@@ -309,7 +307,7 @@ function Meetup({ id }) {
                 className={classes.profileName}
                 component={RouterLink}
                 to={`/user/${
-                  eventDetails.owner.id === user.id
+                  user && eventDetails.owner.id === user.id
                     ? "me"
                     : eventDetails.owner.id
                 }`}
@@ -400,7 +398,9 @@ function Meetup({ id }) {
                   className={classes.avatar}
                   src={attendee.profilePic}
                   component={RouterLink}
-                  to={`/user/${attendee.id === user.id ? "me" : attendee.id}`}
+                  to={`/user/${
+                    user.id && attendee.id === user.id ? "me" : attendee.id
+                  }`}
                 />
               </Grid>
               <Grid item>
@@ -408,7 +408,9 @@ function Meetup({ id }) {
                   variant="body2"
                   className={classes.profileName}
                   component={RouterLink}
-                  to={`/user/${attendee.id === user.id ? "me" : attendee.id}`}
+                  to={`/user/${
+                    user.id && attendee.id === user.id ? "me" : attendee.id
+                  }`}
                 >
                   {attendee.name}
                 </Typography>
@@ -455,10 +457,26 @@ function Meetup({ id }) {
               spacing={1}
             >
               <Grid item>
-                <Avatar className={classes.avatar} src={attendee.profilePic} />
+                <Avatar
+                  className={classes.avatar}
+                  src={attendee.profilePic}
+                  component={RouterLink}
+                  to={`/user/${
+                    user.id && attendee.id === user.id ? "me" : attendee.id
+                  }`}
+                />
               </Grid>
               <Grid item>
-                <Typography variant="body2">{attendee.name}</Typography>
+                <Typography
+                  variant="body2"
+                  component={RouterLink}
+                  className={classes.profileName}
+                  to={`/user/${
+                    user.id && attendee.id === user.id ? "me" : attendee.id
+                  }`}
+                >
+                  {attendee.name}
+                </Typography>
               </Grid>
               <Grid item>
                 <ButtonGroup size="small">
