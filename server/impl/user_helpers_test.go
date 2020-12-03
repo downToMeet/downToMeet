@@ -16,8 +16,8 @@ func newEmail() string {
 
 func createUser() *db.User {
 	newUser := db.User{
-		Email:       newEmail(),
-		Name:        newEmail(),
+		Email: newEmail(),
+		Name:  newEmail(),
 	}
 	if err := testImpl.DB().Create(&newUser).Error; err != nil {
 		panic(err)
