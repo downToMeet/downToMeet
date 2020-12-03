@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import PropTypes from "prop-types";
+// import { useSelector } from "react-redux";
 import makeStyles from "@material-ui/styles/makeStyles";
 import {
   Box,
@@ -33,8 +35,11 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-function CreateMeetup() {
+function CreateMeetup({ id }) {
+  // if id is null, create new meetup, else fetch data for meetup/:id and edit that meetup
   const classes = useStyles();
+  // const user = useSelector((state) => state);
+  const [isEdit, setIsEdit] = useState(false);
   const [title, setTitle] = useState("");
   const [time, setTime] = useState(new Date());
   const [meetupType, setMeetupType] = useState("");
@@ -68,6 +73,34 @@ function CreateMeetup() {
     "movie",
     "cooking",
   ];
+
+  useEffect(async () => {
+    if (!id) {
+      return;
+    }
+    const { res: userRes, resJSON: userJSON } = await fetcher.getUserData();
+    if (!userRes.ok) {
+      return;
+    }
+    const { res, resJSON } = await fetcher.getMeetup(id);
+    if (!res.ok) {
+      return;
+    }
+
+    // only allow edit if user is the owner of the meetup
+    if (userJSON.id !== resJSON.owner) {
+      return;
+    }
+    setIsEdit(true);
+    setTitle(resJSON.title);
+    setTime(new Date(resJSON.time));
+    setMeetupType(resJSON.location.url ? REMOTE : IN_PERSON);
+    setMeetupLocation(resJSON.location.coordinates || null);
+    setMeetupURL(resJSON.location.url || "");
+    setGroupCount([resJSON.minCapacity, resJSON.maxCapacity]);
+    setDescription(resJSON.description);
+    setTags(resJSON.tags);
+  }, []);
 
   const validateForm = () => {
     if (title === "" || meetupType === "" || tags.length === 0) {
@@ -204,6 +237,7 @@ function CreateMeetup() {
           multiline
           variant="outlined"
           rows={3}
+          rowsMax={15}
           className={classes.formInput}
           style={{
             width: "100%",
@@ -245,7 +279,8 @@ function CreateMeetup() {
     }
 
     setCreatingMeetup(true);
-    const { res, resJSON } = await fetcher.createMeetup({
+    const meetup = {
+      id,
       title,
       time,
       meetupType,
@@ -254,7 +289,8 @@ function CreateMeetup() {
       groupCount,
       description,
       tags,
-    });
+    };
+    const { res, resJSON } = await fetcher.createOrEditMeetup(meetup, isEdit);
     if (res.ok) {
       clearForm();
       // Use location.replace instead of location.href so user cannot navigate back to create screen
@@ -265,7 +301,7 @@ function CreateMeetup() {
   return (
     <Container maxWidth="sm">
       <Typography variant="h2" component="h1" style={{ textAlign: "center" }}>
-        Create your meetup
+        {isEdit ? "Create" : "Edit"} your meetup
       </Typography>
       {error && (
         <Typography variant="body1" color="error">
@@ -289,12 +325,20 @@ function CreateMeetup() {
               marginTop: 20,
             }}
           >
-            Create Meetup
+            {isEdit ? "Save Changes" : "Create Meetup"}
           </Button>
         </Box>
       </Box>
     </Container>
   );
 }
+
+CreateMeetup.propTypes = {
+  id: PropTypes.string,
+};
+
+CreateMeetup.defaultProps = {
+  id: "",
+};
 
 export default CreateMeetup;

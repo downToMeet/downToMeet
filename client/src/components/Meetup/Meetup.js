@@ -502,7 +502,11 @@ function Meetup({ id }) {
     switch (userMeetupStatus) {
       case OWNER:
         button = (
-          <Button startIcon={<Edit />} component={RouterLink}>
+          <Button
+            startIcon={<Edit />}
+            component={RouterLink}
+            to={`/meetup/${id}/edit`}
+          >
             Edit Meetup
           </Button>
         );
