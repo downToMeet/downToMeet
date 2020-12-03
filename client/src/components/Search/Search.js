@@ -14,7 +14,7 @@ import {
 import { Link } from "react-router-dom";
 
 import LocationPicker, { useGoogleMaps } from "../common/LocationPicker";
-import MeetupCard from "./MeetupCard";
+import MeetupCard from "../common/MeetupCard";
 import { IN_PERSON, REMOTE } from "../../constants";
 import * as fetcher from "../../lib/fetch";
 
@@ -248,7 +248,7 @@ function Search() {
         time={meetup.time}
         location={meetup.location}
         id={meetup.id}
-        organizer={meetup.organizer}
+        owner={meetup.owner}
         tags={meetup.tags}
       />
     ));

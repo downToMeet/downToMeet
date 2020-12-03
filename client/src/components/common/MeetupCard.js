@@ -9,13 +9,17 @@ import {
   Typography,
 } from "@material-ui/core";
 import { Link } from "react-router-dom";
-import { useGoogleMaps } from "../common/LocationPicker";
+import { useSelector } from "react-redux";
+import { useGoogleMaps } from "./LocationPicker";
+import * as fetcher from "../../lib/fetch";
 
-function MeetupCard({ title, time, location, id, tags }) {
+function MeetupCard({ title, time, location, id, owner, tags }) {
   const [locationString, setLocationString] = useState(null);
+  const [joined, setJoined] = useState(false);
+  const userID = useSelector((state) => state.id);
   const { isReady, geocode } = useGoogleMaps([location.coordinates]);
 
-  useEffect(() => {
+  useEffect(async () => {
     if (location.name) {
       setLocationString(location.name);
     }
@@ -42,10 +46,22 @@ function MeetupCard({ title, time, location, id, tags }) {
         controller.abort();
       };
     }
+    if (owner === userID) {
+      setJoined(true);
+    } else {
+      const { res, resJSON } = await fetcher.getMeetupAttendees(id);
+      if (res.ok && resJSON.attending) {
+        if (resJSON.attending.includes(userID)) {
+          setJoined(true);
+        }
+      }
+    }
     return undefined;
   }, [location.coordinates, location.name, location.url]);
 
-  const tagList = tags.map((tag) => <Chip label={tag} key={tag} />);
+  const tagList = tags.map((tag) => (
+    <Chip label={tag} key={tag} style={{ marginRight: 5 }} />
+  ));
 
   const locale = "en-US";
   const eventTimeOptions = {
@@ -69,11 +85,17 @@ function MeetupCard({ title, time, location, id, tags }) {
               when: {new Date(time).toLocaleString(locale, eventTimeOptions)}
             </Typography>
             {locationString && <Typography>where: {locationString}</Typography>}
-            {location.url && (
-              <Typography component="a" href={location.url}>
-                {location.url}
-              </Typography>
-            )}
+            {location.url &&
+              (joined ? (
+                <Typography>
+                  where:{" "}
+                  <Typography component="a" href={location.url}>
+                    {location.url}
+                  </Typography>
+                </Typography>
+              ) : (
+                <Typography>where: Online</Typography>
+              ))}
             <Box display="flex" mt={1}>
               {tagList}
             </Box>
@@ -96,6 +118,7 @@ MeetupCard.propTypes = {
     url: PropTypes.string,
   }).isRequired,
   id: PropTypes.string.isRequired,
+  owner: PropTypes.string.isRequired,
   tags: PropTypes.arrayOf(PropTypes.string).isRequired,
 };
 

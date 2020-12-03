@@ -259,22 +259,14 @@ function Meetup({ id }) {
     let locationLink;
     if (eventDetails.location.url) {
       const link = (
-        <>
-          (
-          <Link
-            href={eventDetails.location.url}
-            rel="noreferrer"
-            target="_blank"
-          >
-            link
-          </Link>
-          )
-        </>
+        <Link href={eventDetails.location.url} rel="noreferrer" target="_blank">
+          {eventDetails.location.url}
+        </Link>
       );
       // Only show link if owner or attendee (zoombombing who?)
       locationLink = (
         <Typography variant="body2">
-          Location: Online{" "}
+          Location: Online{" - "}
           {(userMeetupStatus === ATTENDING || userMeetupStatus === OWNER) &&
             link}
         </Typography>
