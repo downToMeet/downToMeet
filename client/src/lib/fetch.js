@@ -73,7 +73,7 @@ export async function getMeetup(id) {
   const getMeetupEndpoint = `${SERVER_URL}/meetup/${id}`;
 
   const res = await fetch(getMeetupEndpoint, {
-    credentials: "include"
+    credentials: "include",
   });
 
   return { res, resJSON: await res.json() };
@@ -93,7 +93,7 @@ export async function getMeetupAttendees(id) {
   const getMeetupEndpoint = `${SERVER_URL}/meetup/${id}/attendee`;
 
   const res = await fetch(getMeetupEndpoint, {
-    credentials: "include"
+    credentials: "include",
   });
 
   return { res, resJSON: await res.json() };
