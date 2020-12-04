@@ -9,6 +9,16 @@ export async function getUserData(id = "me") {
   return { res, resJSON: await res.json() };
 }
 
+export async function getDataForUsers(users) {
+  if (!users) return [];
+
+  return Promise.all(
+    users.map((user) =>
+      fetch(`${SERVER_URL}/user/${user}`, { credentials: "include" })
+    )
+  ).then((responses) => Promise.all(responses.map((res) => res.json())));
+}
+
 export async function searchForMeetups({ lat, lon, radius, tags }) {
   const getMeetupsEndpoint = `${SERVER_URL}/meetup?lat=${lat}&lon=${lon}&radius=${radius}&tags=${tags}`;
   const res = await fetch(getMeetupsEndpoint, {
@@ -25,6 +35,16 @@ export async function searchForRemoteMeetups(tags) {
   });
 
   return { res, resJSON: await res.json() };
+}
+
+export async function cancelMeetup(id = "me") {
+  const cancelMeetupEndpoint = `${SERVER_URL}/meetup/${id}`;
+  const res = await fetch(cancelMeetupEndpoint, {
+    method: "DELETE",
+    credentials: "include",
+  });
+
+  return res;
 }
 
 export async function createOrEditMeetup(
