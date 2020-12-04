@@ -299,10 +299,7 @@ func (i *Implementation) PostMeetup(params operations.PostMeetupParams, _ interf
 	}
 
 	modelMeetup := modelMeetupRequestBodyToModelMeetup(params.Meetup, id.(string))
-	if err := i.modelMeetupToDBMeetup(&dbMeetup, &modelMeetup); err != nil {
-		logger.WithError(err).Error("Failed to create db meetup object")
-		return responders.InternalServerError{}
-	}
+	_ = i.modelMeetupToDBMeetup(&dbMeetup, &modelMeetup)
 
 	tx := i.DB().WithContext(ctx)
 	if err := tx.Create(&dbMeetup).Error; err != nil {
@@ -358,10 +355,7 @@ func (i *Implementation) PatchMeetupID(params operations.PatchMeetupIDParams, _ 
 	}
 
 	modelMeetup := modelMeetupRequestBodyToModelMeetup(params.Meetup, userID)
-	if err := i.modelMeetupToDBMeetup(&dbMeetup, &modelMeetup); err != nil {
-		logger.WithError(err).Error("Failed to create db meetup object")
-		return responders.InternalServerError{}
-	}
+	_ = i.modelMeetupToDBMeetup(&dbMeetup, &modelMeetup)
 
 	if err := i.insertMeetupTagsIntoDB(ctx, &dbMeetup, &modelMeetup); err != nil {
 		logger.WithError(err).Error("Failed to insert meetup tags")
@@ -596,7 +590,7 @@ func (i *Implementation) PatchMeetupIdAttendee(params operations.PatchMeetupIDAt
 	id := session.Values[UserID]
 	attendeeId, err := db.UserIDFromString(params.PatchMeetupAttendeeBody.Attendee)
 	status := params.PatchMeetupAttendeeBody.AttendeeStatus
-	if attendeeId != 0 && err != nil {
+	if err != nil && params.PatchMeetupAttendeeBody.Attendee != "" {
 		logger.Error("Trying to patch an invalid user ID")
 		return responders.InternalServerError{}
 	}
