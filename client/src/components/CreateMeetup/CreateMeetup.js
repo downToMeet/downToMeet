@@ -98,9 +98,9 @@ function CreateMeetup({ id }) {
       history.replace(`/create`);
       return;
     }
-    // if user is not meetup owner, redirect to /create
+    // if user is not meetup owner, redirect to meetup info page /meetup/:id
     if (userID !== resJSON.owner) {
-      history.replace(`/create`);
+      history.replace(`/meetup/${id}`);
       return;
     }
     setIsEdit(true);
