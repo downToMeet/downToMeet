@@ -477,8 +477,13 @@ function Meetup({ id }) {
   };
 
   const renderMeetupAction = () => {
+    const eventFull =
+      !(
+        userMeetupStatus === OWNER ||
+        userMeetupStatus === ATTENDING ||
+        userMeetupStatus === REJECTED
+      ) && attendees.length >= eventDetails.maxCapacity;
     let button;
-    // TODO: Edit meetup redirect to pre-populated CreateMeetup page
     switch (userMeetupStatus) {
       case OWNER:
         button = (
@@ -522,6 +527,7 @@ function Meetup({ id }) {
             onClick={handleJoinMeetup}
             disabled={
               isUpdating ||
+              eventFull ||
               eventDetails.canceled ||
               userMeetupStatus === REJECTED
             }
@@ -540,6 +546,11 @@ function Meetup({ id }) {
               : "this event has been cancelled."}
           </Typography>
         )}
+        {!eventDetails.canceled && eventFull && (
+          <Typography variant="body2" color="error">
+            This event is full.
+          </Typography>
+        )}
         {!eventDetails.canceled && userMeetupStatus === REJECTED && (
           <Typography variant="body2" color="error" align="center">
             you were rejected from the meetup.
@@ -556,7 +567,7 @@ function Meetup({ id }) {
 
     return (
       <Grid item container spacing={2}>
-        <Grid item container>
+        <Grid item container alignItems="center">
           <Grid item xs>
             <Typography variant="h3">{eventDetails.title}</Typography>
             {/* TODO: add share/link copy icon here? */}
