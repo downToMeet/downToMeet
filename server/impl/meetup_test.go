@@ -63,6 +63,7 @@ func TestGetMeetupID(t *testing.T) {
 
 	params := operations.GetMeetupIDParams{
 		HTTPRequest: req,
+		ID: TestMeetup.IDString(),
 	}
 
 	raw := testImpl.GetMeetupID(params)
