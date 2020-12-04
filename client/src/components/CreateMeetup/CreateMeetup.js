@@ -97,8 +97,15 @@ function CreateMeetup({ id }) {
     setTitle(resJSON.title);
     setTime(new Date(resJSON.time));
     setMeetupType(resJSON.location.url ? REMOTE : IN_PERSON);
-    // Physical locations cannot be prefilled, so have user refill manually for now
-    // setMeetupLocation(resJSON.location.name || null);
+    if (resJSON.location.coordinates) {
+      setMeetupLocation({
+        description: resJSON.location.name,
+        coords: [
+          resJSON.location.coordinates.lat,
+          resJSON.location.coordinates.lon,
+        ],
+      });
+    }
     setMeetupURL(resJSON.location.url || "");
     setGroupCount([resJSON.minCapacity, resJSON.maxCapacity]);
     setDescription(resJSON.description);
