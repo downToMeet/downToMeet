@@ -36,14 +36,14 @@ func (i *Implementation) GetMeetup(params operations.GetMeetupParams) middleware
 
 	tx := i.DB().WithContext(ctx)
 
-	var tagIds []int
+	var tagIDs []int
 	var dbTags []db.Tag
 	if err := tx.Where("name IN ?", params.Tags).Find(&dbTags).Error; err != nil {
 		logger.WithError(err).Error("Unable to fetch tags")
 		return responders.InternalServerError{}
 	}
 	for _, tag := range dbTags {
-		tagIds = append(tagIds, int(tag.ID))
+		tagIDs = append(tagIDs, int(tag.ID))
 	}
 
 	var meetups []*db.Meetup
@@ -61,14 +61,14 @@ func (i *Implementation) GetMeetup(params operations.GetMeetupParams) middleware
 			LIMIT 100
 		`, params.Lat, params.Lon, params.Radius*1000).Scan(&meetups).Error
 	} else {
-		var tagIds []uint
+		var tagIDs []uint
 		var dbTags []db.Tag
 		if err := tx.Where("name IN ?", params.Tags).Find(&dbTags).Error; err != nil {
 			logger.WithError(err).Error("Unable to fetch tags")
 			return responders.InternalServerError{}
 		}
 		for _, tag := range dbTags {
-			tagIds = append(tagIds, tag.ID)
+			tagIDs = append(tagIDs, tag.ID)
 		}
 
 		err = tx.Raw(`
@@ -86,7 +86,7 @@ func (i *Implementation) GetMeetup(params operations.GetMeetupParams) middleware
 				LIMIT 100
 			) AS m
 			ORDER BY m.distance_from_me
-		`, params.Lat, params.Lon, params.Radius*1000, tagIds).Scan(&meetups).Error
+		`, params.Lat, params.Lon, params.Radius*1000, tagIDs).Scan(&meetups).Error
 	}
 
 	if err != nil {
@@ -154,14 +154,14 @@ func (i *Implementation) GetMeetupRemote(params operations.GetMeetupRemoteParams
 			LIMIT 100
 		`).Scan(&meetups).Error
 	} else {
-		var tagIds []uint
+		var tagIDs []uint
 		var dbTags []db.Tag
 		if err := tx.Where("name IN ?", params.Tags).Find(&dbTags).Error; err != nil {
 			logger.WithError(err).Error("Unable to fetch tags")
 			return responders.InternalServerError{}
 		}
 		for _, tag := range dbTags {
-			tagIds = append(tagIds, tag.ID)
+			tagIDs = append(tagIDs, tag.ID)
 		}
 
 		err = tx.Raw(`
@@ -174,7 +174,7 @@ func (i *Implementation) GetMeetupRemote(params operations.GetMeetupRemoteParams
 				LIMIT 100
 			) AS m
 			ORDER BY m.time
-		`, tagIds).Scan(&meetups).Error
+		`, tagIDs).Scan(&meetups).Error
 	}
 
 	if err != nil {
@@ -416,8 +416,8 @@ func (i *Implementation) DeleteMeetupID(params operations.DeleteMeetupIDParams, 
 	return operations.NewDeleteMeetupIDNoContent()
 }
 
-// GetMeetupIdAttendee implements the GET /meetup/:id/attendee endpoint.
-func (i *Implementation) GetMeetupIdAttendee(params operations.GetMeetupIDAttendeeParams, _ interface{}) middleware.Responder {
+// GetMeetupIDAttendee implements the GET /meetup/:id/attendee endpoint.
+func (i *Implementation) GetMeetupIDAttendee(params operations.GetMeetupIDAttendeeParams, _ interface{}) middleware.Responder {
 	ctx := params.HTTPRequest.Context()
 	logger := log.WithContext(ctx)
 
@@ -457,8 +457,8 @@ func (i *Implementation) GetMeetupIdAttendee(params operations.GetMeetupIDAttend
 	return operations.NewGetMeetupIDAttendeeOK().WithPayload(&attendeeList)
 }
 
-// PostMeetupIdAttendee implements the POST /meetup/:id/attendee endpoint.
-func (i *Implementation) PostMeetupIdAttendee(params operations.PostMeetupIDAttendeeParams, _ interface{}) middleware.Responder {
+// PostMeetupIDAttendee implements the POST /meetup/:id/attendee endpoint.
+func (i *Implementation) PostMeetupIDAttendee(params operations.PostMeetupIDAttendeeParams, _ interface{}) middleware.Responder {
 	ctx := params.HTTPRequest.Context()
 	logger := log.WithContext(ctx)
 
@@ -559,8 +559,8 @@ func (i *Implementation) PostMeetupIdAttendee(params operations.PostMeetupIDAtte
 	return operations.NewPostMeetupIDAttendeeOK().WithPayload(attendeeStatus)
 }
 
-// PatchMeetupIdAttendee implements the PATCH /meetup/:id/attendee endpoint.
-func (i *Implementation) PatchMeetupIdAttendee(params operations.PatchMeetupIDAttendeeParams, _ interface{}) middleware.Responder {
+// PatchMeetupIDAttendee implements the PATCH /meetup/:id/attendee endpoint.
+func (i *Implementation) PatchMeetupIDAttendee(params operations.PatchMeetupIDAttendeeParams, _ interface{}) middleware.Responder {
 	ctx := params.HTTPRequest.Context()
 	logger := log.WithContext(ctx)
 
@@ -579,9 +579,9 @@ func (i *Implementation) PatchMeetupIdAttendee(params operations.PatchMeetupIDAt
 
 	session := SessionFromContext(ctx)
 	id := session.Values[UserID]
-	attendeeId, err := db.UserIDFromString(params.PatchMeetupAttendeeBody.Attendee)
+	attendeeID, err := db.UserIDFromString(params.PatchMeetupAttendeeBody.Attendee)
 	status := params.PatchMeetupAttendeeBody.AttendeeStatus
-	if attendeeId != 0 && err != nil {
+	if attendeeID != 0 && err != nil {
 		logger.Error("Trying to patch an invalid user ID")
 		return responders.InternalServerError{}
 	}
@@ -598,7 +598,7 @@ func (i *Implementation) PatchMeetupIdAttendee(params operations.PatchMeetupIDAt
 		})
 	}
 
-	if id.(string) == fmt.Sprint(dbMeetup.Owner) && (attendeeId == 0) {
+	if id.(string) == fmt.Sprint(dbMeetup.Owner) && (attendeeID == 0) {
 		return operations.NewPatchMeetupIDAttendeeBadRequest().WithPayload(&models.Error{
 			Code:    http.StatusBadRequest,
 			Message: "User is the owner of this meetup",
@@ -612,7 +612,7 @@ func (i *Implementation) PatchMeetupIdAttendee(params operations.PatchMeetupIDAt
 		})
 	}
 
-	if (status == "none" || status == "pending") && attendeeId != 0 {
+	if (status == "none" || status == "pending") && attendeeID != 0 {
 		return operations.NewPatchMeetupIDAttendeeBadRequest().WithPayload(&models.Error{
 			Code:    http.StatusBadRequest,
 			Message: "A user can only change their own attendee status to either none or pending",
@@ -633,7 +633,7 @@ func (i *Implementation) PatchMeetupIdAttendee(params operations.PatchMeetupIDAt
 
 	// Remove the user from whichever list they are currently in
 	var idStr string
-	if attendeeId != 0 {
+	if attendeeID != 0 {
 		idStr = params.PatchMeetupAttendeeBody.Attendee
 	} else {
 		idStr = id.(string)

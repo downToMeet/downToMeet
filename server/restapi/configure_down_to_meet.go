@@ -63,9 +63,9 @@ func configureAPI(api *operations.DownToMeetAPI) http.Handler {
 	api.DeleteMeetupIDHandler = operations.DeleteMeetupIDHandlerFunc(Impl.DeleteMeetupID)
 	api.GetMeetupHandler = operations.GetMeetupHandlerFunc(Impl.GetMeetup)
 
-	api.GetMeetupIDAttendeeHandler = operations.GetMeetupIDAttendeeHandlerFunc(Impl.GetMeetupIdAttendee)
-	api.PostMeetupIDAttendeeHandler = operations.PostMeetupIDAttendeeHandlerFunc(Impl.PostMeetupIdAttendee)
-	api.PatchMeetupIDAttendeeHandler = operations.PatchMeetupIDAttendeeHandlerFunc(Impl.PatchMeetupIdAttendee)
+	api.GetMeetupIDAttendeeHandler = operations.GetMeetupIDAttendeeHandlerFunc(Impl.GetMeetupIDAttendee)
+	api.PostMeetupIDAttendeeHandler = operations.PostMeetupIDAttendeeHandlerFunc(Impl.PostMeetupIDAttendee)
+	api.PatchMeetupIDAttendeeHandler = operations.PatchMeetupIDAttendeeHandlerFunc(Impl.PatchMeetupIDAttendee)
 
 	api.APIKeyAuthenticator = func(name, in string, authentication security.TokenAuthentication) runtime.Authenticator {
 		if name == "COOKIE" {
