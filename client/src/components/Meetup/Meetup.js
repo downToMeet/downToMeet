@@ -140,8 +140,20 @@ function Meetup({ id }) {
   };
 
   async function setAttendeeLists(attendeeList, pendingAttendeesList) {
-    setAttendees(await fetcher.getDataForUsers(attendeeList));
-    setPendingAttendees(await fetcher.getDataForUsers(pendingAttendeesList));
+    return Promise.all([
+      (async () => {
+        const res = await Promise.all(
+          (attendeeList || []).map(fetcher.getUserData)
+        );
+        setAttendees(res.map(({ resJSON }) => resJSON));
+      })(),
+      (async () => {
+        const res = await Promise.all(
+          (pendingAttendeesList || []).map(fetcher.getUserData)
+        );
+        setPendingAttendees(res.map(({ resJSON }) => resJSON));
+      })(),
+    ]);
   }
 
   let userMeetupStatus = NONE;
