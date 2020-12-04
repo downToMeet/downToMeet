@@ -25,7 +25,7 @@ function Search() {
   const [meetups, setMeetups] = useState(null);
   const [meetupType, setMeetupType] = useState("");
   const [searchLocation, setSearchLocation] = useState(null);
-  const [radius, setRadius] = useState("");
+  const [radius, setRadius] = useState(1);
 
   // TODO: load options from the server instead
   const tagOptions = [
@@ -163,6 +163,7 @@ function Search() {
             value={meetupType}
             onChange={(event) => setMeetupType(event.target.value)}
           >
+            <option aria-label="None" value="" />
             <option value={IN_PERSON}>In person</option>
             <option value={REMOTE}>Remote</option>
           </Select>

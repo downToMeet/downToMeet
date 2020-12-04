@@ -134,6 +134,7 @@ function CreateMeetup() {
             native
             onChange={(event) => setMeetupType(event.target.value)}
           >
+            <option aria-label="None" value="" />
             <option value={IN_PERSON}>In person</option>
             <option value={REMOTE}>Remote</option>
           </Select>

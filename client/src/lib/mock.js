@@ -76,3 +76,24 @@ export function getMockMeetupAttendees(meetups) {
     return { res, resJSON: await res.json() };
   };
 }
+
+export function searchMockRemoteMeetups(meetups) {
+  return async (tags) => {
+    const goodMeetups = [];
+    Object.values(meetups).forEach((meetup) => {
+      if (meetup.location.url) {
+        // eslint-disable-next-line no-restricted-syntax
+        for (const tag in meetup.tags) {
+          if (tags.length === 0 || tags.includes(tag)) {
+            goodMeetups.push(meetup);
+            break;
+          }
+        }
+      }
+    });
+    const res = new Response(JSON.stringify(goodMeetups), {
+      headers: { "Content-Type": "application/json" },
+    });
+    return { res, resJSON: await res.json() };
+  };
+}
