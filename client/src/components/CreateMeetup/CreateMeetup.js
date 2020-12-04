@@ -6,6 +6,10 @@ import {
   Box,
   Button,
   Container,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
   FormControl,
   InputLabel,
   MenuItem,
@@ -40,6 +44,7 @@ function CreateMeetup({ id }) {
   const classes = useStyles();
   const user = useSelector((state) => state);
   const [isEdit, setIsEdit] = useState(false);
+  const [isCancelled, setIsCancelled] = useState(false);
   const [title, setTitle] = useState("");
   const [time, setTime] = useState(new Date());
   const [meetupType, setMeetupType] = useState("");
@@ -50,7 +55,8 @@ function CreateMeetup({ id }) {
   const [tags, setTags] = useState([]);
 
   const [error, setError] = useState(false);
-  const [creatingMeetup, setCreatingMeetup] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [updatingMeetup, setUpdatingMeetup] = useState(false);
 
   const clearForm = () => {
     setTitle("");
@@ -62,7 +68,7 @@ function CreateMeetup({ id }) {
     setDescription("");
     setTags([]);
     setError(false);
-    setCreatingMeetup(false);
+    setUpdatingMeetup(false);
   };
 
   // TODO: load options from the server instead
@@ -87,6 +93,7 @@ function CreateMeetup({ id }) {
       return;
     }
     setIsEdit(true);
+    setIsCancelled(Boolean(resJSON.canceled));
     setTitle(resJSON.title);
     setTime(new Date(resJSON.time));
     setMeetupType(resJSON.location.url ? REMOTE : IN_PERSON);
@@ -122,6 +129,7 @@ function CreateMeetup({ id }) {
           required
           variant="outlined"
           label="Title"
+          disabled={isCancelled}
           value={title}
           onChange={(event) => setTitle(event.target.value)}
           style={{ width: "100%" }}
@@ -139,6 +147,7 @@ function CreateMeetup({ id }) {
             variant="inline"
             inputVariant="outlined"
             label="Time"
+            disabled={isCancelled}
             value={time}
             onChange={(newDate) => setTime(newDate)}
             className={classes.formInput}
@@ -157,6 +166,7 @@ function CreateMeetup({ id }) {
         <FormControl required variant="outlined" style={{ width: 150 }}>
           <InputLabel id="select-meetup-type-label">Type</InputLabel>
           <Select
+            disabled={isCancelled}
             label="Type"
             labelId="select-meetup-type-label"
             value={meetupType}
@@ -168,6 +178,7 @@ function CreateMeetup({ id }) {
         </FormControl>
         {meetupType === IN_PERSON && (
           <LocationPicker
+            disabled={isCancelled}
             value={meetupLocation}
             setValue={setMeetupLocation}
             style={{
@@ -178,6 +189,7 @@ function CreateMeetup({ id }) {
         )}
         {meetupType === REMOTE && (
           <TextField
+            disabled={isCancelled}
             label="URL"
             variant="outlined"
             required
@@ -203,6 +215,7 @@ function CreateMeetup({ id }) {
       >
         <Typography id="group-slider">Group Size</Typography>
         <Slider
+          disabled={isCancelled}
           value={groupCount}
           onChange={(event, newValue) => setGroupCount(newValue)}
           valueLabelDisplay="auto"
@@ -228,6 +241,7 @@ function CreateMeetup({ id }) {
       <div className={classes.formSection}>
         <TextField
           label="Description"
+          disabled={isCancelled}
           value={description}
           onChange={(event) => setDescription(event.target.value)}
           multiline
@@ -250,6 +264,7 @@ function CreateMeetup({ id }) {
         <AutoComplete
           multiple
           disableCloseOnSelect
+          disabled={isCancelled}
           value={tags}
           onChange={(event, newValue) => setTags(newValue)}
           variant="outlined"
@@ -268,45 +283,25 @@ function CreateMeetup({ id }) {
     );
   };
 
-  const renderEditButtons = () => {
-    // TODO: implement event cancel (or delete?)
-    return (
-      <>
-        <Button
-          variant="contained"
-          onClick={() => {
-            window.location.replace(`/meetup/${id}`);
-          }}
-          disabled={creatingMeetup}
-          style={{
-            marginTop: 20,
-            marginRight: 10,
-          }}
-        >
-          Discard Changes
-        </Button>
-        <Button
-          variant="contained"
-          color="secondary"
-          disabled={creatingMeetup}
-          style={{
-            marginTop: 20,
-            marginRight: 10,
-          }}
-        >
-          Cancel Meetup
-        </Button>
-      </>
-    );
+  const handleCancelMeetup = async () => {
+    setIsCancelled(true);
+    setUpdatingMeetup(true);
+    const { res, resJSON } = await fetcher.cancelMeetup(id);
+    if (res.ok) {
+      clearForm();
+      window.location.replace(`/meetup/${resJSON.id}`);
+    } else {
+      setUpdatingMeetup(false);
+    }
   };
 
   const onSubmit = async () => {
     if (!validateForm()) {
-      setCreatingMeetup(false);
+      setUpdatingMeetup(false);
       return;
     }
 
-    setCreatingMeetup(true);
+    setUpdatingMeetup(true);
     const meetup = {
       id,
       title,
@@ -326,6 +321,80 @@ function CreateMeetup({ id }) {
     }
   };
 
+  const renderEditButtons = () => {
+    const editButtons = (
+      <>
+        <Button
+          variant="contained"
+          onClick={() => {
+            window.location.replace(`/meetup/${id}`);
+          }}
+          disabled={updatingMeetup}
+          style={{
+            marginTop: 20,
+            marginRight: 10,
+          }}
+        >
+          Discard Changes
+        </Button>
+        <Button
+          variant="contained"
+          color="secondary"
+          disabled={updatingMeetup}
+          style={{
+            marginTop: 20,
+            marginRight: 10,
+          }}
+          onClick={() => setShowConfirm(true)}
+        >
+          Cancel Meetup
+        </Button>
+        <Dialog open={showConfirm} onClose={() => setShowConfirm(false)}>
+          <DialogContent>
+            <DialogContentText>
+              Are you sure you want to cancel the meetup? This cannot be undone.
+            </DialogContentText>
+            <DialogActions>
+              <Button onClick={() => setShowConfirm(false)}>No</Button>
+              <Button
+                disabled={updatingMeetup}
+                onClick={() => {
+                  setShowConfirm(false);
+                  handleCancelMeetup(id);
+                }}
+              >
+                Yes
+              </Button>
+            </DialogActions>
+          </DialogContent>
+        </Dialog>
+      </>
+    );
+    return (
+      <Box alignSelf="flex-end">
+        {isEdit && !isCancelled && editButtons}
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={
+            !isCancelled
+              ? onSubmit
+              : () => {
+                  window.location.replace(`/meetup/${id}`);
+                }
+          }
+          disabled={updatingMeetup}
+          style={{
+            marginTop: 20,
+          }}
+        >
+          {isCancelled && "Back"}
+          {!isCancelled && (isEdit ? "Save Changes" : "Create Meetup")}
+        </Button>
+      </Box>
+    );
+  };
+
   return (
     <Container maxWidth="sm">
       <Typography variant="h2" component="h1" style={{ textAlign: "center" }}>
@@ -336,6 +405,11 @@ function CreateMeetup({ id }) {
           Please ensure all required fields (marked with *) are filled out.
         </Typography>
       )}
+      {isCancelled && (
+        <Typography variant="body1" color="error">
+          This meetup has been cancelled. You can no longer edit the meetup.
+        </Typography>
+      )}
       <Box component="form" display="flex" flexDirection="column">
         {renderNameInput()}
         {renderDateInput()}
@@ -343,20 +417,7 @@ function CreateMeetup({ id }) {
         {renderGroupSizeInput()}
         {renderDescription()}
         {renderTags()}
-        <Box alignSelf="flex-end">
-          {isEdit && renderEditButtons()}
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={onSubmit}
-            disabled={creatingMeetup}
-            style={{
-              marginTop: 20,
-            }}
-          >
-            {isEdit ? "Save Changes" : "Create Meetup"}
-          </Button>
-        </Box>
+        {renderEditButtons()}
       </Box>
     </Container>
   );
