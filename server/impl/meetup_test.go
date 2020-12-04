@@ -910,7 +910,7 @@ func TestPostMeetupIdAttendeeUserNotFound(t *testing.T) {
 		HTTPRequest: req,
 		ID:          targetMeetup.IDString(),
 	}
-	raw := testImpl.PostMeetupIdAttendee(params, nil)
+	raw := testImpl.PostMeetupIDAttendee(params, nil)
 
 	require.IsType(t, responders.InternalServerError{}, raw)
 }
@@ -965,7 +965,7 @@ func TestPostMeetupIdAttendeeAlreadyOwner(t *testing.T) {
 		HTTPRequest: req,
 		ID:          targetMeetup.IDString(),
 	}
-	raw := testImpl.PostMeetupIdAttendee(params, nil)
+	raw := testImpl.PostMeetupIDAttendee(params, nil)
 
 	require.IsType(t, (*operations.PostMeetupIDAttendeeBadRequest)(nil), raw)
 }
@@ -1006,7 +1006,7 @@ func TestPostMeetupIdAttendeeInvalidUserID(t *testing.T) {
 		HTTPRequest: req,
 		ID:          targetMeetup.IDString(),
 	}
-	raw := testImpl.PostMeetupIdAttendee(params, nil)
+	raw := testImpl.PostMeetupIDAttendee(params, nil)
 
 	require.IsType(t, responders.InternalServerError{}, raw)
 }
@@ -1231,7 +1231,7 @@ func TestPatchMeetupIdAttendeeAddPendingInvalidUserID(t *testing.T) {
 			AttendeeStatus: "pending",
 		},
 	}
-	raw := testImpl.PatchMeetupIdAttendee(params, nil)
+	raw := testImpl.PatchMeetupIDAttendee(params, nil)
 
 	require.IsType(t, responders.InternalServerError{}, raw)
 }
@@ -1256,7 +1256,7 @@ func TestPatchMeetupIdAttendeeAddPendingInvalidAttendeeID(t *testing.T) {
 			AttendeeStatus: "pending",
 		},
 	}
-	raw := testImpl.PatchMeetupIdAttendee(params, nil)
+	raw := testImpl.PatchMeetupIDAttendee(params, nil)
 
 	require.IsType(t, responders.InternalServerError{}, raw)
 }
@@ -1281,7 +1281,7 @@ func TestPatchMeetupIdAttendeeAddPendingNoOwnerInAttendeeField(t *testing.T) {
 			AttendeeStatus: "pending",
 		},
 	}
-	raw := testImpl.PatchMeetupIdAttendee(params, nil)
+	raw := testImpl.PatchMeetupIDAttendee(params, nil)
 
 	require.IsType(t, (*operations.PatchMeetupIDAttendeeBadRequest)(nil), raw)
 }
