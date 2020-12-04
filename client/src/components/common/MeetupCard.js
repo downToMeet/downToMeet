@@ -89,12 +89,7 @@ function MeetupCard({ title, time, location, id, owner, tags }) {
             {locationString && <Typography>where: {locationString}</Typography>}
             {location.url &&
               (joined ? (
-                <Typography>
-                  where:{" "}
-                  <Typography component="a" href={location.url}>
-                    {location.url}
-                  </Typography>
-                </Typography>
+                <Typography>where: {location.url}</Typography>
               ) : (
                 <Typography>where: Online</Typography>
               ))}
