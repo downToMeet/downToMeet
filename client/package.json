@@ -44,7 +44,7 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "test": "react-scripts test --collectCoverage --watchAll",
+    "test": "react-scripts test --collectCoverage --coverageReporters='html'",
     "eject": "react-scripts eject",
     "lint": "eslint . && prettier -c .",
     "format": "eslint --fix . && prettier -w ."
