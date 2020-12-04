@@ -244,13 +244,6 @@ func (i *Implementation) GetMeetupID(params operations.GetMeetupIDParams) middle
 		return responders.InternalServerError{}
 	}
 
-	if dbMeetup.Cancelled == true {
-		return operations.NewGetMeetupIDBadRequest().WithPayload(&models.Error{
-			Code:    http.StatusBadRequest,
-			Message: "This meetup has been cancelled",
-		})
-	}
-
 	if err = tx.Model(&dbMeetup).Association("Tags").Find(&dbMeetup.Tags); err != nil {
 		logger.WithError(err).Error("Unable to find user tags")
 		return responders.InternalServerError{}
@@ -439,13 +432,6 @@ func (i *Implementation) GetMeetupIDAttendee(params operations.GetMeetupIDAttend
 	} else if err != nil {
 		logger.WithError(err).Error("Failed to find meetup in DB")
 		return responders.InternalServerError{}
-	}
-
-	if dbMeetup.Cancelled {
-		return operations.NewGetMeetupIDAttendeeBadRequest().WithPayload(&models.Error{
-			Code:    http.StatusBadRequest,
-			Message: "This meetup has been cancelled",
-		})
 	}
 
 	if err = i.fetchAllAttendeeInformationLists(ctx, &dbMeetup); err != nil {
@@ -895,6 +881,7 @@ func dbMeetupToModelMeetup(dbMeetup *db.Meetup, userID string) *models.Meetup {
 		Attendees:        usersToIDs(dbMeetup.Attendees),
 		PendingAttendees: usersToIDs(dbMeetup.PendingAttendees),
 		Rejected:         rejected,
+		Canceled:         dbMeetup.Cancelled,
 	}
 }
 

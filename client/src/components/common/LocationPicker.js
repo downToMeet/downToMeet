@@ -79,7 +79,12 @@ export function useGoogleMaps(dependencies) {
   );
 }
 
-export default function LocationPicker({ value, setValue, style }) {
+export default function LocationPicker({
+  value,
+  setValue,
+  style,
+  disabled = false,
+}) {
   const [rawValue, setRawValue] = useState(null); // AutocompletePrediction
   const [inputValue, setInputValue] = useState("");
   const [options, setOptions] = useState([]);
@@ -152,6 +157,7 @@ export default function LocationPicker({ value, setValue, style }) {
 
   return (
     <Autocomplete
+      disabled={disabled}
       style={style}
       getOptionLabel={(option) =>
         typeof option === "string" ? option : option.description
@@ -221,9 +227,11 @@ LocationPicker.propTypes = {
   style: PropTypes.objectOf(
     PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired
   ),
+  disabled: PropTypes.bool,
 };
 
 LocationPicker.defaultProps = {
   value: null,
   style: null,
+  disabled: false,
 };

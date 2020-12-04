@@ -185,6 +185,7 @@ function Meetup({ id }) {
     }
 
     setEventDetails({
+      canceled: Boolean(meetupJSON.canceled),
       description: meetupJSON.description,
       location: meetupJSON.location,
       maxCapacity: meetupJSON.maxCapacity,
@@ -383,7 +384,7 @@ function Meetup({ id }) {
                     status: ATTENDING,
                   })
                 }
-                disabled={isUpdating}
+                disabled={eventDetails.canceled || isUpdating}
               >
                 <Check />
               </IconButton>
@@ -397,7 +398,7 @@ function Meetup({ id }) {
                     status: REJECTED,
                   })
                 }
-                disabled={isUpdating}
+                disabled={eventDetails.canceled || isUpdating}
               >
                 <Clear />
               </IconButton>
@@ -476,12 +477,22 @@ function Meetup({ id }) {
   };
 
   const renderMeetupAction = () => {
+    const eventFull =
+      !(
+        userMeetupStatus === OWNER ||
+        userMeetupStatus === ATTENDING ||
+        userMeetupStatus === REJECTED
+      ) && attendees.length >= eventDetails.maxCapacity;
     let button;
-    // TODO: Edit meetup redirect to pre-populated CreateMeetup page
     switch (userMeetupStatus) {
       case OWNER:
         button = (
-          <Button startIcon={<Edit />} component={RouterLink}>
+          <Button
+            startIcon={<Edit />}
+            component={RouterLink}
+            to={`/meetup/${id}/edit`}
+            disabled={isUpdating || eventDetails.canceled}
+          >
             Edit Meetup
           </Button>
         );
@@ -491,7 +502,7 @@ function Meetup({ id }) {
           <Button
             startIcon={<Clear />}
             onClick={() => handleUpdateAttendee({ status: NONE })}
-            disabled={isUpdating}
+            disabled={isUpdating || eventDetails.canceled}
           >
             Leave Meetup
           </Button>
@@ -502,34 +513,24 @@ function Meetup({ id }) {
           <Button
             startIcon={<PersonAddDisabled />}
             onClick={() => handleUpdateAttendee({ status: NONE })}
-            disabled={isUpdating}
+            disabled={isUpdating || eventDetails.canceled}
           >
             Cancel Join Request
           </Button>
         );
         break;
       case REJECTED:
-        button = (
-          <Grid container spacing={1} direction="column" align="center">
-            <Grid item>
-              <Button startIcon={<PersonAdd />} disabled variant="outlined">
-                Join Meetup
-              </Button>
-            </Grid>
-            <Grid item>
-              <Typography variant="body2" color="error">
-                you were rejected from the meetup.
-              </Typography>
-            </Grid>
-          </Grid>
-        );
-        break;
       default:
         button = (
           <Button
             startIcon={<PersonAdd />}
             onClick={handleJoinMeetup}
-            disabled={isUpdating}
+            disabled={
+              isUpdating ||
+              eventFull ||
+              eventDetails.canceled ||
+              userMeetupStatus === REJECTED
+            }
           >
             Join Meetup
           </Button>
@@ -538,6 +539,23 @@ function Meetup({ id }) {
     return (
       <Grid item xs={2} container justify="center" alignItems="flex-start">
         {button}
+        {eventDetails.canceled && (
+          <Typography variant="body2" color="error" align="center">
+            {userMeetupStatus === OWNER
+              ? "you cancelled this meetup."
+              : "this event has been cancelled."}
+          </Typography>
+        )}
+        {!eventDetails.canceled && eventFull && (
+          <Typography variant="body2" color="error">
+            This event is full.
+          </Typography>
+        )}
+        {!eventDetails.canceled && userMeetupStatus === REJECTED && (
+          <Typography variant="body2" color="error" align="center">
+            you were rejected from the meetup.
+          </Typography>
+        )}
       </Grid>
     );
   };
@@ -549,7 +567,7 @@ function Meetup({ id }) {
 
     return (
       <Grid item container spacing={2}>
-        <Grid item container>
+        <Grid item container alignItems="center">
           <Grid item xs>
             <Typography variant="h3">{eventDetails.title}</Typography>
             {/* TODO: add share/link copy icon here? */}
