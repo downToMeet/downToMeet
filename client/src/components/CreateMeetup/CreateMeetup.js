@@ -42,7 +42,7 @@ const useStyles = makeStyles(() => ({
 function CreateMeetup({ id }) {
   // if id is null, create new meetup, else fetch data for meetup/:id and edit that meetup
   const classes = useStyles();
-  const user = useSelector((state) => state);
+  const userID = useSelector((state) => state.id);
   const [isEdit, setIsEdit] = useState(false);
   const [isCancelled, setIsCancelled] = useState(false);
   const [title, setTitle] = useState("");
@@ -81,7 +81,7 @@ function CreateMeetup({ id }) {
   ];
 
   useEffect(async () => {
-    if (!id || !user.id) {
+    if (!id || !userID) {
       return;
     }
     const { res, resJSON } = await fetcher.getMeetup(id);
@@ -89,7 +89,7 @@ function CreateMeetup({ id }) {
       return;
     }
     // only allow edit if user is the owner of the meetup
-    if (user.id !== resJSON.owner) {
+    if (userID !== resJSON.owner) {
       return;
     }
     setIsEdit(true);
@@ -103,7 +103,7 @@ function CreateMeetup({ id }) {
     setGroupCount([resJSON.minCapacity, resJSON.maxCapacity]);
     setDescription(resJSON.description);
     setTags(resJSON.tags);
-  }, [user]);
+  }, [userID]);
 
   const validateForm = () => {
     if (title === "" || meetupType === "" || tags.length === 0) {
