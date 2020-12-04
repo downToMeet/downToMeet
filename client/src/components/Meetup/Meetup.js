@@ -138,18 +138,8 @@ function Meetup({ id }) {
   };
 
   async function setAttendeeLists(attendeeList, pendingAttendeesList) {
-    return Promise.all([
-      async () => {
-        const res = await Promise.all(attendeeList.map(fetcher.getUserData));
-        setAttendees(res.map(({ resJSON }) => resJSON));
-      },
-      async () => {
-        const res = await Promise.all(
-          pendingAttendeesList.map(fetcher.getUserData)
-        );
-        setPendingAttendees(res.map(({ resJSON }) => resJSON));
-      },
-    ]);
+    setAttendees(await fetcher.getDataForUsers(attendeeList));
+    setPendingAttendees(await fetcher.getDataForUsers(pendingAttendeesList));
   }
 
   const setUserStatus = (userData, meetupData) => {
@@ -402,7 +392,7 @@ function Meetup({ id }) {
                     status: ATTENDING,
                   })
                 }
-                disabled={isUpdating}
+                disabled={eventDetails.canceled || isUpdating}
               >
                 <Check />
               </IconButton>
@@ -416,7 +406,7 @@ function Meetup({ id }) {
                     status: REJECTED,
                   })
                 }
-                disabled={isUpdating}
+                disabled={eventDetails.canceled || isUpdating}
               >
                 <Clear />
               </IconButton>
@@ -561,13 +551,11 @@ function Meetup({ id }) {
               : "this event has been cancelled."}
           </Typography>
         )}
-        {!eventDetails.canceled &&
-          userMeetupStatus ===
-            REJECTED(
-              <Typography variant="body2" color="error" align="center">
-                you were rejected from the meetup.
-              </Typography>
-            )}
+        {!eventDetails.canceled && userMeetupStatus === REJECTED && (
+          <Typography variant="body2" color="error" align="center">
+            you were rejected from the meetup.
+          </Typography>
+        )}
       </Grid>
     );
   };

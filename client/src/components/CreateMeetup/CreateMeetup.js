@@ -286,10 +286,10 @@ function CreateMeetup({ id }) {
   const handleCancelMeetup = async () => {
     setIsCancelled(true);
     setUpdatingMeetup(true);
-    const { res, resJSON } = await fetcher.cancelMeetup(id);
+    const res = await fetcher.cancelMeetup(id);
     if (res.ok) {
       clearForm();
-      window.location.replace(`/meetup/${resJSON.id}`);
+      window.location.replace(`/meetup/${id}`);
     } else {
       setUpdatingMeetup(false);
     }
