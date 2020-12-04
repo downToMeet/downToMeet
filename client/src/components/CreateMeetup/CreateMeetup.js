@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import { useSelector } from "react-redux";
+import { useLocation, useHistory } from "react-router-dom";
 import makeStyles from "@material-ui/styles/makeStyles";
 import {
   Box,
@@ -39,8 +40,13 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
+// if id is null, create new meetup, else fetch data for meetup/:id and edit that meetup
 function CreateMeetup({ id }) {
-  // if id is null, create new meetup, else fetch data for meetup/:id and edit that meetup
+  // eslint-disable-next-line prefer-const
+  let location = useLocation(); // listed as dependency in useEffect(). refreshes component if user clicks New Meetup while on edit page.
+  // eslint-disable-next-line prefer-const
+  let history = useHistory();
+
   const classes = useStyles();
   const userID = useSelector((state) => state.id);
   const [isEdit, setIsEdit] = useState(false);
@@ -81,15 +87,21 @@ function CreateMeetup({ id }) {
   ];
 
   useEffect(async () => {
+    // TODO: redirect to login page for unauthenticated users.
+    // - Redux store may need a 'logging in' action to distinguish between unauthenticated
+    //   users and authenticated users for whom userID is not loaded in store yet.
     if (!id || !userID) {
       return;
     }
     const { res, resJSON } = await fetcher.getMeetup(id);
+    // if meetup does not exist (or error fetching meetup), redirect to /create
     if (!res.ok) {
+      history.replace(`/create`);
       return;
     }
-    // only allow edit if user is the owner of the meetup
+    // if user is not meetup owner, redirect to /create
     if (userID !== resJSON.owner) {
+      history.replace(`/create`);
       return;
     }
     setIsEdit(true);
@@ -110,7 +122,7 @@ function CreateMeetup({ id }) {
     setGroupCount([resJSON.minCapacity, resJSON.maxCapacity]);
     setDescription(resJSON.description);
     setTags(resJSON.tags);
-  }, [userID]);
+  }, [userID, location]);
 
   const validateForm = () => {
     if (title === "" || meetupType === "" || tags.length === 0) {
@@ -222,7 +234,7 @@ function CreateMeetup({ id }) {
       >
         <Typography id="group-slider">Group Size</Typography>
         <Slider
-          disabled={isCancelled}
+          disabled={isEdit || isCancelled}
           value={groupCount}
           onChange={(event, newValue) => setGroupCount(newValue)}
           valueLabelDisplay="auto"
@@ -390,7 +402,7 @@ function CreateMeetup({ id }) {
                   window.location.replace(`/meetup/${id}`);
                 }
           }
-          disabled={updatingMeetup}
+          disabled={!userID || updatingMeetup}
           style={{
             marginTop: 20,
           }}
@@ -415,6 +427,11 @@ function CreateMeetup({ id }) {
       {isCancelled && (
         <Typography variant="body1" color="error">
           This meetup has been cancelled. You can no longer edit the meetup.
+        </Typography>
+      )}
+      {!userID && (
+        <Typography variant="body1" color="error">
+          You must be logged in to create a meetup.
         </Typography>
       )}
       <Box component="form" display="flex" flexDirection="column">
