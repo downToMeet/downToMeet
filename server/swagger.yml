@@ -374,7 +374,6 @@ paths:
           description: Desired search radius (kilometers)
         - name: tags
           in: query
-          required: true
           type: array
           items:
             type: string
@@ -416,7 +415,6 @@ paths:
       parameters:
         - name: tags
           in: query
-          required: true
           type: array
           items:
             type: string

@@ -53,7 +53,6 @@ type GetMeetupParams struct {
 	*/
 	Radius float64
 	/*Interests to search for
-	  Required: true
 	  In: query
 	*/
 	Tags []string
@@ -225,9 +224,6 @@ func (o *GetMeetupParams) validateRadius(formats strfmt.Registry) error {
 //
 // Arrays are parsed according to CollectionFormat: "" (defaults to "csv" when empty).
 func (o *GetMeetupParams) bindTags(rawData []string, hasKey bool, formats strfmt.Registry) error {
-	if !hasKey {
-		return errors.Required("tags", "query", rawData)
-	}
 
 	var qvTags string
 	if len(rawData) > 0 {
@@ -236,9 +232,8 @@ func (o *GetMeetupParams) bindTags(rawData []string, hasKey bool, formats strfmt
 
 	// CollectionFormat:
 	tagsIC := swag.SplitByFormat(qvTags, "")
-
 	if len(tagsIC) == 0 {
-		return errors.Required("tags", "query", tagsIC)
+		return nil
 	}
 
 	var tagsIR []string

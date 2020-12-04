@@ -6,12 +6,13 @@ import { Provider } from "react-redux";
 import store from "./app/store";
 import App from "./App";
 
-test("renders learn react link", () => {
-  const { getByText } = render(
+test("renders nav bar", () => {
+  const { getByRole } = render(
     <Provider store={store}>
       <App />
     </Provider>
   );
 
-  expect(getByText(/learn/i)).toBeInTheDocument();
+  expect(getByRole("link", { name: /DownToMeet/i })).toBeInTheDocument();
+  expect(getByRole("link", { name: /New Meetup/i })).toBeInTheDocument();
 });

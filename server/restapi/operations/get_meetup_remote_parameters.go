@@ -32,7 +32,6 @@ type GetMeetupRemoteParams struct {
 	HTTPRequest *http.Request `json:"-"`
 
 	/*Interests to search for
-	  Required: true
 	  In: query
 	*/
 	Tags []string
@@ -64,9 +63,6 @@ func (o *GetMeetupRemoteParams) BindRequest(r *http.Request, route *middleware.M
 //
 // Arrays are parsed according to CollectionFormat: "" (defaults to "csv" when empty).
 func (o *GetMeetupRemoteParams) bindTags(rawData []string, hasKey bool, formats strfmt.Registry) error {
-	if !hasKey {
-		return errors.Required("tags", "query", rawData)
-	}
 
 	var qvTags string
 	if len(rawData) > 0 {
@@ -75,9 +71,8 @@ func (o *GetMeetupRemoteParams) bindTags(rawData []string, hasKey bool, formats 
 
 	// CollectionFormat:
 	tagsIC := swag.SplitByFormat(qvTags, "")
-
 	if len(tagsIC) == 0 {
-		return errors.Required("tags", "query", tagsIC)
+		return nil
 	}
 
 	var tagsIR []string

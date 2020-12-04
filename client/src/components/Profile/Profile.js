@@ -1,12 +1,12 @@
 /* eslint-disable react/jsx-props-no-spreading */
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import PropTypes from "prop-types";
 import { AppBar, Box, Container, Tab, Typography } from "@material-ui/core";
 import AccountCircleIcon from "@material-ui/icons/AccountCircle";
 import { TabList, TabContext, TabPanel } from "@material-ui/lab";
 import { makeStyles, withStyles } from "@material-ui/styles";
 import { Link } from "react-router-dom";
-import * as fetcher from "../../lib/fetch";
+import MeetupCard from "../common/MeetupCard";
 
 const useStyles = makeStyles(() => ({
   profilePic: {
@@ -46,149 +46,182 @@ const StyledTabPanel = withStyles({
   },
 })((props) => <TabPanel {...props} />);
 
-function Profile({ id }) {
+function Profile({
+  user,
+  isMe,
+  ownedMeetups,
+  attendingMeetups,
+  pendingMeetups,
+}) {
   const classes = useStyles();
-  const [loaded, setLoaded] = useState(false);
-  const [user, setUser] = useState(null);
-  const [isMe, setIsMe] = useState(false);
-  const [tabValue, setTabValue] = useState("1");
 
-  useEffect(() => {
-    (async () => {
-      const { res, resJSON } = await fetcher.getUserData(id);
-      if (!res.ok) {
-        setLoaded(true);
-        return;
-      }
-      setUser(resJSON);
-      setIsMe(id === "me"); // TODO: this check should compare with the redux user state id instead
-      setLoaded(true);
-    })();
-  }, [id]);
+  if (user === null) {
+    return <Typography>Specified user was not found.</Typography>;
+  }
 
-  const renderOwnedMeetups = () => {
-    // TODO: get actual meetups if they exist
-    return (
+  const [tabValue, setTabValue] = useState("owned");
+
+  // TODO: display meetups.
+  let ownedMeetupsEl = ownedMeetups.map((meetup) => (
+    <MeetupCard
+      key={meetup.id}
+      title={meetup.title}
+      time={meetup.time}
+      location={meetup.location}
+      id={meetup.id}
+      owner={meetup.owner}
+      tags={meetup.tags}
+    />
+  ));
+  if (ownedMeetups.length === 0) {
+    ownedMeetupsEl = (
       <Typography>
-        You don’t own any meetups. <Link to="/create">Go create one!</Link>
+        You don’t own any meetups. <Link to="/create">Go make one!</Link>
       </Typography>
     );
-  };
+  }
 
-  const renderAttendingMeetups = () => {
-    // TODO: get actual meetups if they exist
-    return (
+  let attendingMeetupsEl = attendingMeetups.map((meetup) => (
+    <MeetupCard
+      key={meetup.id}
+      title={meetup.title}
+      time={meetup.time}
+      location={meetup.location}
+      id={meetup.id}
+      owner={meetup.owner}
+      tags={meetup.tags}
+    />
+  ));
+  if (attendingMeetups.length === 0) {
+    attendingMeetupsEl = (
       <Typography>
         You are not attending any meetups.{" "}
         <Link to="/">Look for one to attend!</Link>
       </Typography>
     );
-  };
+  }
 
-  const renderPendingMeetups = () => {
-    // TODO: get actual meetups if they exist
-    return (
+  let pendingMeetupsEl = pendingMeetups.map((meetup) => (
+    <MeetupCard
+      key={meetup.id}
+      title={meetup.title}
+      time={meetup.time}
+      location={meetup.location}
+      id={meetup.id}
+      owner={meetup.owner}
+      tags={meetup.tags}
+    />
+  ));
+  if (pendingMeetups.length === 0) {
+    pendingMeetupsEl = (
       <Typography>
         You don’t have any pending requests.{" "}
         <Link to="/">Look for a meetup to attend!</Link>
       </Typography>
     );
-  };
+  }
 
-  const renderPersonalInfo = () => {
-    if (!isMe) {
-      return null;
-    }
-    return (
-      <>
-        {user.contactInfo && (
-          <Typography>Contact info: {user.contactInfo}</Typography>
-        )}
-        {user.email && <Typography>Email: {user.email}</Typography>}
-        {user.location && (
-          <Typography>
-            Location: lat {user.location.lat}, lon {user.location.lon}
-          </Typography>
-          // TODO: replace with sensible representation
-        )}
-        <Typography
-          variant="h4"
-          component="h3"
-          className={classes.meetupInfoTitle}
-        >
-          Your meetups:
-        </Typography>
-        <TabContext value={tabValue}>
-          <AppBar position="static">
-            <StyledTabList
-              onChange={(_, newValue) => setTabValue(newValue)}
-              variant="scrollable"
-              scrollButtons="auto"
-            >
-              <StyledTab label="Owned Meetups" value="1" />
-              <StyledTab label="Attending Meetups" value="2" />
-              <StyledTab label="Pending Meetups" value="3" />
-            </StyledTabList>
-          </AppBar>
-          <StyledTabPanel value="1">{renderOwnedMeetups()}</StyledTabPanel>
-          <StyledTabPanel value="2">{renderAttendingMeetups()}</StyledTabPanel>
-          <StyledTabPanel value="3">{renderPendingMeetups()}</StyledTabPanel>
-        </TabContext>
-      </>
-    );
-  };
+  const personalInfo = isMe && (
+    <>
+      {user.contactInfo && (
+        <Typography>Contact info: {user.contactInfo}</Typography>
+      )}
+      {user.email && <Typography>Email: {user.email}</Typography>}
+      <Typography
+        variant="h4"
+        component="h3"
+        className={classes.meetupInfoTitle}
+      >
+        Your meetups:
+      </Typography>
+      <TabContext value={tabValue}>
+        <AppBar position="static">
+          <StyledTabList
+            onChange={(_, newValue) => setTabValue(newValue)}
+            variant="scrollable"
+            scrollButtons="auto"
+          >
+            <StyledTab label="Owned Meetups" value="owned" />
+            <StyledTab label="Attending Meetups" value="attending" />
+            <StyledTab label="Pending Meetups" value="pending" />
+          </StyledTabList>
+        </AppBar>
+        <StyledTabPanel value="owned">{ownedMeetupsEl}</StyledTabPanel>
+        <StyledTabPanel value="attending">{attendingMeetupsEl}</StyledTabPanel>
+        <StyledTabPanel value="pending">{pendingMeetupsEl}</StyledTabPanel>
+      </TabContext>
+    </>
+  );
 
-  const renderUser = () => {
-    return (
-      <Container maxWidth="md">
-        <Box display="flex" flexDirection="column" alignItems="center">
-          {user.profilePic && (
-            <img
-              src={user.profilePic}
-              alt="profile pic"
-              className={classes.profilePic}
+  return (
+    <Container maxWidth="md">
+      <Box display="flex" flexDirection="column" alignItems="center">
+        {user.profilePic && (
+          <img
+            src={user.profilePic}
+            alt="profile"
+            className={classes.profilePic}
+          />
+        )}
+        {!user.profilePic && (
+          <div
+            style={{ position: "relative", width: "150px", height: "150px" }}
+          >
+            <AccountCircleIcon
+              style={{
+                position: "absolute",
+                left: 0,
+                top: 0,
+                width: "100%",
+                height: "100%",
+              }}
             />
-          )}
-          {!user.profilePic && (
-            <div
-              style={{ position: "relative", width: "150px", height: "150px" }}
-            >
-              <AccountCircleIcon
-                style={{
-                  position: "absolute",
-                  left: 0,
-                  top: 0,
-                  width: "100%",
-                  height: "100%",
-                }}
-              />
-            </div>
-          )}
-          <Typography component="h2" variant="h3">
-            {user.name}
-          </Typography>
-          {renderPersonalInfo()}
-        </Box>
-      </Container>
-    );
-  };
-
-  const renderNotFound = () => {
-    return <Typography>Specified user was not found.</Typography>;
-  };
-
-  if (!loaded) {
-    return <Typography>Loading...</Typography>; // TODO: replace with nice loading screen
-  }
-
-  if (user === null) {
-    return renderNotFound();
-  }
-  return renderUser();
+          </div>
+        )}
+        <Typography component="h2" variant="h3">
+          {user.name}
+        </Typography>
+        {personalInfo}
+      </Box>
+    </Container>
+  );
 }
 
-Profile.propTypes = {
+const userType = PropTypes.shape({
   id: PropTypes.string.isRequired,
+  name: PropTypes.string.isRequired,
+  email: PropTypes.string.isRequired,
+  connections: PropTypes.arrayOf(PropTypes.string.isRequired),
+  contactInfo: PropTypes.string,
+  profilePic: PropTypes.string,
+});
+
+const meetupType = PropTypes.shape({
+  title: PropTypes.string.isRequired,
+  time: PropTypes.string.isRequired,
+  location: PropTypes.shape({
+    coordinates: PropTypes.shape({
+      lat: PropTypes.number,
+      lon: PropTypes.number,
+    }),
+    name: PropTypes.string,
+    url: PropTypes.string,
+  }).isRequired,
+  id: PropTypes.string.isRequired,
+  owner: PropTypes.string.isRequired,
+  tags: PropTypes.arrayOf(PropTypes.string).isRequired,
+});
+
+Profile.propTypes = {
+  user: userType,
+  isMe: PropTypes.bool.isRequired,
+  ownedMeetups: PropTypes.arrayOf(meetupType).isRequired,
+  attendingMeetups: PropTypes.arrayOf(meetupType).isRequired,
+  pendingMeetups: PropTypes.arrayOf(meetupType).isRequired,
+};
+
+Profile.defaultProps = {
+  user: null,
 };
 
 export default Profile;

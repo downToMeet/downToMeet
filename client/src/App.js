@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import CreateMeetup from "./components/CreateMeetup/CreateMeetup";
 import Login from "./components/Login/Login";
 import Meetup from "./components/Meetup/Meetup";
-import Profile from "./components/Profile/Profile";
+import ProfilePage from "./components/Profile/ProfilePage";
 import Search from "./components/Search/Search";
 import Navbar from "./components/Navbar/Navbar";
 import { getUserData } from "./lib/fetch";
@@ -51,7 +51,7 @@ function App() {
         />
         <Route
           path="/user/:id"
-          render={(input) => <Profile id={input.match.params.id} />}
+          render={(input) => <ProfilePage id={input.match.params.id} />}
         />
         <Route path="/">
           <Search />
