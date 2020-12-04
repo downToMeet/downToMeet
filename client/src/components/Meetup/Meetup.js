@@ -28,6 +28,7 @@ import {
   PersonAdd,
   PersonAddDisabled,
 } from "@material-ui/icons";
+import { useSelector } from "react-redux";
 import { makeStyles } from "@material-ui/core/styles";
 import { Link as RouterLink } from "react-router-dom";
 import * as fetcher from "../../lib/fetch";
@@ -114,13 +115,13 @@ function Meetup({ id }) {
 
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
-  const [user, setUser] = useState(null);
   const [showLogin, setShowLogin] = useState(false);
   const [fetchMeetupError, setFetchMeetupError] = useState(null);
-  const [userMeetupStatus, setUserMeetupStatus] = useState("");
   const [eventDetails, setEventDetails] = useState(null);
   const [attendees, setAttendees] = useState([]);
   const [pendingAttendees, setPendingAttendees] = useState([]);
+
+  const userID = useSelector((state) => state.id);
 
   const locale = "en-US";
   const meetupTimeOptions = {
@@ -140,41 +141,34 @@ function Meetup({ id }) {
   async function setAttendeeLists(attendeeList, pendingAttendeesList) {
     return Promise.all([
       (async () => {
-        const res = await Promise.all(attendeeList.map(fetcher.getUserData));
+        const res = await Promise.all(
+          (attendeeList || []).map(fetcher.getUserData)
+        );
         setAttendees(res.map(({ resJSON }) => resJSON));
       })(),
       (async () => {
         const res = await Promise.all(
-          pendingAttendeesList.map(fetcher.getUserData)
+          (pendingAttendeesList || []).map(fetcher.getUserData)
         );
         setPendingAttendees(res.map(({ resJSON }) => resJSON));
       })(),
     ]);
   }
 
-  const setUserStatus = (userData, meetupData) => {
-    if (userData && meetupData.owner === userData.id) {
-      setUserMeetupStatus(OWNER);
-    } else if (
-      meetupData.pendingAttendees &&
-      meetupData.pendingAttendees.includes(userData.id)
-    ) {
-      setUserMeetupStatus(PENDING);
-    } else if (
-      meetupData.attendees &&
-      meetupData.attendees.includes(userData.id)
-    ) {
-      setUserMeetupStatus(ATTENDING);
-    } else if (meetupData.rejected) {
-      setUserMeetupStatus(REJECTED);
+  let userMeetupStatus = NONE;
+  if (eventDetails) {
+    if (userID && eventDetails.owner && eventDetails.owner.id === userID) {
+      userMeetupStatus = OWNER;
+    } else if (userID && pendingAttendees.some((user) => user.id === userID)) {
+      userMeetupStatus = PENDING;
+    } else if (userID && attendees.some((user) => user.id === userID)) {
+      userMeetupStatus = ATTENDING;
+    } else if (eventDetails.rejected) {
+      userMeetupStatus = REJECTED;
     }
-  };
+  }
 
   useEffect(async () => {
-    const { res: userRes, resJSON: userJSON } = await fetcher.getUserData();
-    if (userRes.ok) {
-      setUser(userJSON);
-    }
     const { res: meetupRes, resJSON: meetupJSON } = await fetcher.getMeetup(id);
     if (!meetupRes.ok) {
       setFetchMeetupError(meetupRes.status);
@@ -198,12 +192,9 @@ function Meetup({ id }) {
       tags: meetupJSON.tags,
       time: new Date(meetupJSON.time),
       title: meetupJSON.title,
+      rejected: meetupJSON.rejected,
     });
-    setAttendeeLists(
-      meetupJSON.attendees || [],
-      meetupJSON.pendingAttendees || []
-    );
-    setUserStatus(userJSON, meetupJSON);
+    setAttendeeLists(meetupJSON.attendees, meetupJSON.pendingAttendees);
     setIsLoading(false);
   }, []);
 
@@ -300,7 +291,7 @@ function Meetup({ id }) {
                 src={eventDetails.owner.profilePic}
                 component={RouterLink}
                 to={`/user/${
-                  user && eventDetails.owner.id === user.id
+                  userID && eventDetails.owner.id === userID
                     ? "me"
                     : eventDetails.owner.id
                 }`}
@@ -311,7 +302,7 @@ function Meetup({ id }) {
                 className={classes.profileName}
                 component={RouterLink}
                 to={`/user/${
-                  user && eventDetails.owner.id === user.id
+                  userID && eventDetails.owner.id === userID
                     ? "me"
                     : eventDetails.owner.id
                 }`}
@@ -348,11 +339,6 @@ function Meetup({ id }) {
   };
 
   const handleUpdateAttendee = async ({ attendee, status }) => {
-    // If status is "none", remove attendee
-    // If attendee is null, update self
-    if (!attendee && status === NONE) {
-      setUserMeetupStatus("");
-    }
     setIsUpdating(true);
     await fetcher.updateAttendeeStatus({
       id,
@@ -367,7 +353,7 @@ function Meetup({ id }) {
   };
 
   const handleJoinMeetup = async () => {
-    if (user) {
+    if (userID) {
       setIsUpdating(true);
       await fetcher.joinMeetup(id);
       const { res, resJSON } = await fetcher.getMeetupAttendees(id);
@@ -375,7 +361,6 @@ function Meetup({ id }) {
         setAttendeeLists(resJSON.attending, resJSON.pending);
       }
       setIsUpdating(false);
-      setUserMeetupStatus(PENDING);
     } else {
       setShowLogin(true);
     }
@@ -440,9 +425,7 @@ function Meetup({ id }) {
                   src={attendee.profilePic}
                   component={RouterLink}
                   to={`/user/${
-                    user && user.id && attendee.id === user.id
-                      ? "me"
-                      : attendee.id
+                    userID && attendee.id === userID ? "me" : attendee.id
                   }`}
                 />
               </Grid>
@@ -452,9 +435,7 @@ function Meetup({ id }) {
                   className={classes.profileName}
                   component={RouterLink}
                   to={`/user/${
-                    user && user.id && attendee.id === user.id
-                      ? "me"
-                      : attendee.id
+                    userID && attendee.id === userID ? "me" : attendee.id
                   }`}
                 >
                   {attendee.name}
@@ -611,8 +592,8 @@ function Meetup({ id }) {
           {renderOrganizer()}
           <Grid item container justify="center" spacing={1}>
             {renderAttendees(attendees, ATTENDING)}
-            {user &&
-              user.id === eventDetails.owner.id &&
+            {userID &&
+              userID === eventDetails.owner.id &&
               renderAttendees(pendingAttendees, PENDING)}
           </Grid>
         </Grid>
