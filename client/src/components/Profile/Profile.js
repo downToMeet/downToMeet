@@ -101,7 +101,7 @@ function Profile({
     );
   }
 
-  let pendingMeetupsEl = attendingMeetups.map((meetup) => (
+  let pendingMeetupsEl = pendingMeetups.map((meetup) => (
     <MeetupCard
       key={meetup.id}
       title={meetup.title}
