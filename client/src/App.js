@@ -31,14 +31,19 @@ function App() {
       <Navbar />
       <Switch>
         <Route path="/create">
-          <CreateMeetup />
+          <CreateMeetup key={window.location.pathname} />
         </Route>
         <Route path="/login">
           <Login />
         </Route>
         <Route
           path="/meetup/:id/edit"
-          render={(input) => <CreateMeetup id={input.match.params.id} />}
+          render={(input) => (
+            <CreateMeetup
+              id={input.match.params.id}
+              key={window.location.pathname}
+            />
+          )}
         />
         <Route
           path="/meetup/:id"
