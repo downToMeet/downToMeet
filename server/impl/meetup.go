@@ -137,6 +137,7 @@ func (i *Implementation) GetMeetup(params operations.GetMeetupParams) middleware
 	return operations.NewGetMeetupOK().WithPayload(modelMeetups)
 }
 
+// GetMeetupRemote implements the /meetup/remote
 func (i *Implementation) GetMeetupRemote(params operations.GetMeetupRemoteParams) middleware.Responder {
 	ctx := params.HTTPRequest.Context()
 	logger := log.WithContext(ctx)

@@ -32,6 +32,7 @@ func TestGetMeetup(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, new(operations.GetMeetupURL).String(), nil)
 	session, err := testImpl.SessionStore().New(req, sessionName)
 	require.NoError(t, err)
+	session.Values[impl.UserID] = TestUser.IDString()
 	req = req.WithContext(impl.WithSession(req.Context(), session))
 
 	params := operations.NewGetMeetupParams()
@@ -50,6 +51,70 @@ func TestGetMeetup(t *testing.T) {
 		assert.LessOrEqual(t, math.Abs(*meetup.Location.Coordinates.Lat-params.Lat), params.Radius)
 		assert.LessOrEqual(t, math.Abs(*meetup.Location.Coordinates.Lon-params.Lon), params.Radius)
 	}
+}
+
+func TestGetMeetupNoTags(t *testing.T) {
+	const sessionName = "session"
+
+	req := httptest.NewRequest(http.MethodGet, new(operations.GetMeetupURL).String(), nil)
+	session, err := testImpl.SessionStore().New(req, sessionName)
+	require.NoError(t, err)
+	session.Values[impl.UserID] = TestUser.IDString()
+	req = req.WithContext(impl.WithSession(req.Context(), session))
+
+	params := operations.NewGetMeetupParams()
+	params.Lat = 0.000
+	params.Lon = 0.000
+	params.Radius = 5
+	params.HTTPRequest = req
+
+	raw := testImpl.GetMeetup(params)
+
+	require.IsType(t, (*operations.GetMeetupOK)(nil), raw)
+	res := raw.(*operations.GetMeetupOK)
+	require.Greaterf(t, len(res.Payload), 0, "I can't test anything if I there are no meetups in range")
+	for _, meetup := range res.Payload {
+		assert.LessOrEqual(t, math.Abs(*meetup.Location.Coordinates.Lat-params.Lat), params.Radius)
+		assert.LessOrEqual(t, math.Abs(*meetup.Location.Coordinates.Lon-params.Lon), params.Radius)
+	}
+}
+
+func TestGetMeetupRemote(t *testing.T) {
+	const sessionName = "session"
+
+	req := httptest.NewRequest(http.MethodGet, new(operations.GetMeetupURL).String(), nil)
+	session, err := testImpl.SessionStore().New(req, sessionName)
+	require.NoError(t, err)
+	session.Values[impl.UserID] = TestUser.IDString()
+	req = req.WithContext(impl.WithSession(req.Context(), session))
+
+	params := operations.NewGetMeetupRemoteParams()
+	params.Tags = append(params.Tags, "Mental Health")
+	params.HTTPRequest = req
+
+	raw := testImpl.GetMeetupRemote(params)
+
+	require.IsType(t, (*operations.GetMeetupRemoteOK)(nil), raw)
+	res := raw.(*operations.GetMeetupRemoteOK)
+	require.Greaterf(t, len(res.Payload), 0, "I can't test anything if I there are no meetups in range")
+}
+
+func TestGetMeetupRemoteNoTags(t *testing.T) {
+	const sessionName = "session"
+
+	req := httptest.NewRequest(http.MethodGet, new(operations.GetMeetupURL).String(), nil)
+	session, err := testImpl.SessionStore().New(req, sessionName)
+	require.NoError(t, err)
+	req = req.WithContext(impl.WithSession(req.Context(), session))
+
+	params := operations.NewGetMeetupRemoteParams()
+	params.HTTPRequest = req
+
+	raw := testImpl.GetMeetupRemote(params)
+
+	require.IsType(t, (*operations.GetMeetupRemoteOK)(nil), raw)
+	res := raw.(*operations.GetMeetupRemoteOK)
+	require.Greaterf(t, len(res.Payload), 0, "I can't test anything if I there are no meetups in range")
 }
 
 func TestGetMeetupID(t *testing.T) {
@@ -92,6 +157,27 @@ func TestGetMeetupIDNotFound(t *testing.T) {
 	require.IsType(t, (*operations.GetMeetupIDNotFound)(nil), raw)
 	res := raw.(*operations.GetMeetupIDNotFound)
 	assert.Equal(t, res.Payload.Code, int32(404))
+}
+
+func TestGetMeetupIDCanceled(t *testing.T) {
+	const sessionName = "session"
+	url := new(operations.GetMeetupIDURL)
+	url.ID = TestMeetupCanceled.IDString()
+	req := httptest.NewRequest(http.MethodGet, url.String(), nil)
+	session, err := testImpl.SessionStore().New(req, sessionName)
+	require.NoError(t, err)
+	req = req.WithContext(impl.WithSession(req.Context(), session))
+
+	params := operations.GetMeetupIDParams{
+		HTTPRequest: req,
+		ID:          TestMeetupCanceled.IDString(),
+	}
+
+	raw := testImpl.GetMeetupID(params)
+
+	require.IsType(t, (*operations.GetMeetupIDBadRequest)(nil), raw)
+	res := raw.(*operations.GetMeetupIDBadRequest)
+	assert.Equal(t, res.Payload.Code, int32(400))
 }
 
 func TestPostMeetup(t *testing.T) {
@@ -239,6 +325,41 @@ func TestPatchMeetup(t *testing.T) {
 	require.IsType(t, (*operations.PatchMeetupIDOK)(nil), raw)
 	res := raw.(*operations.PatchMeetupIDOK)
 	assert.Equal(t, res.Payload.Description, newDescription)
+}
+
+func TestPatchMeetupCanceled(t *testing.T) {
+	const sessionName = "session"
+	const newDescription = "UWU"
+	url := new(operations.PatchMeetupIDURL)
+	url.ID = TestMeetupCanceled.IDString()
+	req := httptest.NewRequest(http.MethodPatch, url.String(), nil)
+	session, err := testImpl.SessionStore().New(req, sessionName)
+	require.NoError(t, err)
+	session.Values[impl.UserID] = TestUserFriend.IDString()
+	req = req.WithContext(impl.WithSession(req.Context(), session))
+
+	params := operations.PatchMeetupIDParams{
+		HTTPRequest: req,
+		ID:          TestMeetupCanceled.IDString(),
+		Meetup: &models.MeetupRequestBody{
+			Description: newDescription,
+			Location: &models.Location{
+				Coordinates: &models.Coordinates{
+					Lat: TestMeetupCanceled.Location.Coordinates.Lat,
+					Lon: TestMeetupCanceled.Location.Coordinates.Lon,
+				},
+				Name: TestMeetupCanceled.Location.Name,
+				URL:  TestMeetupCanceled.Location.URL,
+			},
+			MaxCapacity: &TestMeetupCanceled.MaxCapacity,
+			MinCapacity: &TestMeetupCanceled.MinCapacity,
+			Tags:        []string{TestTag.Name},
+			Time:        strfmt.DateTime(TestMeetupCanceled.Time),
+			Title:       TestMeetupCanceled.Title,
+		},
+	}
+	raw := testImpl.PatchMeetupID(params, nil)
+	require.IsType(t, (*operations.PatchMeetupIDBadRequest)(nil), raw)
 }
 
 func TestPatchMeetupNotFound(t *testing.T) {
