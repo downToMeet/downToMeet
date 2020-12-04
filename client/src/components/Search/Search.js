@@ -6,7 +6,6 @@ import {
   Container,
   FormControl,
   InputLabel,
-  MenuItem,
   Select,
   TextField,
   Typography,
@@ -14,7 +13,7 @@ import {
 import { Link } from "react-router-dom";
 
 import LocationPicker, { useGoogleMaps } from "../common/LocationPicker";
-import MeetupCard from "./MeetupCard";
+import MeetupCard from "../common/MeetupCard";
 import { IN_PERSON, REMOTE } from "../../constants";
 import * as fetcher from "../../lib/fetch";
 
@@ -156,15 +155,16 @@ function Search() {
     return (
       <Box display="flex" flexDirection="row" flexWrap="wrap" mt={2}>
         <FormControl required variant="outlined" style={{ width: 120 }}>
-          <InputLabel id="select-meetup-type-label">Type</InputLabel>
+          <InputLabel htmlFor="select-meetup-type">Type</InputLabel>
           <Select
             label="Type"
-            labelId="select-meetup-type-label"
+            native
+            id="select-meetup-type"
             value={meetupType}
             onChange={(event) => setMeetupType(event.target.value)}
           >
-            <MenuItem value={IN_PERSON}>In person</MenuItem>
-            <MenuItem value={REMOTE}>Remote</MenuItem>
+            <option value={IN_PERSON}>In person</option>
+            <option value={REMOTE}>Remote</option>
           </Select>
         </FormControl>
         <AutoComplete
@@ -211,18 +211,19 @@ function Search() {
           variant="outlined"
           style={{ width: 100, marginLeft: 10 }}
         >
-          <InputLabel id="select-radius-label">Radius</InputLabel>
+          <InputLabel htmlFor="select-radius">Radius</InputLabel>
           <Select
             label="Radius"
-            labelId="select-radius-label"
+            native
+            id="select-radius"
             value={radius}
             onChange={(event) => setRadius(event.target.value)}
           >
-            <MenuItem value={1}>1 km</MenuItem>
-            <MenuItem value={5}>5 km</MenuItem>
-            <MenuItem value={10}>10 km</MenuItem>
-            <MenuItem value={50}>50 km</MenuItem>
-            <MenuItem value={100}>100 km</MenuItem>
+            <option value={1}>1 km</option>
+            <option value={5}>5 km</option>
+            <option value={10}>10 km</option>
+            <option value={50}>50 km</option>
+            <option value={100}>100 km</option>
           </Select>
         </FormControl>
       </Box>
@@ -248,7 +249,7 @@ function Search() {
         time={meetup.time}
         location={meetup.location}
         id={meetup.id}
-        organizer={meetup.organizer}
+        owner={meetup.owner}
         tags={meetup.tags}
       />
     ));

@@ -51,6 +51,21 @@ func (i *Implementation) GetUserMe(params operations.GetUserMeParams, _ interfac
 		return responders.InternalServerError{}
 	}
 
+	if err = tx.Model(&dbUser).Association("OwnedMeetups").Find(&dbUser.OwnedMeetups); err != nil {
+		logger.WithError(err).Error("Unable to find owned meetup information")
+		return responders.InternalServerError{}
+	}
+
+	if err = tx.Model(&dbUser).Association("Attending").Find(&dbUser.Attending); err != nil {
+		logger.WithError(err).Error("Unable to find attending meetup information")
+		return responders.InternalServerError{}
+	}
+
+	if err = tx.Model(&dbUser).Association("PendingApproval").Find(&dbUser.PendingApproval); err != nil {
+		logger.WithError(err).Error("Unable to find pending meetup information")
+		return responders.InternalServerError{}
+	}
+
 	return operations.NewGetUserMeOK().WithPayload(dbUserToModelUser(&dbUser))
 }
 
@@ -97,6 +112,21 @@ func (i *Implementation) GetUserID(params operations.GetUserIDParams) middleware
 
 	if err := tx.Model(&dbUser).Association("Tags").Find(&dbUser.Tags); err != nil {
 		logger.WithError(err).Error("Unable to find user tags")
+		return responders.InternalServerError{}
+	}
+
+	if err = tx.Model(&dbUser).Association("OwnedMeetups").Find(&dbUser.OwnedMeetups); err != nil {
+		logger.WithError(err).Error("Unable to find owned meetup information")
+		return responders.InternalServerError{}
+	}
+
+	if err = tx.Model(&dbUser).Association("Attending").Find(&dbUser.Attending); err != nil {
+		logger.WithError(err).Error("Unable to find attending meetup information")
+		return responders.InternalServerError{}
+	}
+
+	if err = tx.Model(&dbUser).Association("PendingApproval").Find(&dbUser.PendingApproval); err != nil {
+		logger.WithError(err).Error("Unable to find pending meetup information")
 		return responders.InternalServerError{}
 	}
 

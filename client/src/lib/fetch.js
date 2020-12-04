@@ -10,7 +10,10 @@ export async function getUserData(id = "me") {
 }
 
 export async function searchForMeetups({ lat, lon, radius, tags }) {
-  const getMeetupsEndpoint = `${SERVER_URL}/meetup?lat=${lat}&lon=${lon}&radius=${radius}&tags=${tags}`;
+  let getMeetupsEndpoint = `${SERVER_URL}/meetup?lat=${lat}&lon=${lon}&radius=${radius}`;
+  if (tags.length !== 0) {
+    getMeetupsEndpoint += `&tags=${tags}`;
+  }
   const res = await fetch(getMeetupsEndpoint, {
     credentials: "include",
   });
@@ -19,7 +22,10 @@ export async function searchForMeetups({ lat, lon, radius, tags }) {
 }
 
 export async function searchForRemoteMeetups(tags) {
-  const getMeetupsEndpoint = `${SERVER_URL}/meetup/remote?tags=${tags}`;
+  let getMeetupsEndpoint = `${SERVER_URL}/meetup/remote`;
+  if (tags.length !== 0) {
+    getMeetupsEndpoint += `?tags=${tags}`;
+  }
   const res = await fetch(getMeetupsEndpoint, {
     credentials: "include",
   });

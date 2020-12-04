@@ -805,14 +805,14 @@ func TestGetMeetupIdAttendee(t *testing.T) {
 	var numExpectedAttendees int64
 	testImpl.DB().Table("meetup_user_attend").Where("meetup_id = ?", TestMeetup.ID).Count(&numExpectedAttendees)
 
-	raw := testImpl.GetMeetupIdAttendee(params, nil)
+	raw := testImpl.GetMeetupIDAttendee(params, nil)
 
 	require.IsType(t, (*operations.GetMeetupIDAttendeeOK)(nil), raw)
 	res := raw.(*operations.GetMeetupIDAttendeeOK)
 	assert.Equal(t, numExpectedAttendees, int64(len(res.Payload.Attending)))
 }
 
-func TestGetMeetupIdAttendeesNotFound(t *testing.T) {
+func TestGetMeetupIDAttendeesNotFound(t *testing.T) {
 	const sessionName = "session"
 	url := new(operations.GetMeetupIDAttendeeURL)
 	url.ID = nonexistentMeetupID
@@ -826,12 +826,12 @@ func TestGetMeetupIdAttendeesNotFound(t *testing.T) {
 		HTTPRequest: req,
 		ID:          nonexistentMeetupID,
 	}
-	raw := testImpl.GetMeetupIdAttendee(params, nil)
+	raw := testImpl.GetMeetupIDAttendee(params, nil)
 
 	require.IsType(t, (*operations.GetMeetupIDAttendeeNotFound)(nil), raw)
 }
 
-func TestGetMeetupIdAttendeesCanceled(t *testing.T) {
+func TestGetMeetupIDAttendeesCanceled(t *testing.T) {
 	const sessionName = "session"
 	url := new(operations.GetMeetupIDAttendeeURL)
 	url.ID = TestMeetupCanceled.IDString()
@@ -845,13 +845,13 @@ func TestGetMeetupIdAttendeesCanceled(t *testing.T) {
 		HTTPRequest: req,
 		ID:          TestMeetupCanceled.IDString(),
 	}
-	raw := testImpl.GetMeetupIdAttendee(params, nil)
+	raw := testImpl.GetMeetupIDAttendee(params, nil)
 
 	require.IsType(t, (*operations.GetMeetupIDAttendeeBadRequest)(nil), raw)
 
 }
 
-func TestPostMeetupIdAttendee(t *testing.T) {
+func TestPostMeetupIDAttendee(t *testing.T) {
 	newUser := createUser()
 	targetMeetup := createMeetup("Eat", newUser.ID, []*db.Tag{TestTag}, false)
 	const sessionName = "session"
@@ -867,7 +867,7 @@ func TestPostMeetupIdAttendee(t *testing.T) {
 		HTTPRequest: req,
 		ID:          targetMeetup.IDString(),
 	}
-	raw := testImpl.PostMeetupIdAttendee(params, nil)
+	raw := testImpl.PostMeetupIDAttendee(params, nil)
 
 	require.IsType(t, (*operations.PostMeetupIDAttendeeOK)(nil), raw)
 	var count int64
@@ -875,7 +875,7 @@ func TestPostMeetupIdAttendee(t *testing.T) {
 	assert.Equal(t, int64(1), count)
 }
 
-func TestPostMeetupIdAttendeeNotFound(t *testing.T) {
+func TestPostMeetupIDAttendeeNotFound(t *testing.T) {
 	const sessionName = "session"
 	url := new(operations.PostMeetupIDAttendeeURL)
 	url.ID = nonexistentMeetupID
@@ -889,7 +889,7 @@ func TestPostMeetupIdAttendeeNotFound(t *testing.T) {
 		HTTPRequest: req,
 		ID:          nonexistentMeetupID,
 	}
-	raw := testImpl.PostMeetupIdAttendee(params, nil)
+	raw := testImpl.PostMeetupIDAttendee(params, nil)
 
 	require.IsType(t, (*operations.PostMeetupIDAttendeeNotFound)(nil), raw)
 }
@@ -917,7 +917,7 @@ func TestPostMeetupIdAttendeeUserNotFound(t *testing.T) {
 
 // TestPostMeetupIdAttendeeAlreadyInvolved checks that a BadRequest response is returned if the user is already
 // involved in a meetup
-func TestPostMeetupIdAttendeeAlreadyInvolved(t *testing.T) {
+func TestPostMeetupIDAttendeeAlreadyInvolved(t *testing.T) {
 	rejectedUser := createUser()
 	acceptedUser := createUser()
 	pendingUser := createUser()
@@ -943,7 +943,7 @@ func TestPostMeetupIdAttendeeAlreadyInvolved(t *testing.T) {
 			HTTPRequest: req,
 			ID:          fmt.Sprint(targetMeetup.ID),
 		}
-		raw := testImpl.PostMeetupIdAttendee(params, nil)
+		raw := testImpl.PostMeetupIDAttendee(params, nil)
 
 		assert.IsType(t, (*operations.PostMeetupIDAttendeeBadRequest)(nil), raw)
 	}
@@ -985,7 +985,7 @@ func TestPostMeetupIdAttendeeCanceled(t *testing.T) {
 		HTTPRequest: req,
 		ID:          canceledMeetup.IDString(),
 	}
-	raw := testImpl.PostMeetupIdAttendee(params, nil)
+	raw := testImpl.PostMeetupIDAttendee(params, nil)
 
 	require.IsType(t, (*operations.PostMeetupIDAttendeeBadRequest)(nil), raw)
 }
@@ -1036,14 +1036,14 @@ func TestPatchMeetupIdAttendeeAddPending(t *testing.T) {
 			AttendeeStatus: "pending",
 		},
 	}
-	raw := testImpl.PatchMeetupIdAttendee(params, nil)
+	raw := testImpl.PatchMeetupIDAttendee(params, nil)
 
 	require.IsType(t, (*operations.PatchMeetupIDAttendeeOK)(nil), raw)
 	res := raw.(*operations.PatchMeetupIDAttendeeOK)
 	assert.Equal(t, models.AttendeeStatus("pending"), res.Payload)
 }
 
-func TestPatchMeetupIdAttendeeApproveUser(t *testing.T) {
+func TestPatchMeetupIDAttendeeApproveUser(t *testing.T) {
 	ownerUser := createUser()
 	targetMeetup := createMeetup("Eat", ownerUser.ID, []*db.Tag{TestTag}, false)
 	// Start state: rejected
@@ -1068,14 +1068,14 @@ func TestPatchMeetupIdAttendeeApproveUser(t *testing.T) {
 			AttendeeStatus: "attending",
 		},
 	}
-	raw := testImpl.PatchMeetupIdAttendee(params, nil)
+	raw := testImpl.PatchMeetupIDAttendee(params, nil)
 
 	require.IsType(t, (*operations.PatchMeetupIDAttendeeOK)(nil), raw)
 	res := raw.(*operations.PatchMeetupIDAttendeeOK)
 	assert.Equal(t, models.AttendeeStatus("attending"), res.Payload)
 }
 
-func TestPatchMeetupIdAttendeeRejectUser(t *testing.T) {
+func TestPatchMeetupIDAttendeeRejectUser(t *testing.T) {
 	ownerUser := createUser()
 	targetMeetup := createMeetup("Eat", ownerUser.ID, []*db.Tag{TestTag}, false)
 	// Start state: pending
@@ -1100,14 +1100,14 @@ func TestPatchMeetupIdAttendeeRejectUser(t *testing.T) {
 			AttendeeStatus: "rejected",
 		},
 	}
-	raw := testImpl.PatchMeetupIdAttendee(params, nil)
+	raw := testImpl.PatchMeetupIDAttendee(params, nil)
 
 	require.IsType(t, (*operations.PatchMeetupIDAttendeeOK)(nil), raw)
 	res := raw.(*operations.PatchMeetupIDAttendeeOK)
 	assert.Equal(t, models.AttendeeStatus("rejected"), res.Payload)
 }
 
-func TestPatchMeetupIdAttendeeNotFound(t *testing.T) {
+func TestPatchMeetupIDAttendeeNotFound(t *testing.T) {
 	const sessionName = "session"
 	url := new(operations.PatchMeetupIDAttendeeURL)
 	url.ID = nonexistentMeetupID
@@ -1125,12 +1125,12 @@ func TestPatchMeetupIdAttendeeNotFound(t *testing.T) {
 			AttendeeStatus: "pending",
 		},
 	}
-	raw := testImpl.PatchMeetupIdAttendee(params, nil)
+	raw := testImpl.PatchMeetupIDAttendee(params, nil)
 
 	require.IsType(t, (*operations.PatchMeetupIDAttendeeNotFound)(nil), raw)
 }
 
-func TestPatchMeetupIdAttendeeNoPatchOwner(t *testing.T) {
+func TestPatchMeetupIDAttendeeNoPatchOwner(t *testing.T) {
 	ownerUser := createUser()
 	targetMeetup := createMeetup("Eat", ownerUser.ID, []*db.Tag{TestTag}, false)
 	targetMeetup.PendingAttendees = append(targetMeetup.PendingAttendees, TestUser)
@@ -1153,12 +1153,12 @@ func TestPatchMeetupIdAttendeeNoPatchOwner(t *testing.T) {
 			AttendeeStatus: "attending",
 		},
 	}
-	raw := testImpl.PatchMeetupIdAttendee(params, nil)
+	raw := testImpl.PatchMeetupIDAttendee(params, nil)
 
 	require.IsType(t, (*operations.PatchMeetupIDAttendeeBadRequest)(nil), raw)
 }
 
-func TestPatchMeetupIdOnlyOwnerApprove(t *testing.T) {
+func TestPatchMeetupIDOnlyOwnerApprove(t *testing.T) {
 	ownerUser := createUser()
 	targetMeetup := createMeetup("Eat", ownerUser.ID, []*db.Tag{TestTag}, false)
 	targetMeetup.PendingAttendees = append(targetMeetup.PendingAttendees, TestUser)
@@ -1181,12 +1181,12 @@ func TestPatchMeetupIdOnlyOwnerApprove(t *testing.T) {
 			AttendeeStatus: "attending",
 		},
 	}
-	raw := testImpl.PatchMeetupIdAttendee(params, nil)
+	raw := testImpl.PatchMeetupIDAttendee(params, nil)
 
 	require.IsType(t, (*operations.PatchMeetupIDAttendeeBadRequest)(nil), raw)
 }
 
-func TestPatchMeetupIdCancel(t *testing.T) {
+func TestPatchMeetupIDCancel(t *testing.T) {
 	ownerUser := createUser()
 	targetMeetup := createMeetup("Eat", ownerUser.ID, []*db.Tag{TestTag}, true)
 	const sessionName = "session"
@@ -1206,7 +1206,7 @@ func TestPatchMeetupIdCancel(t *testing.T) {
 			AttendeeStatus: "pending",
 		},
 	}
-	raw := testImpl.PatchMeetupIdAttendee(params, nil)
+	raw := testImpl.PatchMeetupIDAttendee(params, nil)
 
 	require.IsType(t, (*operations.PatchMeetupIDAttendeeBadRequest)(nil), raw)
 }

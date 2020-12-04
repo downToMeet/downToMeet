@@ -6,7 +6,6 @@ import {
   Container,
   FormControl,
   InputLabel,
-  MenuItem,
   Select,
   Slider,
   TextField,
@@ -129,12 +128,14 @@ function CreateMeetup() {
           <InputLabel id="select-meetup-type-label">Type</InputLabel>
           <Select
             label="Type"
+            data-testid="select-meetup-type"
             labelId="select-meetup-type-label"
             value={meetupType}
+            native
             onChange={(event) => setMeetupType(event.target.value)}
           >
-            <MenuItem value={IN_PERSON}>In person</MenuItem>
-            <MenuItem value={REMOTE}>Remote</MenuItem>
+            <option value={IN_PERSON}>In person</option>
+            <option value={REMOTE}>Remote</option>
           </Select>
         </FormControl>
         {meetupType === IN_PERSON && (

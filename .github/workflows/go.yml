@@ -1,5 +1,5 @@
 ---
-name: Lint Code Base
+name: Test Go code
 
 #
 # Documentation:
@@ -9,39 +9,7 @@ name: Lint Code Base
 on: push
 
 jobs:
-  eslint:
-    name: Lint JavaScript
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v2
-
-      - name: Install Node.js
-        uses: actions/setup-node@v1
-        with:
-          node-version: '14.x'
-
-      # https://github.com/actions/cache/blob/main/examples.md#node---yarn
-      - name: Get yarn cache directory path
-        id: yarn-cache-dir-path
-        run: echo "::set-output name=dir::$(yarn cache dir)"
-
-      - uses: actions/cache@v2
-        id: yarn-cache
-        with:
-          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-
-
-      - name: Yarn install
-        run: cd client && yarn --frozen-lockfile
-
-      - name: Lint JavaScript
-        run: cd client && yarn lint
-  
-  testgo:
+  test:
     name: Test Go Code
     runs-on: ubuntu-latest
 
@@ -75,7 +43,7 @@ jobs:
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-
-      
+
       - run: go mod download
         if: steps.go-mod-cache.outputs.cache-hit != 'true'
 
