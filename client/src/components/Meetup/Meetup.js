@@ -110,6 +110,7 @@ const useStyles = makeStyles((theme) => ({
     color: theme.palette.warning.main,
   },
 }));
+
 function Meetup({ id }) {
   const classes = useStyles();
 
@@ -288,6 +289,7 @@ function Meetup({ id }) {
             avatar={
               <Avatar
                 className={classes.organizerAvatar}
+                alt={`${eventDetails.owner.name}'s profile pic`}
                 src={eventDetails.owner.profilePic}
                 component={RouterLink}
                 to={`/user/${
@@ -422,6 +424,7 @@ function Meetup({ id }) {
               <Grid item>
                 <Avatar
                   className={classes.avatar}
+                  alt={`${attendee.name}'s profile pic`}
                   src={attendee.profilePic}
                   component={RouterLink}
                   to={`/user/${
