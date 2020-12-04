@@ -481,7 +481,11 @@ function Meetup({ id }) {
     switch (userMeetupStatus) {
       case OWNER:
         button = (
-          <Button startIcon={<Edit />} component={RouterLink}>
+          <Button
+            startIcon={<Edit />}
+            variant="outlined"
+            component={RouterLink}
+          >
             Edit Meetup
           </Button>
         );
@@ -492,6 +496,7 @@ function Meetup({ id }) {
             startIcon={<Clear />}
             onClick={() => handleUpdateAttendee({ status: NONE })}
             disabled={isUpdating}
+            variant="outlined"
           >
             Leave Meetup
           </Button>
@@ -503,6 +508,7 @@ function Meetup({ id }) {
             startIcon={<PersonAddDisabled />}
             onClick={() => handleUpdateAttendee({ status: NONE })}
             disabled={isUpdating}
+            variant="outlined"
           >
             Cancel Join Request
           </Button>

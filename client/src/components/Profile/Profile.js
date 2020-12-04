@@ -1,7 +1,16 @@
+/* eslint-disable no-nested-ternary */
 /* eslint-disable react/jsx-props-no-spreading */
 import React, { useState } from "react";
 import PropTypes from "prop-types";
-import { AppBar, Box, Container, Tab, Typography } from "@material-ui/core";
+import {
+  AppBar,
+  Box,
+  Container,
+  Tab,
+  Typography,
+  Button,
+  TextField,
+} from "@material-ui/core";
 import AccountCircleIcon from "@material-ui/icons/AccountCircle";
 import { TabList, TabContext, TabPanel } from "@material-ui/lab";
 import { makeStyles, withStyles } from "@material-ui/styles";
@@ -48,10 +57,17 @@ const StyledTabPanel = withStyles({
 
 function Profile({
   user,
+  editing,
+  setEditing,
   isMe,
   ownedMeetups,
   attendingMeetups,
   pendingMeetups,
+  newName,
+  setNewName,
+  newContact,
+  setNewContact,
+  onSubmit,
 }) {
   const classes = useStyles();
 
@@ -61,7 +77,6 @@ function Profile({
 
   const [tabValue, setTabValue] = useState("owned");
 
-  // TODO: display meetups.
   let ownedMeetupsEl = ownedMeetups.map((meetup) => (
     <MeetupCard
       key={meetup.id}
@@ -123,9 +138,20 @@ function Profile({
 
   const personalInfo = isMe && (
     <>
-      {user.contactInfo && (
-        <Typography>Contact info: {user.contactInfo}</Typography>
-      )}
+      {editing ? (
+        <Box display="flex" alignItems="center" mt={1}>
+          <Typography style={{ marginRight: 15 }}>Contact Info:</Typography>
+          <TextField
+            value={newContact}
+            size="small"
+            variant="outlined"
+            defaultValue={user.contactInfo}
+            onChange={(event) => setNewContact(event.target.value)}
+          />
+        </Box>
+      ) : user.contactInfo ? (
+        <Typography>Contact Info: {user.contactInfo}</Typography>
+      ) : null}
       {user.email && <Typography>Email: {user.email}</Typography>}
       <Typography
         variant="h4"
@@ -156,6 +182,25 @@ function Profile({
   return (
     <Container maxWidth="md">
       <Box display="flex" flexDirection="column" alignItems="center">
+        {isMe ? (
+          editing ? (
+            <Button
+              onClick={onSubmit}
+              variant="outlined"
+              style={{ alignSelf: "flex-end", marginTop: "30px" }}
+            >
+              Save Profile
+            </Button>
+          ) : (
+            <Button
+              onClick={() => setEditing(true)}
+              variant="outlined"
+              style={{ alignSelf: "flex-end", marginTop: "30px" }}
+            >
+              Edit Profile
+            </Button>
+          )
+        ) : null}
         {user.profilePic && (
           <img
             src={user.profilePic}
@@ -178,9 +223,22 @@ function Profile({
             />
           </div>
         )}
-        <Typography component="h2" variant="h3">
-          {user.name}
-        </Typography>
+        {editing ? (
+          <Box display="flex" alignItems="center">
+            <Typography style={{ marginRight: 15 }}>Name:</Typography>
+            <TextField
+              value={newName}
+              size="small"
+              variant="outlined"
+              defaultValue={user.name}
+              onChange={(event) => setNewName(event.target.value)}
+            />
+          </Box>
+        ) : (
+          <Typography component="h2" variant="h3">
+            {user.name}
+          </Typography>
+        )}
         {personalInfo}
       </Box>
     </Container>
@@ -214,10 +272,17 @@ const meetupType = PropTypes.shape({
 
 Profile.propTypes = {
   user: userType,
+  editing: PropTypes.bool.isRequired,
+  setEditing: PropTypes.func.isRequired,
   isMe: PropTypes.bool.isRequired,
   ownedMeetups: PropTypes.arrayOf(meetupType).isRequired,
   attendingMeetups: PropTypes.arrayOf(meetupType).isRequired,
   pendingMeetups: PropTypes.arrayOf(meetupType).isRequired,
+  newName: PropTypes.string.isRequired,
+  setNewName: PropTypes.func.isRequired,
+  newContact: PropTypes.string.isRequired,
+  setNewContact: PropTypes.string.isRequired,
+  onSubmit: PropTypes.func.isRequired,
 };
 
 Profile.defaultProps = {
