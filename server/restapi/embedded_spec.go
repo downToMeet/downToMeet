@@ -70,8 +70,7 @@ func init() {
             },
             "description": "Interests to search for",
             "name": "tags",
-            "in": "query",
-            "required": true
+            "in": "query"
           }
         ],
         "responses": {
@@ -137,8 +136,7 @@ func init() {
             },
             "description": "Interests to search for",
             "name": "tags",
-            "in": "query",
-            "required": true
+            "in": "query"
           }
         ],
         "responses": {
@@ -944,8 +942,7 @@ func init() {
             },
             "description": "Interests to search for",
             "name": "tags",
-            "in": "query",
-            "required": true
+            "in": "query"
           }
         ],
         "responses": {
@@ -1011,8 +1008,7 @@ func init() {
             },
             "description": "Interests to search for",
             "name": "tags",
-            "in": "query",
-            "required": true
+            "in": "query"
           }
         ],
         "responses": {
