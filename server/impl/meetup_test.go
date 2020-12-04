@@ -439,26 +439,6 @@ func TestGetMeetupIDAttendeesNotFound(t *testing.T) {
 	require.IsType(t, (*operations.GetMeetupIDAttendeeNotFound)(nil), raw)
 }
 
-func TestGetMeetupIDAttendeesCanceled(t *testing.T) {
-	const sessionName = "session"
-	url := new(operations.GetMeetupIDAttendeeURL)
-	url.ID = TestMeetupCanceled.IDString()
-	req := httptest.NewRequest(http.MethodGet, url.String(), nil)
-	session, err := testImpl.SessionStore().New(req, sessionName)
-	require.NoError(t, err)
-	session.Values[impl.UserID] = TestUserFriend.IDString()
-	req = req.WithContext(impl.WithSession(req.Context(), session))
-
-	params := operations.GetMeetupIDAttendeeParams{
-		HTTPRequest: req,
-		ID:          TestMeetupCanceled.IDString(),
-	}
-	raw := testImpl.GetMeetupIDAttendee(params, nil)
-
-	require.IsType(t, (*operations.GetMeetupIDAttendeeBadRequest)(nil), raw)
-
-}
-
 func TestPostMeetupIDAttendee(t *testing.T) {
 	newUser := createUser()
 	targetMeetup := createMeetup("Eat", newUser.ID, []*db.Tag{TestTag}, false)
