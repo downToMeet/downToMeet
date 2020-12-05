@@ -28,6 +28,7 @@ function StatusText({ time, canceled }) {
       </Typography>
     );
   }
+  return <></>;
 }
 
 function MeetupCard({ title, time, location, id, owner, tags, canceled }) {
