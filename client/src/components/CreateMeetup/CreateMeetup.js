@@ -11,7 +11,6 @@ import {
   TextField,
   Typography,
 } from "@material-ui/core";
-import AutoComplete from "@material-ui/lab/Autocomplete";
 import {
   KeyboardDateTimePicker,
   MuiPickersUtilsProvider,
@@ -19,6 +18,7 @@ import {
 import DayUtils from "@date-io/dayjs";
 
 import LocationPicker from "../common/LocationPicker";
+import TagPicker from "../common/TagPicker";
 import { IN_PERSON, REMOTE } from "../../constants";
 import * as fetcher from "../../lib/fetch";
 
@@ -58,15 +58,6 @@ function CreateMeetup() {
     setError(false);
     setCreatingMeetup(false);
   };
-
-  // TODO: load options from the server instead
-  const tagOptions = [
-    "basketball",
-    "ping pong",
-    "badminton",
-    "movie",
-    "cooking",
-  ];
 
   const validateForm = () => {
     if (title === "" || meetupType === "" || tags.length === 0) {
@@ -219,23 +210,7 @@ function CreateMeetup() {
   const renderTags = () => {
     return (
       <div className={classes.formSection}>
-        <AutoComplete
-          multiple
-          disableCloseOnSelect
-          value={tags}
-          onChange={(event, newValue) => setTags(newValue)}
-          variant="outlined"
-          options={tagOptions}
-          renderInput={(params) => (
-            <TextField
-              // eslint-disable-next-line react/jsx-props-no-spreading
-              {...params}
-              required
-              variant="outlined"
-              label="Tags"
-            />
-          )}
-        />
+        <TagPicker tags={tags} setTags={setTags} />
       </div>
     );
   };
