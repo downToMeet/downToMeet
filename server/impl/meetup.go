@@ -299,7 +299,7 @@ func (i *Implementation) PostMeetup(params operations.PostMeetupParams, _ interf
 	}
 
 	modelMeetup := modelMeetupRequestBodyToModelMeetup(params.Meetup, id.(string))
-	_ = i.modelMeetupToDBMeetup(&dbMeetup, &modelMeetup)
+	i.modelMeetupToDBMeetup(&dbMeetup, &modelMeetup)
 
 	tx := i.DB().WithContext(ctx)
 	if err := tx.Create(&dbMeetup).Error; err != nil {
@@ -355,7 +355,7 @@ func (i *Implementation) PatchMeetupID(params operations.PatchMeetupIDParams, _ 
 	}
 
 	modelMeetup := modelMeetupRequestBodyToModelMeetup(params.Meetup, userID)
-	_ = i.modelMeetupToDBMeetup(&dbMeetup, &modelMeetup)
+	i.modelMeetupToDBMeetup(&dbMeetup, &modelMeetup)
 
 	if err := i.insertMeetupTagsIntoDB(ctx, &dbMeetup, &modelMeetup); err != nil {
 		logger.WithError(err).Error("Failed to insert meetup tags")
@@ -796,7 +796,7 @@ func (i *Implementation) insertMeetupTagsIntoDB(ctx context.Context, dbMeetup *d
 	return err
 }
 
-func (i *Implementation) modelMeetupToDBMeetup(dbMeetup *db.Meetup, modelMeetup *models.Meetup) error {
+func (i *Implementation) modelMeetupToDBMeetup(dbMeetup *db.Meetup, modelMeetup *models.Meetup) {
 	dbMeetup.Title = modelMeetup.Title
 	dbMeetup.Description = modelMeetup.Description
 	dbMeetup.MaxCapacity = swag.Int64Value(modelMeetup.MaxCapacity)
@@ -819,7 +819,7 @@ func (i *Implementation) modelMeetupToDBMeetup(dbMeetup *db.Meetup, modelMeetup 
 			URL:         modelMeetup.Location.URL,
 		}
 	}
-	return nil
+	return
 }
 
 func modelMeetupRequestBodyToModelMeetup(modelMeetupRequestBody *models.MeetupRequestBody, id string) models.Meetup {
