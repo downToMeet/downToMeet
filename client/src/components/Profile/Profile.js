@@ -189,15 +189,17 @@ function Profile({
       </Typography>
       <Box display="flex" flexDirection="row" justifyContent="space-between">
         <FormControlLabel
-          control=<Checkbox
-            onChange={({ target }) => setShowCanceled(target.checked)}
-          />
+          control={
+            <Checkbox
+              onChange={({ target }) => setShowCanceled(target.checked)}
+            />
+          }
           label="Show canceled meetups"
         />
         <FormControlLabel
-          control=<Checkbox
-            onChange={({ target }) => setShowPast(target.checked)}
-          />
+          control={
+            <Checkbox onChange={({ target }) => setShowPast(target.checked)} />
+          }
           label="Show past meetups"
         />
       </Box>

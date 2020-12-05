@@ -29,6 +29,14 @@ test("renders meetup as owner", async () => {
   };
   store.dispatch(updateUserData(owner));
 
+  const pendingAttendee = {
+    id: "44",
+    name: "Connie",
+    profilePic:
+      "https://media-exp1.licdn.com/dms/image/C5603AQHbRHQncMSa8g/profile-displayphoto-shrink_400_400/0/1523924666175?e=1612396800&v=beta&t=Lb0P8os8RruOpQp9b7Rcj28teYWslG4Y5hZj1VgYMxc",
+    createdAt: new Date().toISOString(),
+  };
+
   const meetup = {
     id: "20",
     owner: owner.id,
@@ -38,6 +46,7 @@ test("renders meetup as owner", async () => {
     },
     tags: ["swimming"],
     time: new Date().toISOString(),
+    pendingAttendees: [pendingAttendee.id],
   };
 
   fetcher.getMeetup.mockImplementation(
@@ -45,10 +54,19 @@ test("renders meetup as owner", async () => {
   );
 
   fetcher.getUserData.mockImplementation(
-    getMockUserData(new Map([[owner.id, owner]]))
+    getMockUserData(
+      new Map([
+        [owner.id, owner],
+        [pendingAttendee.id, pendingAttendee],
+      ])
+    )
   );
 
-  const { findByText } = render(
+  fetcher.getMeetupAttendees.mockImplementation(
+    getMockMeetupAttendees(new Map([[pendingAttendee.id, pendingAttendee]]))
+  );
+
+  const screen = render(
     <Provider store={store}>
       <MemoryRouter>
         <Meetup id={meetup.id} />
@@ -56,12 +74,16 @@ test("renders meetup as owner", async () => {
     </Provider>
   );
 
-  const online = await findByText(/online/i);
+  const online = await screen.findByText(/online/i);
   expect(online).toBeInTheDocument();
   expect(online.querySelector("a")).toHaveAttribute(
     "href",
     meetup.location.url
   );
+  expect(
+    await screen.findByRole("button", { name: /Edit Meetup/i })
+  ).toBeInTheDocument();
+  expect(await screen.findByText(/connie/i)).toBeInTheDocument();
 });
 
 test("renders meetup as attendee", async () => {
