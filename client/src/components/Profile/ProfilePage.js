@@ -7,12 +7,16 @@ import Profile from "./Profile";
 
 function ProfilePage({ id }) {
   const [loaded, setLoaded] = useState(false);
+  const [editing, setEditing] = useState(false);
   const [user, setUser] = useState(null);
   const [isMe, setIsMe] = useState(false);
   const [owned, setOwned] = useState(null);
   const [attending, setAttending] = useState(null);
   const [pending, setPending] = useState(null);
   const userID = useSelector((state) => state.id);
+
+  const [newName, setNewName] = useState(null);
+  const [newContact, setNewContact] = useState(null);
 
   async function setMeetupLists(
     ownedIDs = [],
@@ -50,6 +54,19 @@ function ProfilePage({ id }) {
     ]);
   }
 
+  async function onSubmit() {
+    const { res, resJSON } = await fetcher.patchUserData(
+      user.id,
+      user,
+      newName,
+      newContact
+    );
+    if (res.ok) {
+      setUser(resJSON);
+      setEditing(false);
+    }
+  }
+
   useEffect(async () => {
     (async () => {
       const { res, resJSON } = await fetcher.getUserData(id);
@@ -58,6 +75,8 @@ function ProfilePage({ id }) {
         return;
       }
       setUser(resJSON);
+      setNewName(resJSON.name);
+      setNewContact(resJSON.contactInfo);
       setIsMe(id === "me" || id === userID);
       setMeetupLists(
         resJSON.ownedMeetups,
@@ -69,16 +88,23 @@ function ProfilePage({ id }) {
   }, [id]);
 
   if (!loaded) {
-    return <Typography>Loading...</Typography>; // TODO: replace with nice loading screen
+    return <Typography>Loading...</Typography>;
   }
 
   return (
     <Profile
       user={user}
+      editing={editing}
+      setEditing={setEditing}
       isMe={isMe}
       ownedMeetups={owned || []}
       attendingMeetups={attending || []}
       pendingMeetups={pending || []}
+      newName={null}
+      setNewName={setNewName}
+      newContact={null}
+      setNewContact={setNewContact}
+      onSubmit={onSubmit}
     />
   );
 }

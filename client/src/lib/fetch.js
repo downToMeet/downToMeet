@@ -9,6 +9,24 @@ export async function getUserData(id = "me") {
   return { res, resJSON: await res.json() };
 }
 
+export async function patchUserData(id, oldUser, newName, newContact) {
+  const patchUserDataEndpoint = `${SERVER_URL}/user/${id}`;
+
+  const newUser = { ...oldUser };
+  newUser.name = newName;
+  newUser.contactInfo = newContact;
+  const res = await fetch(patchUserDataEndpoint, {
+    method: "PATCH",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(newUser),
+  });
+
+  return { res, resJSON: await res.json() };
+}
+
 export async function searchForMeetups({ lat, lon, radius, tags }) {
   let getMeetupsEndpoint = `${SERVER_URL}/meetup?lat=${lat}&lon=${lon}&radius=${radius}`;
   if (tags.length !== 0) {

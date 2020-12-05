@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import AutoComplete from "@material-ui/lab/Autocomplete";
 import {
   Box,
   Button,
@@ -7,7 +6,6 @@ import {
   FormControl,
   InputLabel,
   Select,
-  TextField,
   Typography,
 } from "@material-ui/core";
 import { Link } from "react-router-dom";
@@ -16,6 +14,7 @@ import LocationPicker, { useGoogleMaps } from "../common/LocationPicker";
 import MeetupCard from "../common/MeetupCard";
 import { IN_PERSON, REMOTE } from "../../constants";
 import * as fetcher from "../../lib/fetch";
+import TagPicker from "../common/TagPicker";
 
 function Search() {
   const [error, setError] = useState(null);
@@ -25,16 +24,7 @@ function Search() {
   const [meetups, setMeetups] = useState(null);
   const [meetupType, setMeetupType] = useState("");
   const [searchLocation, setSearchLocation] = useState(null);
-  const [radius, setRadius] = useState("");
-
-  // TODO: load options from the server instead
-  const tagOptions = [
-    "basketball",
-    "ping pong",
-    "badminton",
-    "movie",
-    "cooking",
-  ];
+  const [radius, setRadius] = useState(1);
 
   const resetSearch = () => {
     setError(null);
@@ -154,7 +144,11 @@ function Search() {
   const renderSearch = () => {
     return (
       <Box display="flex" flexDirection="row" flexWrap="wrap" mt={2}>
-        <FormControl required variant="outlined" style={{ width: 120 }}>
+        <FormControl
+          required
+          variant="outlined"
+          style={{ width: 120, marginRight: 20 }}
+        >
           <InputLabel htmlFor="select-meetup-type">Type</InputLabel>
           <Select
             label="Type"
@@ -163,27 +157,12 @@ function Search() {
             value={meetupType}
             onChange={(event) => setMeetupType(event.target.value)}
           >
+            <option aria-label="None" value="" />
             <option value={IN_PERSON}>In person</option>
             <option value={REMOTE}>Remote</option>
           </Select>
         </FormControl>
-        <AutoComplete
-          multiple
-          disableCloseOnSelect
-          value={tags}
-          onChange={(event, newValue) => setTags(newValue)}
-          variant="outlined"
-          options={tagOptions}
-          renderInput={(params) => (
-            <TextField
-              // eslint-disable-next-line react/jsx-props-no-spreading
-              {...params}
-              variant="outlined"
-              label="Search for your interests"
-            />
-          )}
-          style={{ marginLeft: 20, flex: 1 }}
-        />
+        <TagPicker tags={tags} setTags={setTags} />
       </Box>
     );
   };

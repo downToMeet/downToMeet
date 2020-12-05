@@ -321,14 +321,6 @@ function Meetup({ id }) {
             <Grid container direction="column" spacing={3}>
               <Grid item>
                 <Typography variant="body2" className={classes.ownerInterests}>
-                  {eventDetails.owner.interests
-                    ? "Interests: "
-                    : "Interests: none specified"}
-                </Typography>
-                {eventDetails.owner.interests && renderTags(eventDetails.tags)}
-              </Grid>
-              <Grid item>
-                <Typography variant="body2" className={classes.ownerInterests}>
                   {`Contact info: ${
                     eventDetails.owner.contactInfo || "none specified"
                   }`}
@@ -489,6 +481,7 @@ function Meetup({ id }) {
         button = (
           <Button
             startIcon={<Edit />}
+            variant="outlined"
             component={RouterLink}
             to={`/meetup/${id}/edit`}
             disabled={isUpdating || eventDetails.canceled}
@@ -502,6 +495,7 @@ function Meetup({ id }) {
           <Button
             startIcon={<Clear />}
             onClick={() => handleUpdateAttendee({ status: NONE })}
+            variant="outlined"
             disabled={isUpdating || eventDetails.canceled}
           >
             Leave Meetup
@@ -513,6 +507,7 @@ function Meetup({ id }) {
           <Button
             startIcon={<PersonAddDisabled />}
             onClick={() => handleUpdateAttendee({ status: NONE })}
+            variant="outlined"
             disabled={isUpdating || eventDetails.canceled}
           >
             Cancel Join Request

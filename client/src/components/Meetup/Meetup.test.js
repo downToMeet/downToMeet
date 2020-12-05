@@ -9,86 +9,13 @@ import { makeStore } from "../../app/store";
 import { updateUserData } from "../../stores/user/actions";
 import Meetup from "./Meetup";
 import * as fetcher from "../../lib/fetch";
+import {
+  getMockUserData,
+  getMockMeetup,
+  getMockMeetupAttendees,
+} from "../../lib/mock";
 
 jest.mock("../../lib/fetch");
-
-function getMockUserData(users) {
-  return async (id) => {
-    let res;
-    const user = users.get(id);
-    if (user) {
-      res = new Response(JSON.stringify(user), {
-        headers: { "Content-Type": "application/json" },
-      });
-    } else {
-      res = new Response(
-        JSON.stringify({
-          code: 404,
-          message: `no user with id ${id} found`,
-        }),
-        {
-          status: 404,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-    }
-    return { res, resJSON: await res.json() };
-  };
-}
-
-function getMockMeetup(meetups) {
-  return async (id) => {
-    let res;
-    const meetup = meetups.get(id);
-    if (meetup) {
-      res = new Response(JSON.stringify(meetup), {
-        headers: { "Content-Type": "application/json" },
-      });
-    } else {
-      res = new Response(
-        JSON.stringify({
-          code: 404,
-          message: `no meetup with id ${id} found`,
-        }),
-        {
-          status: 404,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-    }
-    return { res, resJSON: await res.json() };
-  };
-}
-
-function getMockMeetupAttendees(meetups) {
-  return async (id) => {
-    let res;
-    const meetup = meetups.get(id);
-    if (meetup) {
-      res = new Response(
-        JSON.stringify({
-          attending: meetup.attendees,
-          pending: meetup.pendingAttendees,
-        }),
-        {
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-    } else {
-      res = new Response(
-        JSON.stringify({
-          code: 404,
-          message: `no meetup with id ${id} found`,
-        }),
-        {
-          status: 404,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-    }
-    return { res, resJSON: await res.json() };
-  };
-}
 
 test("renders meetup as owner", async () => {
   const store = makeStore();
