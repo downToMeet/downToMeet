@@ -32,6 +32,7 @@ var (
 	FakeUser              *db.User
 	TestMeetup            *db.Meetup
 	TestMeetupCanceled    *db.Meetup
+	TestMeetupRemote      *db.Meetup
 	TestTag               *db.Tag
 )
 
@@ -126,7 +127,7 @@ func populateDatabase(i *Implementation) {
 	}
 	TestMeetupCanceled = &db.Meetup{
 		Title:       "Basketball",
-		Time:        time.Unix(0, 0),
+		Time:        time.Now().Add(24 * time.Hour),
 		Description: "",
 		Tags:        nil,
 		MaxCapacity: 10,
@@ -142,12 +143,27 @@ func populateDatabase(i *Implementation) {
 		},
 		Cancelled: true,
 	}
+	TestMeetupRemote = &db.Meetup{
+		Title:       "Cry",
+		Time:        time.Now().Add(24 * time.Hour),
+		Description: "",
+		Tags:        nil,
+		MaxCapacity: 10,
+		MinCapacity: 1,
+		Owner:       TestUserFriend.ID,
+		Location: db.MeetupLocation{
+			URL: "https://hack.uclaacm.com/",
+		},
+		Cancelled: false,
+	}
 	TestMeetup.Tags = append(TestMeetup.Tags, TestTag)
+	TestMeetupRemote.Tags = append(TestMeetupRemote.Tags, TestTag)
 	TestMeetupCanceled.Tags = append(TestMeetupCanceled.Tags, TestTag)
 	TestMeetup.Attendees = append(TestMeetup.Attendees, TestUser, TestUserFriend)
 	TestMeetup.PendingAttendees = append(TestMeetup.PendingAttendees, TestUserFriend2)
 	database.Create(TestMeetup)
 	database.Create(TestMeetupCanceled)
+	database.Create(TestMeetupRemote)
 }
 
 func TestMain(m *testing.M) {

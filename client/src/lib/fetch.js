@@ -51,18 +51,32 @@ export async function searchForRemoteMeetups(tags) {
   return { res, resJSON: await res.json() };
 }
 
-export async function createMeetup({
-  title,
-  time,
-  meetupType,
-  meetupURL,
-  meetupLocation,
-  groupCount,
-  description,
-  tags,
-}) {
-  const createMeetupEndpoint = `${SERVER_URL}/meetup`;
+export async function cancelMeetup(id = "me") {
+  const cancelMeetupEndpoint = `${SERVER_URL}/meetup/${id}`;
+  const res = await fetch(cancelMeetupEndpoint, {
+    method: "DELETE",
+    credentials: "include",
+  });
 
+  return res;
+}
+
+export async function createOrEditMeetup(
+  {
+    id,
+    title,
+    time,
+    meetupType,
+    meetupURL,
+    meetupLocation,
+    groupCount,
+    description,
+    tags,
+  },
+  isEdit = false
+) {
+  const createMeetupEndpoint = `${SERVER_URL}/meetup`;
+  const editMeetupEndpoint = `${SERVER_URL}/meetup/${id}`;
   let location;
   if (meetupType === IN_PERSON) {
     location = {
@@ -89,8 +103,8 @@ export async function createMeetup({
     title,
   };
 
-  const res = await fetch(createMeetupEndpoint, {
-    method: "POST",
+  const res = await fetch(isEdit ? editMeetupEndpoint : createMeetupEndpoint, {
+    method: isEdit ? "PATCH" : "POST",
     credentials: "include",
     headers: {
       "Content-Type": "application/json",

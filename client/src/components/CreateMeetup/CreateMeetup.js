@@ -1,9 +1,16 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import PropTypes from "prop-types";
+import { useSelector } from "react-redux";
+import { useLocation, useHistory } from "react-router-dom";
 import makeStyles from "@material-ui/styles/makeStyles";
 import {
   Box,
   Button,
   Container,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
   FormControl,
   InputLabel,
   Select,
@@ -32,8 +39,17 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-function CreateMeetup() {
+// if id is null, create new meetup, else fetch data for meetup/:id and edit that meetup
+function CreateMeetup({ id }) {
+  // eslint-disable-next-line prefer-const
+  let location = useLocation(); // listed as dependency in useEffect(). refreshes component if user clicks New Meetup while on edit page.
+  // eslint-disable-next-line prefer-const
+  let history = useHistory();
+
   const classes = useStyles();
+  const userID = useSelector((state) => state.id);
+  const [isEdit, setIsEdit] = useState(false);
+  const [isCancelled, setIsCancelled] = useState(false);
   const [title, setTitle] = useState("");
   const [time, setTime] = useState(new Date());
   const [meetupType, setMeetupType] = useState("");
@@ -44,7 +60,8 @@ function CreateMeetup() {
   const [tags, setTags] = useState([]);
 
   const [error, setError] = useState(false);
-  const [creatingMeetup, setCreatingMeetup] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [updatingMeetup, setUpdatingMeetup] = useState(false);
 
   const clearForm = () => {
     setTitle("");
@@ -56,8 +73,46 @@ function CreateMeetup() {
     setDescription("");
     setTags([]);
     setError(false);
-    setCreatingMeetup(false);
+    setUpdatingMeetup(false);
   };
+
+  useEffect(async () => {
+    // TODO: redirect to login page for unauthenticated users.
+    // - Redux store may need a 'logging in' action to distinguish between unauthenticated
+    //   users and authenticated users for whom userID is not loaded in store yet.
+    if (!id || !userID) {
+      return;
+    }
+    const { res, resJSON } = await fetcher.getMeetup(id);
+    // if meetup does not exist (or error fetching meetup), redirect to /create
+    if (!res.ok) {
+      history.replace(`/create`);
+      return;
+    }
+    // if user is not meetup owner, redirect to meetup info page /meetup/:id
+    if (userID !== resJSON.owner) {
+      history.replace(`/meetup/${id}`);
+      return;
+    }
+    setIsEdit(true);
+    setIsCancelled(Boolean(resJSON.canceled));
+    setTitle(resJSON.title);
+    setTime(new Date(resJSON.time));
+    setMeetupType(resJSON.location.url ? REMOTE : IN_PERSON);
+    if (resJSON.location.coordinates) {
+      setMeetupLocation({
+        description: resJSON.location.name,
+        coords: [
+          resJSON.location.coordinates.lat,
+          resJSON.location.coordinates.lon,
+        ],
+      });
+    }
+    setMeetupURL(resJSON.location.url || "");
+    setGroupCount([resJSON.minCapacity, resJSON.maxCapacity]);
+    setDescription(resJSON.description);
+    setTags(resJSON.tags);
+  }, [userID, location]);
 
   const validateForm = () => {
     if (title === "" || meetupType === "" || tags.length === 0) {
@@ -83,6 +138,7 @@ function CreateMeetup() {
           required
           variant="outlined"
           label="Title"
+          disabled={isCancelled}
           value={title}
           onChange={(event) => setTitle(event.target.value)}
           style={{ width: "100%" }}
@@ -100,6 +156,7 @@ function CreateMeetup() {
             variant="inline"
             inputVariant="outlined"
             label="Time"
+            disabled={isCancelled}
             value={time}
             onChange={(newDate) => setTime(newDate)}
             className={classes.formInput}
@@ -118,6 +175,7 @@ function CreateMeetup() {
         <FormControl required variant="outlined" style={{ width: 150 }}>
           <InputLabel id="select-meetup-type-label">Type</InputLabel>
           <Select
+            disabled={isCancelled}
             label="Type"
             data-testid="select-meetup-type"
             labelId="select-meetup-type-label"
@@ -132,6 +190,7 @@ function CreateMeetup() {
         </FormControl>
         {meetupType === IN_PERSON && (
           <LocationPicker
+            disabled={isCancelled}
             value={meetupLocation}
             setValue={setMeetupLocation}
             style={{
@@ -142,6 +201,7 @@ function CreateMeetup() {
         )}
         {meetupType === REMOTE && (
           <TextField
+            disabled={isCancelled}
             label="URL"
             variant="outlined"
             required
@@ -167,6 +227,7 @@ function CreateMeetup() {
       >
         <Typography id="group-slider">Group Size</Typography>
         <Slider
+          disabled={isEdit || isCancelled}
           value={groupCount}
           onChange={(event, newValue) => setGroupCount(newValue)}
           valueLabelDisplay="auto"
@@ -192,11 +253,13 @@ function CreateMeetup() {
       <div className={classes.formSection}>
         <TextField
           label="Description"
+          disabled={isCancelled}
           value={description}
           onChange={(event) => setDescription(event.target.value)}
           multiline
           variant="outlined"
           rows={3}
+          rowsMax={15}
           className={classes.formInput}
           style={{
             width: "100%",
@@ -215,14 +278,27 @@ function CreateMeetup() {
     );
   };
 
+  const handleCancelMeetup = async () => {
+    setIsCancelled(true);
+    setUpdatingMeetup(true);
+    const res = await fetcher.cancelMeetup(id);
+    if (res.ok) {
+      clearForm();
+      window.location.replace(`/meetup/${id}`);
+    } else {
+      setUpdatingMeetup(false);
+    }
+  };
+
   const onSubmit = async () => {
     if (!validateForm()) {
-      setCreatingMeetup(false);
+      setUpdatingMeetup(false);
       return;
     }
 
-    setCreatingMeetup(true);
-    const { res, resJSON } = await fetcher.createMeetup({
+    setUpdatingMeetup(true);
+    const meetup = {
+      id,
       title,
       time,
       meetupType,
@@ -231,7 +307,8 @@ function CreateMeetup() {
       groupCount,
       description,
       tags,
-    });
+    };
+    const { res, resJSON } = await fetcher.createOrEditMeetup(meetup, isEdit);
     if (res.ok) {
       clearForm();
       // Use location.replace instead of location.href so user cannot navigate back to create screen
@@ -239,14 +316,98 @@ function CreateMeetup() {
     }
   };
 
+  const renderEditButtons = () => {
+    const editButtons = (
+      <>
+        <Button
+          variant="contained"
+          onClick={() => {
+            window.location.replace(`/meetup/${id}`);
+          }}
+          disabled={updatingMeetup}
+          style={{
+            marginTop: 20,
+            marginRight: 10,
+          }}
+        >
+          Discard Changes
+        </Button>
+        <Button
+          variant="contained"
+          color="secondary"
+          disabled={updatingMeetup}
+          style={{
+            marginTop: 20,
+            marginRight: 10,
+          }}
+          onClick={() => setShowConfirm(true)}
+        >
+          Cancel Meetup
+        </Button>
+        <Dialog open={showConfirm} onClose={() => setShowConfirm(false)}>
+          <DialogContent>
+            <DialogContentText>
+              Are you sure you want to cancel the meetup? This cannot be undone.
+            </DialogContentText>
+            <DialogActions>
+              <Button onClick={() => setShowConfirm(false)}>No</Button>
+              <Button
+                disabled={updatingMeetup}
+                onClick={() => {
+                  setShowConfirm(false);
+                  handleCancelMeetup(id);
+                }}
+              >
+                Yes
+              </Button>
+            </DialogActions>
+          </DialogContent>
+        </Dialog>
+      </>
+    );
+    return (
+      <Box alignSelf="flex-end">
+        {isEdit && !isCancelled && editButtons}
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={
+            !isCancelled
+              ? onSubmit
+              : () => {
+                  window.location.replace(`/meetup/${id}`);
+                }
+          }
+          disabled={!userID || updatingMeetup}
+          style={{
+            marginTop: 20,
+          }}
+        >
+          {isCancelled && "Back"}
+          {!isCancelled && (isEdit ? "Save Changes" : "Create Meetup")}
+        </Button>
+      </Box>
+    );
+  };
+
   return (
     <Container maxWidth="sm">
       <Typography variant="h2" component="h1" style={{ textAlign: "center" }}>
-        Create your meetup
+        {isEdit ? "Edit" : "Create"} your meetup
       </Typography>
       {error && (
         <Typography variant="body1" color="error">
           Please ensure all required fields (marked with *) are filled out.
+        </Typography>
+      )}
+      {isCancelled && (
+        <Typography variant="body1" color="error">
+          This meetup has been cancelled. You can no longer edit the meetup.
+        </Typography>
+      )}
+      {!userID && (
+        <Typography variant="body1" color="error">
+          You must be logged in to create a meetup.
         </Typography>
       )}
       <Box component="form" display="flex" flexDirection="column">
@@ -256,22 +417,18 @@ function CreateMeetup() {
         {renderGroupSizeInput()}
         {renderDescription()}
         {renderTags()}
-        <Box alignSelf="flex-end">
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={onSubmit}
-            disabled={creatingMeetup}
-            style={{
-              marginTop: 20,
-            }}
-          >
-            Create Meetup
-          </Button>
-        </Box>
+        {renderEditButtons()}
       </Box>
     </Container>
   );
 }
+
+CreateMeetup.propTypes = {
+  id: PropTypes.string,
+};
+
+CreateMeetup.defaultProps = {
+  id: "",
+};
 
 export default CreateMeetup;
