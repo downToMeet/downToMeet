@@ -13,16 +13,35 @@ import { useSelector } from "react-redux";
 import { useGoogleMaps } from "./LocationPicker";
 import * as fetcher from "../../lib/fetch";
 
+function StatusText({ time, canceled }) {
+  if (new Date(time) < new Date()) {
+    return (
+      <Typography variant="h5" component="h2" color="textSecondary">
+        Past
+      </Typography>
+    );
+  }
+  if (canceled) {
+    return (
+      <Typography variant="h5" component="h2" color="error">
+        Canceled
+      </Typography>
+    );
+  }
+  return <></>;
+}
+
 /**
  * Meetup information card. Displays main meetup details including:
  * - title
  * - location
  * - time
  * - tags/interests
+ * - canceled status
  *
  * Used to display meetups listed in [Search](#search) and in [Profile](#profile).
  */
-function MeetupCard({ title, time, location, id, owner, tags }) {
+function MeetupCard({ title, time, location, id, owner, tags, canceled }) {
   const [locationString, setLocationString] = useState(null);
   const [joined, setJoined] = useState(false);
   const userID = useSelector((state) => state.id);
@@ -89,9 +108,16 @@ function MeetupCard({ title, time, location, id, owner, tags }) {
       <CardActionArea component={Link} to={`/meetup/${id}`}>
         <CardContent>
           <Box display="flex" flexDirection="column">
-            <Typography variant="h5" component="h2">
-              {title}
-            </Typography>
+            <Box
+              display="flex"
+              flexDirection="row"
+              justifyContent="space-between"
+            >
+              <Typography variant="h5" component="h2">
+                {title}
+              </Typography>
+              <StatusText time={time} canceled={canceled} />
+            </Box>
             <Typography color="textSecondary">
               when: {new Date(time).toLocaleString(locale, eventTimeOptions)}
             </Typography>
@@ -135,6 +161,20 @@ MeetupCard.propTypes = {
   owner: PropTypes.string.isRequired,
   /** Tagged interests of the meetup. */
   tags: PropTypes.arrayOf(PropTypes.string).isRequired,
+  canceled: PropTypes.bool,
+};
+
+MeetupCard.defaultProps = {
+  canceled: false,
+};
+
+StatusText.propTypes = {
+  time: PropTypes.string.isRequired,
+  canceled: PropTypes.bool,
+};
+
+StatusText.defaultProps = {
+  canceled: false,
 };
 
 export default MeetupCard;

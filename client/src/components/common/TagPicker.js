@@ -21,7 +21,6 @@ export default function TagPicker({ tags, setTags }) {
         <TextField
           // eslint-disable-next-line react/jsx-props-no-spreading
           {...params}
-          required
           variant="outlined"
           label="Look for tags"
         />

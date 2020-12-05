@@ -32,7 +32,6 @@ function ProfilePage({ id }) {
         setOwned(
           res
             .map(({ resJSON }) => resJSON)
-            .filter((meetup) => new Date(meetup.time) > new Date())
             .sort((a, b) => new Date(a.time) - new Date(b.time))
         );
       })(),
@@ -41,7 +40,6 @@ function ProfilePage({ id }) {
         setAttending(
           res
             .map(({ resJSON }) => resJSON)
-            .filter((meetup) => new Date(meetup.time) > new Date())
             .sort((a, b) => new Date(a.time) - new Date(b.time))
         );
       })(),
@@ -50,7 +48,6 @@ function ProfilePage({ id }) {
         setPending(
           res
             .map(({ resJSON }) => resJSON)
-            .filter((meetup) => new Date(meetup.time) > new Date())
             .sort((a, b) => new Date(a.time) - new Date(b.time))
         );
       })(),

@@ -5,6 +5,8 @@ import PropTypes from "prop-types";
 import {
   AppBar,
   Box,
+  Checkbox,
+  FormControlLabel,
   Container,
   Tab,
   Typography,
@@ -55,6 +57,13 @@ const StyledTabPanel = withStyles({
   },
 })((props) => <TabPanel {...props} />);
 
+function shouldDisplayMeetup(meetup, showCanceled, showPast) {
+  return (
+    (showCanceled || !meetup.canceled) &&
+    (showPast || new Date(meetup.time) > new Date())
+  );
+}
+
 /**
  * Displays the profile of the user with the corresponding `id`. If the profile is the
  * current user's own profile, meetups they own, attend, and have requested to attend
@@ -83,19 +92,24 @@ function Profile({
   }
 
   const [tabValue, setTabValue] = useState("owned");
+  const [showCanceled, setShowCanceled] = useState(false);
+  const [showPast, setShowPast] = useState(false);
 
-  let ownedMeetupsEl = ownedMeetups.map((meetup) => (
-    <MeetupCard
-      key={meetup.id}
-      title={meetup.title}
-      time={meetup.time}
-      location={meetup.location}
-      id={meetup.id}
-      owner={meetup.owner}
-      tags={meetup.tags}
-    />
-  ));
-  if (ownedMeetups.length === 0) {
+  let ownedMeetupsEl = ownedMeetups
+    .filter((meetup) => shouldDisplayMeetup(meetup, showCanceled, showPast))
+    .map((meetup) => (
+      <MeetupCard
+        key={meetup.id}
+        title={meetup.title}
+        time={meetup.time}
+        location={meetup.location}
+        id={meetup.id}
+        owner={meetup.owner}
+        tags={meetup.tags}
+        canceled={meetup.canceled}
+      />
+    ));
+  if (ownedMeetupsEl.length === 0) {
     ownedMeetupsEl = (
       <Typography>
         You don’t own any meetups. <Link to="/create">Go make one!</Link>
@@ -103,18 +117,21 @@ function Profile({
     );
   }
 
-  let attendingMeetupsEl = attendingMeetups.map((meetup) => (
-    <MeetupCard
-      key={meetup.id}
-      title={meetup.title}
-      time={meetup.time}
-      location={meetup.location}
-      id={meetup.id}
-      owner={meetup.owner}
-      tags={meetup.tags}
-    />
-  ));
-  if (attendingMeetups.length === 0) {
+  let attendingMeetupsEl = attendingMeetups
+    .filter((meetup) => shouldDisplayMeetup(meetup, showCanceled, showPast))
+    .map((meetup) => (
+      <MeetupCard
+        key={meetup.id}
+        title={meetup.title}
+        time={meetup.time}
+        location={meetup.location}
+        id={meetup.id}
+        owner={meetup.owner}
+        tags={meetup.tags}
+        canceled={meetup.canceled}
+      />
+    ));
+  if (attendingMeetupsEl.length === 0) {
     attendingMeetupsEl = (
       <Typography>
         You are not attending any meetups.{" "}
@@ -123,18 +140,21 @@ function Profile({
     );
   }
 
-  let pendingMeetupsEl = pendingMeetups.map((meetup) => (
-    <MeetupCard
-      key={meetup.id}
-      title={meetup.title}
-      time={meetup.time}
-      location={meetup.location}
-      id={meetup.id}
-      owner={meetup.owner}
-      tags={meetup.tags}
-    />
-  ));
-  if (pendingMeetups.length === 0) {
+  let pendingMeetupsEl = pendingMeetups
+    .filter((meetup) => shouldDisplayMeetup(meetup, showCanceled, showPast))
+    .map((meetup) => (
+      <MeetupCard
+        key={meetup.id}
+        title={meetup.title}
+        time={meetup.time}
+        location={meetup.location}
+        id={meetup.id}
+        owner={meetup.owner}
+        tags={meetup.tags}
+        canceled={meetup.canceled}
+      />
+    ));
+  if (pendingMeetupsEl.length === 0) {
     pendingMeetupsEl = (
       <Typography>
         You don’t have any pending requests.{" "}
@@ -167,6 +187,20 @@ function Profile({
       >
         Your meetups:
       </Typography>
+      <Box display="flex" flexDirection="row" justifyContent="space-between">
+        <FormControlLabel
+          control=<Checkbox
+            onChange={({ target }) => setShowCanceled(target.checked)}
+          />
+          label="Show canceled meetups"
+        />
+        <FormControlLabel
+          control=<Checkbox
+            onChange={({ target }) => setShowPast(target.checked)}
+          />
+          label="Show past meetups"
+        />
+      </Box>
       <TabContext value={tabValue}>
         <AppBar position="static">
           <StyledTabList
