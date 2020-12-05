@@ -321,14 +321,6 @@ function Meetup({ id }) {
             <Grid container direction="column" spacing={3}>
               <Grid item>
                 <Typography variant="body2" className={classes.ownerInterests}>
-                  {eventDetails.owner.interests
-                    ? "Interests: "
-                    : "Interests: none specified"}
-                </Typography>
-                {eventDetails.owner.interests && renderTags(eventDetails.tags)}
-              </Grid>
-              <Grid item>
-                <Typography variant="body2" className={classes.ownerInterests}>
                   {`Contact info: ${
                     eventDetails.owner.contactInfo || "none specified"
                   }`}
