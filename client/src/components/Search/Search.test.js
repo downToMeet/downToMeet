@@ -63,7 +63,7 @@ test("render remote meetups", async () => {
       url: "https://google.com/",
     },
     tags: ["cooking"],
-    time: new Date().toString(),
+    time: new Date().toISOString(),
   };
 
   fetcher.searchForRemoteMeetups.mockImplementation(

@@ -17,6 +17,20 @@ $ yarn
 $ yarn start
 ```
 
+## Generating Test Coverage
+
+In order to generate test coverage in html format, run the following command
+from inside the `client` directory:
+
+```
+$ yarn test --watchAll --coveragePathIgnorePatterns=/src/lib --coveragePathIgnorePatterns=node_modules --coverage --coverageReporters=html
+```
+
+This will generate the test coverage, excluding `node_modules` and the utility
+functions in `/src/lib`. Open `client/coverage/index.html` in your web browser
+to view the test coverage. To view the coverage in the command line instead of as
+HTML, remove `--coverageReporters=html` from the command.
+
 ## Notes
 
 - Be sure to run `yarn` every time there are changes to `package.json`. Usually

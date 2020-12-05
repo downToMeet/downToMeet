@@ -28,7 +28,7 @@ test("renders own profile", () => {
       ownedMeetups={[
         {
           title: "yeet snowballs",
-          time: time.toString(),
+          time: time.toISOString(),
           location: {
             coordinates: {
               lat: 40.3519265,
@@ -44,7 +44,7 @@ test("renders own profile", () => {
       attendingMeetups={[
         {
           title: "eat snowballs",
-          time: time.toString(),
+          time: time.toISOString(),
           location: {
             coordinates: {
               lat: 40.3519265,

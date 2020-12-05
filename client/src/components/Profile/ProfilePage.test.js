@@ -40,7 +40,7 @@ test("renders profile as self", async () => {
       url: "https://google.com/",
     },
     tags: ["swimming"],
-    time: new Date().toString(),
+    time: new Date().toISOString(),
     attendees: [],
     pendingAttendees: [],
   };
@@ -125,7 +125,7 @@ test("renders meetups", async () => {
       url: "https://google.com/",
     },
     tags: ["swimming"],
-    time: meetupDate.toString(),
+    time: meetupDate.toISOString(),
     attendees: [],
     pendingAttendees: [],
   };
@@ -138,7 +138,7 @@ test("renders meetups", async () => {
       url: "https://google.com/",
     },
     tags: ["biking"],
-    time: meetupDate.toString(),
+    time: meetupDate.toISOString(),
     attendees: [me.id],
     pendingAttendees: [],
   };
@@ -151,7 +151,7 @@ test("renders meetups", async () => {
       url: "https://google.com/",
     },
     tags: ["hiking"],
-    time: meetupDate.toString(),
+    time: meetupDate.toISOString(),
     attendees: [],
     pendingAttendees: [me.id],
   };
@@ -167,7 +167,7 @@ test("renders meetups", async () => {
       url: "https://google.com/",
     },
     tags: ["swimming"],
-    time: meetupDate2.toString(),
+    time: meetupDate2.toISOString(),
     attendees: [],
     pendingAttendees: [],
   };
@@ -180,7 +180,7 @@ test("renders meetups", async () => {
       url: "https://google.com/",
     },
     tags: ["biking"],
-    time: meetupDate2.toString(),
+    time: meetupDate2.toISOString(),
     attendees: [me.id],
     pendingAttendees: [],
   };
@@ -193,7 +193,7 @@ test("renders meetups", async () => {
       url: "https://google.com/",
     },
     tags: ["hiking"],
-    time: meetupDate2.toString(),
+    time: meetupDate2.toISOString(),
     attendees: [],
     pendingAttendees: [me.id],
   };

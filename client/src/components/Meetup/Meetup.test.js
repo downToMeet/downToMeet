@@ -29,6 +29,14 @@ test("renders meetup as owner", async () => {
   };
   store.dispatch(updateUserData(owner));
 
+  const pendingAttendee = {
+    id: "44",
+    name: "Connie",
+    profilePic:
+      "https://media-exp1.licdn.com/dms/image/C5603AQHbRHQncMSa8g/profile-displayphoto-shrink_400_400/0/1523924666175?e=1612396800&v=beta&t=Lb0P8os8RruOpQp9b7Rcj28teYWslG4Y5hZj1VgYMxc",
+    createdAt: new Date().toISOString(),
+  };
+
   const meetup = {
     id: "20",
     owner: owner.id,
@@ -37,7 +45,8 @@ test("renders meetup as owner", async () => {
       url: "https://google.com/",
     },
     tags: ["swimming"],
-    time: new Date().toString(),
+    time: new Date().toISOString(),
+    pendingAttendees: [pendingAttendee.id],
   };
 
   fetcher.getMeetup.mockImplementation(
@@ -45,10 +54,19 @@ test("renders meetup as owner", async () => {
   );
 
   fetcher.getUserData.mockImplementation(
-    getMockUserData(new Map([[owner.id, owner]]))
+    getMockUserData(
+      new Map([
+        [owner.id, owner],
+        [pendingAttendee.id, pendingAttendee],
+      ])
+    )
   );
 
-  const { findByText } = render(
+  fetcher.getMeetupAttendees.mockImplementation(
+    getMockMeetupAttendees(new Map([[pendingAttendee.id, pendingAttendee]]))
+  );
+
+  const screen = render(
     <Provider store={store}>
       <MemoryRouter>
         <Meetup id={meetup.id} />
@@ -56,12 +74,16 @@ test("renders meetup as owner", async () => {
     </Provider>
   );
 
-  const online = await findByText(/online/i);
+  const online = await screen.findByText(/online/i);
   expect(online).toBeInTheDocument();
   expect(online.querySelector("a")).toHaveAttribute(
     "href",
     meetup.location.url
   );
+  expect(
+    await screen.findByRole("button", { name: /Edit Meetup/i })
+  ).toBeInTheDocument();
+  expect(await screen.findByText(/connie/i)).toBeInTheDocument();
 });
 
 test("renders meetup as attendee", async () => {
@@ -72,7 +94,7 @@ test("renders meetup as attendee", async () => {
     name: "Tim",
     profilePic:
       "https://avatars1.githubusercontent.com/u/1538624?s=60&u=735bed1f295a88806f5b5b6f033c4eec7fd58fc8&v=4",
-    createdAt: new Date().toString(),
+    createdAt: new Date().toISOString(),
   };
 
   const attendee = {
@@ -80,7 +102,7 @@ test("renders meetup as attendee", async () => {
     name: "Jamie",
     profilePic:
       "https://www.jamieliu.me/static/fced3ea12a7975c757cb2dab494f8761/47498/IMG_0162.jpg",
-    createdAt: new Date().toString(),
+    createdAt: new Date().toISOString(),
   };
 
   const pendingAttendee = {
@@ -88,7 +110,7 @@ test("renders meetup as attendee", async () => {
     name: "Connie",
     profilePic:
       "https://media-exp1.licdn.com/dms/image/C5603AQHbRHQncMSa8g/profile-displayphoto-shrink_400_400/0/1523924666175?e=1612396800&v=beta&t=Lb0P8os8RruOpQp9b7Rcj28teYWslG4Y5hZj1VgYMxc",
-    createdAt: new Date().toString(),
+    createdAt: new Date().toISOString(),
   };
 
   const meetup = {
@@ -99,7 +121,7 @@ test("renders meetup as attendee", async () => {
       url: "https://google.com/",
     },
     tags: ["swimming"],
-    time: new Date().toString(),
+    time: new Date().toISOString(),
     attendees: [attendee.id],
     pendingAttendees: [pendingAttendee.id],
   };
@@ -182,7 +204,7 @@ test("renders meetup as rejected", async () => {
     name: "Tim",
     profilePic:
       "https://avatars1.githubusercontent.com/u/1538624?s=60&u=735bed1f295a88806f5b5b6f033c4eec7fd58fc8&v=4",
-    createdAt: new Date().toString(),
+    createdAt: new Date().toISOString(),
   };
 
   const rejectedAttendee = {
@@ -190,7 +212,7 @@ test("renders meetup as rejected", async () => {
     name: "no one",
     profilePic:
       "https://raw.githubusercontent.com/testing-library/jest-dom/master/other/owl.png",
-    createdAt: new Date().toString(),
+    createdAt: new Date().toISOString(),
   };
 
   const meetup = {
@@ -201,7 +223,7 @@ test("renders meetup as rejected", async () => {
       url: "https://google.com/",
     },
     tags: ["swimming"],
-    time: new Date().toString(),
+    time: new Date().toISOString(),
     rejected: true,
   };
 
