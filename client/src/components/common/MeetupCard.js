@@ -13,6 +13,15 @@ import { useSelector } from "react-redux";
 import { useGoogleMaps } from "./LocationPicker";
 import * as fetcher from "../../lib/fetch";
 
+/**
+ * Meetup information card. Displays main meetup details including:
+ * - title
+ * - location
+ * - time
+ * - tags/interests
+ *
+ * Used to display meetups listed in [Search](#search) and in [Profile](#profile).
+ */
 function MeetupCard({ title, time, location, id, owner, tags }) {
   const [locationString, setLocationString] = useState(null);
   const [joined, setJoined] = useState(false);
@@ -104,18 +113,27 @@ function MeetupCard({ title, time, location, id, owner, tags }) {
 }
 
 MeetupCard.propTypes = {
+  /** Meetup title. */
   title: PropTypes.string.isRequired,
+  /** Meetup time in string format, e.g. `"2020-12-03T23:22:46.056+08:00"`. */
   time: PropTypes.string.isRequired,
+  /** Location of the meetup. For physical locations, only `coordinates` and `name` are defined. For online meetups, only `url` is defined. */
   location: PropTypes.shape({
+    /** object containing latitude and longitude, e.g. `{lat: 34.069107615481094, lon: -118.44521328860678}`. */
     coordinates: PropTypes.shape({
       lat: PropTypes.number,
       lon: PropTypes.number,
     }),
+    /** Name of the location, e.g. `"UCLA"`. May be empty for unnamed locations. */
     name: PropTypes.string,
+    /** Link for online meetups, e.g. `"https://zoom.us/"` */
     url: PropTypes.string,
   }).isRequired,
+  /** `id` of the meetup. Parsed from the URL `/meetup/:id`. */
   id: PropTypes.string.isRequired,
+  /** User `id` of the meetup owner/organizer. */
   owner: PropTypes.string.isRequired,
+  /** Tagged interests of the meetup. */
   tags: PropTypes.arrayOf(PropTypes.string).isRequired,
 };
 

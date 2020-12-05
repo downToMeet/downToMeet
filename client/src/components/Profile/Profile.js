@@ -55,6 +55,13 @@ const StyledTabPanel = withStyles({
   },
 })((props) => <TabPanel {...props} />);
 
+/**
+ * Displays the profile of the user with the corresponding `id`. If the profile is the
+ * current user's own profile, meetups they own, attend, and have requested to attend
+ * are shown as [MeetupCards](#meetupcard). They can also edit their display name and
+ * contact information. If the profile is of another user, only the display name,
+ * profile picture, and join date are shown for privacy reasons.
+ */
 function Profile({
   user,
   editing,
@@ -271,17 +278,43 @@ const meetupType = PropTypes.shape({
 });
 
 Profile.propTypes = {
+  /**
+   * userType: `{ id: <string>, 
+                  name: <string>, 
+                  email: <string>, 
+                  connections: <string[]>, 
+                  contactInfo: <string>, 
+                  profilePic: <string> }`.
+
+   *               
+   * `connections` should contain `"Google"` and/or `"Facebook"` depending on what 
+   * OAuth(s) were used to log in for the user with that `email`. `profilePic` is
+   * a URL to the display picture retrieved from the `connrection` used to sign up.
+   */
   user: userType,
+  /**
+   * Whether the user is editing their display name/contact info.
+   */
   editing: PropTypes.bool.isRequired,
+  /** Setter for `editing`, generated from `useEffect()`. */
   setEditing: PropTypes.func.isRequired,
+  /** Whether the displayed profile belongs to the user. */
   isMe: PropTypes.bool.isRequired,
+  /** Meetups owned by the user, of the form returned by `GET /meetup/:id`. See backend documentation for more details. */
   ownedMeetups: PropTypes.arrayOf(meetupType).isRequired,
+  /** Meetups the user is attending, of the form returned by `GET /meetup/:id`. See backend documentation for more details. */
   attendingMeetups: PropTypes.arrayOf(meetupType).isRequired,
+  /** Meetups the user has requested to attend attending, of the form returned by `GET /meetup/:id`. See backend documentation for more details. */
   pendingMeetups: PropTypes.arrayOf(meetupType).isRequired,
+  /** Updated display name. */
   newName: PropTypes.string,
+  /** Setter for `newName`, generated from `useEffect()`. */
   setNewName: PropTypes.func,
+  /** Updated contact information. */
   newContact: PropTypes.string,
+  /** Setter for `newContact`, generated from `useEffect()`. */
   setNewContact: PropTypes.func,
+  /** Handler for submitting updated display name, contact info. */
   onSubmit: PropTypes.func,
 };
 

@@ -24,6 +24,9 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+/**
+ * Simple login page. Users can log in using either Facebook or Google OAuth.
+ */
 function Login() {
   const classes = useStyles();
   return (
