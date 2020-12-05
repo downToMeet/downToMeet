@@ -72,12 +72,12 @@ function Search() {
         tags,
       });
       if (res.ok) {
-        setMeetups(resJSON);
+        setMeetups(resJSON.filter((meetup) => !meetup.canceled));
       }
     } else {
       const { res, resJSON } = await fetcher.searchForRemoteMeetups(tags);
       if (res.ok) {
-        setMeetups(resJSON);
+        setMeetups(resJSON.filter((meetup) => !meetup.canceled));
       }
     }
   };
