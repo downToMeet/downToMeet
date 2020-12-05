@@ -354,7 +354,7 @@ Profile.propTypes = {
 
 Profile.defaultProps = {
   user: null,
-  editing: null,
+  editing: false,
   setEditing: null,
   newName: null,
   setNewName: null,
