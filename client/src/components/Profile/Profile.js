@@ -278,15 +278,20 @@ Profile.propTypes = {
   ownedMeetups: PropTypes.arrayOf(meetupType).isRequired,
   attendingMeetups: PropTypes.arrayOf(meetupType).isRequired,
   pendingMeetups: PropTypes.arrayOf(meetupType).isRequired,
-  newName: PropTypes.string.isRequired,
-  setNewName: PropTypes.func.isRequired,
-  newContact: PropTypes.string.isRequired,
-  setNewContact: PropTypes.string.isRequired,
-  onSubmit: PropTypes.func.isRequired,
+  newName: PropTypes.string,
+  setNewName: PropTypes.func,
+  newContact: PropTypes.string,
+  setNewContact: PropTypes.func,
+  onSubmit: PropTypes.func,
 };
 
 Profile.defaultProps = {
   user: null,
+  newName: null,
+  setNewName: null,
+  newContact: null,
+  setNewContact: null,
+  onSubmit: null,
 };
 
 export default Profile;

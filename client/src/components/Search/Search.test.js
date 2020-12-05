@@ -83,7 +83,7 @@ test("render remote meetups", async () => {
   expect(radiusSelect).not.toBeInTheDocument();
 
   const autocomplete = screen.getByRole("textbox", {
-    name: /search for your interests/i,
+    name: /look for tags/i,
   });
   expect(autocomplete).toBeInTheDocument();
 

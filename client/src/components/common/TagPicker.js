@@ -18,7 +18,7 @@ export default function TagPicker({ tags, setTags }) {
           {...params}
           required
           variant="outlined"
-          label="Tags"
+          label="Look for tags"
         />
       )}
       style={{ flex: 1 }}
