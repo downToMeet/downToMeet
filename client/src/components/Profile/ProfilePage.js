@@ -5,6 +5,9 @@ import { useSelector } from "react-redux";
 import * as fetcher from "../../lib/fetch";
 import Profile from "./Profile";
 
+/**
+ * Wrapper for [Profile](#profile). Takes care of fetching user and meetup data.
+ */
 function ProfilePage({ id }) {
   const [loaded, setLoaded] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -82,7 +85,7 @@ function ProfilePage({ id }) {
       );
       setLoaded(true);
     })();
-  }, [id]);
+  }, [id, userID]);
 
   if (!loaded) {
     return <Typography>Loading...</Typography>;
@@ -107,6 +110,7 @@ function ProfilePage({ id }) {
 }
 
 ProfilePage.propTypes = {
+  /** User ID. */
   id: PropTypes.string.isRequired,
 };
 

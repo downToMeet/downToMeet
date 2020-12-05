@@ -39,7 +39,18 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-// if id is null, create new meetup, else fetch data for meetup/:id and edit that meetup
+/**
+ * Page for creating or editing meetups, shown on paths `/create` and `/meetup/:id/edit`.
+ * The create meetup view is shown on path `/create`, when `:id` is not given.
+ * The edit view is shown on path `/meetup/:id/edit`, if `:id` is the ID of an existing meetup
+ * and the user is the owner of that meetup. If `id` is provided but the user is not the owner,
+ * they are redirected to the [info page](#meetup) for that meetup. If `id` does not match an
+ * existing meetup, the user is redirected to `/create`. Note: changes to attendee capacity after
+ * meetup creation is not allowed.
+ *
+ * If info for the current user is not found, they are shown the create view with form submission
+ * disabled. If the user is logged in, the correct view will be shown once their data is loaded.
+ */
 function CreateMeetup({ id }) {
   // eslint-disable-next-line prefer-const
   let location = useLocation(); // listed as dependency in useEffect(). refreshes component if user clicks New Meetup while on edit page.
@@ -424,6 +435,10 @@ function CreateMeetup({ id }) {
 }
 
 CreateMeetup.propTypes = {
+  /**
+   * `id` of the meetup, parsed from the route `/meetup/:id/edit`.
+   * Not defined for route `/create`.
+   */
   id: PropTypes.string,
 };
 

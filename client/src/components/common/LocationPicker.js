@@ -79,6 +79,12 @@ export function useGoogleMaps(dependencies) {
   );
 }
 
+/**
+ * A text field where users type the name of a physical location and select from a list of
+ * matching locations found on Google Maps.
+ *
+ * Used to pick meetup location in [CreateMeetup](#createmeetup) and [Search](#search).
+ */
 export default function LocationPicker({
   value,
   setValue,
@@ -219,11 +225,17 @@ export default function LocationPicker({
 }
 
 LocationPicker.propTypes = {
+  /** Location value for physical locations. */
   value: PropTypes.shape({
+    /** Name of the location, e.g. `"UCLA"`. May be empty for unnamed locations. */
     description: PropTypes.string.isRequired,
+    /** An ordered pair `[latitude, longitude]`, e.g. `[ 34.069107615481094, -118.44521328860678]`. */
     coords: PropTypes.arrayOf(PropTypes.number.isRequired).isRequired,
   }),
+  /** Setter for the location value, generated from useEffect(). */
   setValue: PropTypes.func.isRequired,
+  /** Styling for the Autocomplete component (see [Material UI - Autocomplete](https://material-ui.com/components/autocomplete/)).
+   */
   style: PropTypes.objectOf(
     PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired
   ),

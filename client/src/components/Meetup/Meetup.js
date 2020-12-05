@@ -111,6 +111,29 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+/**
+ * Meetup information page. Displays meetup details including:
+ * - title
+ * - time
+ * - location
+ * - number of attendees
+ * - min/max attendee
+ * - tags
+ * - organizer info
+ * - meetup description
+ * - attendees
+ *
+ * This page also provides different actions for different users:
+ * - Owners can review pending attendees and accept/reject them here.
+ *   They can also navigate to `meetup/:id/edit` via the Edit Meetup
+ *   button, where they can modify or cancel the event via the edit view of
+ *   [CreateMeetup](#createmeetup).
+ * - Potential attendees can request to join the meetup or cancel a join request,
+ *   if the meetup is not full and they have not been rejected before.
+ * - Existing attendees can leave the meetup.
+ *
+ * These actions are disabled if the meetup is cancelled.
+ */
 function Meetup({ id }) {
   const classes = useStyles();
 
@@ -650,6 +673,7 @@ function Meetup({ id }) {
 }
 
 Meetup.propTypes = {
+  /** `id` of the meetup. Parsed from the route `/meetup/:id`. */
   id: PropTypes.string.isRequired,
 };
 

@@ -18,7 +18,6 @@ import { clearUserData } from "../../stores/user/actions";
 import * as fetcher from "../../lib/fetch";
 
 const useStyles = makeStyles(() => ({
-  // TODO: mobile scaling
   // TODO: finalize styles (font, color)
   // TODO: add logo?
   root: {
@@ -57,6 +56,16 @@ const PROFILE_PATH = "/user";
 const CREATE_PATH = "/create";
 const LOGIN_PATH = "/login";
 
+/**
+ * Persistent navigation bar displayed throughout the app. At any time throughout the app,
+ * the user can do the following:
+ * - Clicking the DownToMeet title returns the user to the home (search) page.
+ * - Clicking New Meetup will take the user to the [CreateMeetup](#createmeetup) page at `/create`,
+ *   or the [Login](#login) page `/login` if they are not authenticated.
+ * - If the user is authenticated, clicking the avatar will open a popup menu with a link
+ *   to their [Profile](#profile) at `/user/me` and a log out button. If they are not authenticated,
+ *   the button takes them to the [Login](#login) page.
+ */
 function Navbar() {
   const classes = useStyles();
   const [profileMenuAnchor, setProfileMenuAnchor] = useState(null);

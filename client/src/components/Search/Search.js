@@ -16,6 +16,14 @@ import { IN_PERSON, REMOTE } from "../../constants";
 import * as fetcher from "../../lib/fetch";
 import TagPicker from "../common/TagPicker";
 
+/**
+ * Search/home page. Users can choose to search for in-person or remote/online meetups
+ * according to their interests. If in-person meetups are chosen, a
+ * [LocationPicker](#locationpicker) is shown.
+ *
+ * Results are shown as a list of [MeetupCards](#meetupcard). Only meetups that
+ * have not passed and have not been cancelled are returned.
+ */
 function Search() {
   const [error, setError] = useState(null);
   const [tags, setTags] = useState([]);

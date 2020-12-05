@@ -4,6 +4,11 @@ import AutoComplete from "@material-ui/lab/Autocomplete";
 import PropTypes from "prop-types";
 import { tagOptions } from "../../constants";
 
+/**
+ * Dropdown menu for picking interest tags related to a meetup.
+ *
+ * Used to pick meetup tags in [CreateMeetup](#createmeetup) and [Search](#search).
+ */
 export default function TagPicker({ tags, setTags }) {
   return (
     <AutoComplete
@@ -26,6 +31,8 @@ export default function TagPicker({ tags, setTags }) {
 }
 
 TagPicker.propTypes = {
+  /** List of tags picked. */
   tags: PropTypes.arrayOf(PropTypes.string.isRequired).isRequired,
+  /** Setter for `tags`, generated from `useEffect()`. */
   setTags: PropTypes.func.isRequired,
 };
