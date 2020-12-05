@@ -223,27 +223,6 @@ func TestGetMeetupIDNotFound(t *testing.T) {
 	assert.Equal(t, res.Payload.Code, int32(404))
 }
 
-func TestGetMeetupIDCanceled(t *testing.T) {
-	const sessionName = "session"
-	url := new(operations.GetMeetupIDURL)
-	url.ID = TestMeetupCanceled.IDString()
-	req := httptest.NewRequest(http.MethodGet, url.String(), nil)
-	session, err := testImpl.SessionStore().New(req, sessionName)
-	require.NoError(t, err)
-	req = req.WithContext(impl.WithSession(req.Context(), session))
-
-	params := operations.GetMeetupIDParams{
-		HTTPRequest: req,
-		ID:          TestMeetupCanceled.IDString(),
-	}
-
-	raw := testImpl.GetMeetupID(params)
-
-	require.IsType(t, (*operations.GetMeetupIDBadRequest)(nil), raw)
-	res := raw.(*operations.GetMeetupIDBadRequest)
-	assert.Equal(t, res.Payload.Code, int32(400))
-}
-
 func TestGetMeetupIDInvalidUserID(t *testing.T) {
 	const sessionName = "session"
 	url := new(operations.GetMeetupIDURL)
