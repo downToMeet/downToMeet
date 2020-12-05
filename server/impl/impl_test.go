@@ -201,6 +201,10 @@ func TestMain(m *testing.M) {
 	populateDatabase(testImpl)
 
 	errCode := m.Run()
+
+	if actualDBDB, _ := actualDB.DB(); actualDBDB != nil {
+		_ = actualDBDB.Close()
+	}
 	mgrDB.Exec(`DROP DATABASE downtomeet_test`)
 	os.Exit(errCode)
 }

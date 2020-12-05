@@ -218,6 +218,33 @@ func TestImplementation_SessionMiddleware_UpdateExisting(t *testing.T) {
 	assert.Equal(t, userID2, session.Values[UserID])
 }
 
+func TestFunctorResponseWriter_WriteHeader(t *testing.T) {
+	const headerKey = "X-Test"
+	rec := httptest.NewRecorder()
+
+	fn := func(w http.ResponseWriter) {
+		w.Header().Add(headerKey, "?1")
+	}
+	NewFunctorResponseWriter(fn, rec).WriteHeader(http.StatusNoContent)
+
+	assert.Equal(t, "?1", rec.Header().Get(headerKey))
+	assert.Equal(t, http.StatusNoContent, rec.Code)
+}
+
+func TestFunctorResponseWriter_Write(t *testing.T) {
+	const headerKey = "X-Test"
+	rec := httptest.NewRecorder()
+
+	fn := func(w http.ResponseWriter) {
+		w.Header().Add(headerKey, "?1")
+	}
+	_, err := NewFunctorResponseWriter(fn, rec).Write([]byte("hello"))
+	require.NoError(t, err, "writing to recorder")
+
+	assert.Equal(t, "?1", rec.Header().Get(headerKey))
+	assert.Equal(t, http.StatusOK, rec.Code)
+}
+
 // Helpers...
 
 func decodeCookie(t testing.TB, store sessions.Store, cookie *http.Cookie) *sessions.Session {
