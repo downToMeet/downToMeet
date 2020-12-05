@@ -295,6 +295,12 @@ func (i *Implementation) PostMeetup(params operations.PostMeetupParams, _ interf
 	i.modelMeetupToDBMeetup(&dbMeetup, &modelMeetup)
 
 	tx := i.DB().WithContext(ctx)
+	var user db.User
+	if err := tx.First(&user, id).Error; err != nil {
+		logger.WithError(err).Error("Failed to create meetup")
+		return responders.InternalServerError{}
+	}
+	dbMeetup.Attendees = append(dbMeetup.Attendees, &user)
 	if err := tx.Create(&dbMeetup).Error; err != nil {
 		logger.WithError(err).Error("Failed to create meetup")
 		return responders.InternalServerError{}

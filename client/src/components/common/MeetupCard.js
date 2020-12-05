@@ -13,7 +13,24 @@ import { useSelector } from "react-redux";
 import { useGoogleMaps } from "./LocationPicker";
 import * as fetcher from "../../lib/fetch";
 
-function MeetupCard({ title, time, location, id, owner, tags }) {
+function StatusText({ time, canceled }) {
+  if (new Date(time) < new Date()) {
+    return (
+      <Typography variant="h5" component="h2" color="textSecondary">
+        Past
+      </Typography>
+    );
+  }
+  if (canceled) {
+    return (
+      <Typography variant="h5" component="h2" color="error">
+        Canceled
+      </Typography>
+    );
+  }
+}
+
+function MeetupCard({ title, time, location, id, owner, tags, canceled }) {
   const [locationString, setLocationString] = useState(null);
   const [joined, setJoined] = useState(false);
   const userID = useSelector((state) => state.id);
@@ -80,9 +97,16 @@ function MeetupCard({ title, time, location, id, owner, tags }) {
       <CardActionArea component={Link} to={`/meetup/${id}`}>
         <CardContent>
           <Box display="flex" flexDirection="column">
-            <Typography variant="h5" component="h2">
-              {title}
-            </Typography>
+            <Box
+              display="flex"
+              flexDirection="row"
+              justifyContent="space-between"
+            >
+              <Typography variant="h5" component="h2">
+                {title}
+              </Typography>
+              <StatusText time={time} canceled={canceled} />
+            </Box>
             <Typography color="textSecondary">
               when: {new Date(time).toLocaleString(locale, eventTimeOptions)}
             </Typography>
@@ -117,6 +141,20 @@ MeetupCard.propTypes = {
   id: PropTypes.string.isRequired,
   owner: PropTypes.string.isRequired,
   tags: PropTypes.arrayOf(PropTypes.string).isRequired,
+  canceled: PropTypes.bool,
+};
+
+MeetupCard.defaultProps = {
+  canceled: false,
+};
+
+StatusText.propTypes = {
+  time: PropTypes.string.isRequired,
+  canceled: PropTypes.bool,
+};
+
+StatusText.defaultProps = {
+  canceled: false,
 };
 
 export default MeetupCard;

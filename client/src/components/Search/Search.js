@@ -230,6 +230,7 @@ function Search() {
         id={meetup.id}
         owner={meetup.owner}
         tags={meetup.tags}
+        canceled={meetup.canceled}
       />
     ));
     return meetupCards;
