@@ -24,7 +24,7 @@ const geocoderService = { current: null };
 const autocompleteService = { current: null };
 const placesService = { current: null };
 
-if (!googleMapsKey) {
+if (!googleMapsKey && !process.env.IN_TEST) {
   // eslint-disable-next-line no-console
   console.warn(`No Google API key specified.
 Run \`REACT_APP_GOOGLE_MAPS_API_KEY=<api key> yarn start\` to have location-based features work.`);

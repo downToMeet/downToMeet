@@ -329,9 +329,9 @@ Profile.propTypes = {
   /**
    * Whether the user is editing their display name/contact info.
    */
-  editing: PropTypes.bool.isRequired,
+  editing: PropTypes.bool,
   /** Setter for `editing`, generated from `useEffect()`. */
-  setEditing: PropTypes.func.isRequired,
+  setEditing: PropTypes.func,
   /** Whether the displayed profile belongs to the user. */
   isMe: PropTypes.bool.isRequired,
   /** Meetups owned by the user, of the form returned by `GET /meetup/:id`. See backend documentation for more details. */
@@ -354,6 +354,8 @@ Profile.propTypes = {
 
 Profile.defaultProps = {
   user: null,
+  editing: null,
+  setEditing: null,
   newName: null,
   setNewName: null,
   newContact: null,

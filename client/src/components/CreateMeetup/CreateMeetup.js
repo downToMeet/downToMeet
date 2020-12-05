@@ -52,10 +52,8 @@ const useStyles = makeStyles(() => ({
  * disabled. If the user is logged in, the correct view will be shown once their data is loaded.
  */
 function CreateMeetup({ id }) {
-  // eslint-disable-next-line prefer-const
-  let location = useLocation(); // listed as dependency in useEffect(). refreshes component if user clicks New Meetup while on edit page.
-  // eslint-disable-next-line prefer-const
-  let history = useHistory();
+  const location = useLocation(); // listed as dependency in useEffect(). refreshes component if user clicks New Meetup while on edit page.
+  const history = useHistory();
 
   const classes = useStyles();
   const userID = useSelector((state) => state.id);
@@ -295,7 +293,7 @@ function CreateMeetup({ id }) {
     const res = await fetcher.cancelMeetup(id);
     if (res.ok) {
       clearForm();
-      window.location.replace(`/meetup/${id}`);
+      history.replace(`/meetup/${id}`);
     } else {
       setUpdatingMeetup(false);
     }
@@ -323,7 +321,7 @@ function CreateMeetup({ id }) {
     if (res.ok) {
       clearForm();
       // Use location.replace instead of location.href so user cannot navigate back to create screen
-      window.location.replace(`/meetup/${resJSON.id}`);
+      history.replace(`/meetup/${resJSON.id}`);
     }
   };
 
@@ -333,7 +331,7 @@ function CreateMeetup({ id }) {
         <Button
           variant="contained"
           onClick={() => {
-            window.location.replace(`/meetup/${id}`);
+            history.replace(`/meetup/${id}`);
           }}
           disabled={updatingMeetup}
           style={{
@@ -383,11 +381,7 @@ function CreateMeetup({ id }) {
           variant="contained"
           color="primary"
           onClick={
-            !isCancelled
-              ? onSubmit
-              : () => {
-                  window.location.replace(`/meetup/${id}`);
-                }
+            !isCancelled ? onSubmit : () => history.replace(`/meetup/${id}`)
           }
           disabled={!userID || updatingMeetup}
           style={{

@@ -97,3 +97,12 @@ export function searchMockRemoteMeetups(meetups) {
     return { res, resJSON: await res.json() };
   };
 }
+
+export function mockCreateOrEditMeetup() {
+  return async (meetup) => {
+    const res = new Response(JSON.stringify(meetup), {
+      headers: { "Content-Type": "application/json" },
+    });
+    return { res, resJSON: await res.json() };
+  };
+}
