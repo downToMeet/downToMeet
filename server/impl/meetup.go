@@ -137,6 +137,7 @@ func (i *Implementation) GetMeetup(params operations.GetMeetupParams) middleware
 	return operations.NewGetMeetupOK().WithPayload(modelMeetups)
 }
 
+// GetMeetupRemote implements the /meetup/remote
 func (i *Implementation) GetMeetupRemote(params operations.GetMeetupRemoteParams) middleware.Responder {
 	ctx := params.HTTPRequest.Context()
 	logger := log.WithContext(ctx)
@@ -291,10 +292,7 @@ func (i *Implementation) PostMeetup(params operations.PostMeetupParams, _ interf
 	}
 
 	modelMeetup := modelMeetupRequestBodyToModelMeetup(params.Meetup, id.(string))
-	if err := i.modelMeetupToDBMeetup(&dbMeetup, &modelMeetup); err != nil {
-		logger.WithError(err).Error("Failed to create db meetup object")
-		return responders.InternalServerError{}
-	}
+	i.modelMeetupToDBMeetup(&dbMeetup, &modelMeetup)
 
 	tx := i.DB().WithContext(ctx)
 	if err := tx.Create(&dbMeetup).Error; err != nil {
@@ -350,10 +348,7 @@ func (i *Implementation) PatchMeetupID(params operations.PatchMeetupIDParams, _ 
 	}
 
 	modelMeetup := modelMeetupRequestBodyToModelMeetup(params.Meetup, userID)
-	if err := i.modelMeetupToDBMeetup(&dbMeetup, &modelMeetup); err != nil {
-		logger.WithError(err).Error("Failed to create db meetup object")
-		return responders.InternalServerError{}
-	}
+	i.modelMeetupToDBMeetup(&dbMeetup, &modelMeetup)
 
 	if err := i.insertMeetupTagsIntoDB(ctx, &dbMeetup, &modelMeetup); err != nil {
 		logger.WithError(err).Error("Failed to insert meetup tags")
@@ -581,7 +576,7 @@ func (i *Implementation) PatchMeetupIDAttendee(params operations.PatchMeetupIDAt
 	id := session.Values[UserID]
 	attendeeID, err := db.UserIDFromString(params.PatchMeetupAttendeeBody.Attendee)
 	status := params.PatchMeetupAttendeeBody.AttendeeStatus
-	if attendeeID != 0 && err != nil {
+	if err != nil && params.PatchMeetupAttendeeBody.Attendee != "" {
 		logger.Error("Trying to patch an invalid user ID")
 		return responders.InternalServerError{}
 	}
@@ -787,7 +782,7 @@ func (i *Implementation) insertMeetupTagsIntoDB(ctx context.Context, dbMeetup *d
 	return err
 }
 
-func (i *Implementation) modelMeetupToDBMeetup(dbMeetup *db.Meetup, modelMeetup *models.Meetup) error {
+func (i *Implementation) modelMeetupToDBMeetup(dbMeetup *db.Meetup, modelMeetup *models.Meetup) {
 	dbMeetup.Title = modelMeetup.Title
 	dbMeetup.Description = modelMeetup.Description
 	dbMeetup.MaxCapacity = swag.Int64Value(modelMeetup.MaxCapacity)
@@ -810,7 +805,7 @@ func (i *Implementation) modelMeetupToDBMeetup(dbMeetup *db.Meetup, modelMeetup 
 			URL:         modelMeetup.Location.URL,
 		}
 	}
-	return nil
+	return
 }
 
 func modelMeetupRequestBodyToModelMeetup(modelMeetupRequestBody *models.MeetupRequestBody, id string) models.Meetup {
